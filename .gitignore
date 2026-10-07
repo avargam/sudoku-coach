@@ -1,0 +1,32 @@
+# Gradle / Kotlin
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+.kotlin/
+
+# Android
+local.properties
+*.apk
+*.aab
+.cxx/
+captures/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Python (tools/oracle)
+.venv/
+__pycache__/
+*.pyc
+
+# reglib de HoDoKu: material GPL, solo en local (D-09)
+tools/oracle/reglib/
+
+# Datos pesados o privados
+vision/testdata/raw/
+*.tflite.bak
+
+# SO
+.DS_Store

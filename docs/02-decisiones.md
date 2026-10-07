@@ -1,0 +1,111 @@
+# 02 · Decisiones
+
+Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se revisa tras medir), **Pendiente**.
+
+## Resumen
+
+| ID | Decisión | Estado |
+|---|---|---|
+| D-01 | Plataforma: Android | Aceptada |
+| D-02 | Stack: Kotlin nativo | Aceptada |
+| D-03 | Procesamiento 100 % on-device | Aceptada |
+| D-04 | Técnicas hasta nivel avanzado | Aceptada |
+| D-05 | Dígitos impresos + manuscritos | Aceptada |
+| D-06 | Candidatos no se leen del papel; se calculan | Aceptada |
+| D-07 | Detección de tablero: contorno + homografía (OpenCV), Hough como respaldo | Provisional |
+| D-08 | Reconocimiento: ML Kit para el MVP, CNN propia en LiteRT como objetivo | Provisional |
+| D-09 | Motor de técnicas propio en Kotlin; HoDoKu como oráculo de pruebas | Provisional |
+| D-10 | Licencia: Apache-2.0; repositorio privado hasta la Fase 7 | Aceptada |
+| D-11 | Estructura multi-módulo con `solver` en Kotlin/JVM puro | Aceptada |
+| D-12 | Diseño visual: minimalista monocromo con acento azul | Aceptada |
+| D-13 | Orden de técnicas alineado con HoDoKu, configurable | Aceptada |
+| D-14 | `Step` estructurado; los textos se componen en la app | Aceptada |
+| D-15 | Entorno: JDK 21 en WSL + Gradle wrapper; Android Studio en Windows | Aceptada |
+
+---
+
+## D-01 · Plataforma: Android
+Solo Android en v1. Evita el coste de mantener dos bases de código y permite concentrarse en el pipeline.
+
+## D-02 · Stack: Kotlin nativo
+Acceso directo a CameraX, OpenCV para Android, ML Kit y LiteRT. Se descartó Flutter/React Native por ser el pipeline de visión el centro del proyecto.
+
+## D-03 · Procesamiento 100 % en el dispositivo
+Funciona sin conexión, es más privado y sin costes de servidor. Contrapartida: más trabajo de integración y modelos pequeños.
+
+## D-04 · Técnicas hasta nivel avanzado
+El catálogo objetivo cubre singles, subconjuntos, intersecciones, fish, wings, unicidad y cadenas. Se implementan por familias, de la más simple a la más compleja.
+
+## D-05 · Dígitos impresos y manuscritos
+El reconocedor debe manejar ambos. Esto desfavorece a un OCR genérico y favorece una CNN entrenada con dataset mixto.
+
+## D-06 · Candidatos calculados, no leídos
+El usuario no anota candidatos; la app los deriva de los dígitos. Simplifica mucho el reconocimiento. Consecuencia: las pistas suponen un solucionador que mantiene candidatos completos.
+
+## D-07 · Detección del tablero (provisional)
+Contorno mayor con 4 esquinas + homografía con OpenCV. Se añade validación geométrica (cuadrado, área mínima, rejilla 9×9). Si falla en fotos reales, se incorpora Hough lines como respaldo. Limitaciones conocidas del enfoque: falla si hay una forma mayor que el tablero y si el tablero está rotado más de ~45°.
+
+## D-08 · Reconocimiento de dígitos (provisional)
+- **MVP**: ML Kit Text Recognition v2 sobre el tablero rectificado (dígitos de al menos 16×16 px).
+- **Objetivo**: CNN propia con LiteRT (antes TensorFlow Lite), 10 clases (vacía + 1–9), entrenada con dataset sintético de fuentes + MNIST + fotos propias.
+- Ambos detrás de una interfaz `DigitRecognizer`, de modo que el reemplazo no toque el resto.
+- Criterio de revisión: comparar ambos sobre un conjunto de fotos propias etiquetadas.
+
+## D-09 · Motor de técnicas (provisional)
+Implementación propia en Kotlin, sin portar el núcleo de HoDoKu, usando `hodoku-py` (port en Python de HoDoKu 2.2.0, GPL-3.0) **solo como oráculo** de pruebas. Razones: aprendizaje, sin acoplamiento a su GUI, salida estructurada pensada para la UI y libertad de licencia. Alternativa descartada por ahora: embeber el núcleo de HoDoKu (GPL-3.0).
+
+Uso concreto de `hodoku-py`:
+- **Generador** del banco de puzzles de prueba, clasificados por dificultad. Los puzzles generados son datos, no código GPL, y se versionan.
+- **Pasos esperados**: un script local exporta a JSON el camino de resolución de HoDoKu y se versiona. La CI solo ejecuta `./gradlew :solver:test`, sin Python.
+- **reglib** (la suite de regresión de HoDoKu, un tablero por técnica): se descarga y se usa solo en local. No se copia al repositorio porque es material GPL.
+
+## D-10 · Licencia: Apache-2.0
+Licencia permisiva con cláusula de patentes, habitual en el ecosistema Android/Kotlin. Consecuencia: **no se puede copiar ni portar código de HoDoKu ni de `hodoku-py`** al repositorio; solo se usan como herramienta externa. El repositorio vive en GitHub en modo **privado** y se hace público en la Fase 7.
+
+## D-11 · Estructura multi-módulo
+`solver` es Kotlin/JVM puro (sin dependencias de Android) para poder probarlo con JUnit rápido y sin emulador. `vision` y `app` dependen de él, no al revés.
+
+## D-12 · Diseño visual
+Estilo **minimalista monocromo**: el tablero es lo principal y un único color de acento (**azul**) señala todo lo relacionado con la pista. Detalle en `03-diseno.md` §5.3.
+
+- **Paleta propia fija**, sin Dynamic Color (Material You), para garantizar el contraste de los resaltados.
+- **Modo claro y oscuro desde la Fase 3** (tokens definidos para ambos desde el inicio).
+- **Pantalla de pista**: tablero a todo el ancho y explicación en un *bottom sheet*.
+- **Resaltado con un solo acento y variaciones**: relleno suave para las celdas del patrón, acento sólido para el dígito a colocar, candidatos eliminados tachados en gris.
+- **Pistas impresas en negrita, dígitos del usuario en peso regular** (requiere que `vision` clasifique el origen; mientras no exista, todos se muestran igual).
+- **Revelado gradual por niveles**: técnica → celdas implicadas → resultado y explicación.
+- **Candidatos**: solo se muestran los de las celdas implicadas en el paso.
+- **Escáner** con cámara a pantalla completa, contorno del tablero en el acento y captura automática al estabilizarse.
+- **Revisión** con teclado numérico fijo (1–9 + borrar) y celdas sospechosas con borde punteado de acento y un contador navegable.
+
+Razones: legibilidad, accesibilidad (el azul es distinguible para la mayoría de los tipos de daltonismo) y un coste de diseño acotado. Riesgo conocido: en cadenas y coloración (nivel 7) un solo acento puede no bastar para separar el patrón de las eliminaciones; se valorará un segundo tono de azul o distintos estilos de línea.
+
+## D-13 · Orden de técnicas alineado con HoDoKu
+El `HintEngine` prueba las técnicas en el **mismo orden que la configuración por defecto de HoDoKu** (`SolverConfig` de `hodoku-py`). Así el oráculo puede comparar paso a paso qué técnica se elige. El orden es una lista inyectable en el `HintEngine` (configurable).
+
+Consecuencias:
+- Se añaden **Full House**, **Locked Pair** y **Locked Triple**, que existen en HoDoKu y no estaban en el catálogo.
+- El **orden del motor** y la **categoría pedagógica** que se muestra al usuario (`03-diseno.md` §3.2) son cosas distintas. En las técnicas de la Fase 1 coinciden, pero más adelante HoDoKu intercala familias (por ejemplo, Remote Pair y BUG+1 antes que Skyscraper o las wings). Las categorías siguen las de HoDoKu (`SolutionCategory`); por ejemplo, Locked Pair y Locked Triple son intersecciones, no subconjuntos.
+- El orden de referencia está anotado en `tools/oracle/README.md`, extraído de `SolverConfig` de `hodoku-py` 0.2.1.
+- Cuando varias instancias de una misma técnica son posibles, no se exige elegir la misma que HoDoKu; basta con que el paso propio esté entre los que HoDoKu encuentra para esa técnica en ese estado.
+
+## D-14 · `Step` estructurado; los textos se componen en la app
+El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (con su categoría), las celdas, unidades y dígitos del patrón, la colocación y las eliminaciones. La app compone la explicación con recursos de Android (traducibles, con formato). El `solver` solo ofrece una descripción técnica para depurar y para los mensajes de los tests. Consecuencia: la tarea "textos de explicación en español" pasa de la Fase 1 a la Fase 3.
+
+## D-15 · Entorno de desarrollo
+- **WSL2 (Ubuntu)**: `openjdk-21-jdk` instalado con apt y **Gradle wrapper** versionado (`./gradlew`); Gradle global solo se usa una vez para generar el wrapper. El `solver` compila a bytecode JVM 17 para que Android lo pueda usar.
+- **Android Studio en Windows** (emulador y USB sin trucos). Durante las Fases 0 y 1 el repositorio vive en WSL (`~/sudoku-coach`). Al empezar la Fase 2 se decide si Android Studio lo abre vía `\\wsl$` o si se trabaja con un clon en Windows.
+- **CI**: GitHub Actions con `./gradlew :solver:test`.
+
+---
+
+## Preguntas abiertas
+
+- ¿Qué orden de técnicas usar al elegir "el siguiente paso"? Propuesta: el orden de dificultad de la sección 3 del diseño, configurable.
+- Dataset de entrenamiento: ¿cuántas fotos propias se pueden recopilar y etiquetar?
+- ¿Cómo se distinguen patrón y eliminaciones en cadenas/coloración con un solo acento? (ver D-12)
+
+### Resueltas
+
+- ~~¿Se distingue visualmente entre pista impresa y dígito del usuario?~~ Sí, por peso tipográfico (D-12).
+- ~~¿Se ofrece un modo "mostrar solo la técnica" antes de revelar las celdas exactas?~~ Sí, revelado gradual por niveles (D-12).

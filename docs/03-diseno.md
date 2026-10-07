@@ -1,0 +1,200 @@
+# 03 · Outline del diseño
+
+## 1. Visión general
+
+```
+Cámara (CameraX)
+   │
+   ▼
+Detección del tablero ──► Corrección de perspectiva (homografía) ──► 81 celdas
+   │                                                                   │
+   │                                                                   ▼
+   │                                                        Reconocimiento de dígitos
+   │                                                                   │
+   │                                                                   ▼
+   │                                                  Validación + revisión/corrección
+   │                                                                   │
+   │                                                                   ▼
+   │                                                  Motor de técnicas (solver)
+   │                                                                   │
+   ▼                                                                   ▼
+Overlay sobre imagen en vivo  ◄──────────────  Paso: técnica + celdas + explicación
+(homografía inversa)
+```
+
+## 2. Módulos
+
+| Módulo | Tipo | Responsabilidad | Depende de |
+|---|---|---|---|
+| `solver` | Kotlin/JVM puro | Modelo del tablero, candidatos, técnicas, motor de pistas | — |
+| `vision` | Android library | Detección del tablero, rectificación, segmentación de celdas, reconocimiento | OpenCV, ML Kit, LiteRT |
+| `app` | Android app | Cámara, pantallas, overlay, orquestación | `vision`, `solver` |
+
+Regla: `solver` nunca depende de Android ni de `vision`.
+
+## 3. Módulo `solver`
+
+### 3.1 Modelo
+
+- `Grid`: 81 valores (`0` = vacía) y 81 máscaras de candidatos (bit *d* = candidato *d*).
+- `Units`: 27 unidades (9 filas, 9 columnas, 9 cajas) y pares de cada celda.
+- `Step`: resultado de una técnica.
+
+```kotlin
+enum class Category { SINGLES, INTERSECTIONS, SUBSETS, FISH, WINGS, UNIQUENESS, CHAINS }
+
+enum class TechniqueId(val category: Category) {
+    FULL_HOUSE(SINGLES), NAKED_SINGLE(SINGLES), HIDDEN_SINGLE(SINGLES),
+    LOCKED_PAIR(INTERSECTIONS), LOCKED_TRIPLE(INTERSECTIONS),
+    LOCKED_CANDIDATES_POINTING(INTERSECTIONS), LOCKED_CANDIDATES_CLAIMING(INTERSECTIONS),
+    NAKED_PAIR(SUBSETS), NAKED_TRIPLE(SUBSETS), HIDDEN_PAIR(SUBSETS),
+    HIDDEN_TRIPLE(SUBSETS), NAKED_QUAD(SUBSETS), HIDDEN_QUAD(SUBSETS),
+    // ... se amplía por familias
+}
+
+data class Step(
+    val technique: TechniqueId,
+    val highlight: List<Int>,            // celdas que forman el patrón
+    val units: List<Int>,                // unidades implicadas (0..26), p. ej. la columna del par
+    val digits: List<Int>,               // dígitos del patrón, p. ej. {1, 3} en un Naked Pair
+    val placement: Placement?,           // dígito a colocar (si aplica)
+    val eliminations: List<Elimination>, // candidatos a eliminar (si aplica)
+)
+```
+
+La UI solo dibuja un `Step`; no conoce ninguna técnica concreta, salvo para elegir la plantilla de texto de cada `TechniqueId` (D-14). El `solver` no genera frases; solo ofrece `Step.describe()`, una descripción técnica para depurar y para los mensajes de los tests.
+
+### 3.2 Técnicas y orden
+
+Cada técnica implementa `Technique.find(grid): Step?`. El `HintEngine` recibe una lista ordenada de técnicas y devuelve el primer paso encontrado. El orden por defecto es el de HoDoKu (D-13), que en niveles avanzados intercala familias; el **nivel** de la tabla es la categoría pedagógica que ve el usuario ("NIVEL 3 · SUBCONJUNTOS"), no el orden del motor.
+
+| Nivel | Categoría | Técnicas | Fase | Estado |
+|---|---|---|---|---|
+| 1 | Singles | Full House, Naked Single, Hidden Single | 1 | 🟨 faltan Full House y la migración a `TechniqueId` |
+| 2 | Intersecciones | Locked Pair/Triple, Locked Candidates: Pointing (tipo 1) y Claiming (tipo 2) | 1 | ⬜ |
+| 3 | Subconjuntos | Naked/Hidden Pair, Triple, Quad | 1 | ⬜ |
+
+Orden del motor en la Fase 1 (el de HoDoKu): Full House → Naked Single → Hidden Single → Locked Pair → Locked Triple → Locked Candidates 1 (Pointing) → Locked Candidates 2 (Claiming) → Naked Pair → Naked Triple → Hidden Pair → Hidden Triple → Naked Quad → Hidden Quad.
+| 4 | Fish | X-Wing, Swordfish, Jellyfish | 6 | ⬜ |
+| 5 | Wings | XY-Wing, XYZ-Wing, W-Wing | 6 | ⬜ |
+| 6 | Unicidad | Unique Rectangle (requiere unicidad) | 6 | ⬜ |
+| 7 | Cadenas | Coloración simple, cadenas | 6 | ⬜ |
+
+### 3.3 Verificación
+
+- Tests unitarios por técnica con tableros construidos a propósito.
+- Test de consistencia: todo paso devuelto es compatible con la solución única (comprobado contra un backtracking de referencia).
+- Contraste contra `hodoku-py` (ver `tools/oracle/` y D-09): banco de puzzles generado y pasos esperados exportados a JSON y versionados; los tests de Kotlin los leen sin necesitar Python.
+- reglib de HoDoKu: test opcional en local; se omite si los datos no están descargados.
+
+## 4. Módulo `vision`
+
+### 4.1 Detección y rectificación
+
+1. Escala de grises, desenfoque suave, umbral adaptativo.
+2. Contornos; seleccionar el mayor aproximable a cuadrilátero convexo.
+3. Validar: relación de aspecto ≈ 1, área mínima, rejilla 9×9 verificable.
+4. Homografía a un cuadrado (≥ 360×360 px; propuesta 450×450 → celdas de 50 px).
+5. Respaldo: Hough lines con filtrado de equiespaciado.
+
+### 4.2 Segmentación de celdas
+
+- Dividir en 81 celdas y recortar un margen (≈ 10 %) para eliminar las líneas de la rejilla.
+- Detectar celda vacía por proporción de píxeles de tinta en el centro, antes de invocar al reconocedor.
+
+### 4.3 Reconocimiento
+
+```kotlin
+interface DigitRecognizer {
+    fun recognize(cell: Bitmap): Prediction   // dígito 0..9 + confianza
+}
+```
+
+Implementaciones previstas: `MlKitDigitRecognizer` (MVP) y `TfLiteDigitRecognizer` (CNN en LiteRT).
+
+### 4.4 Robustez
+
+- **Votación multi-frame**: una celda se acepta tras N lecturas iguales consecutivas.
+- **Validación de reglas**: duplicados en fila/columna/caja marcan celdas sospechosas.
+- **Confianza por celda**: por debajo de un umbral, se pide confirmación.
+- **Unicidad**: backtracking rápido para verificar solución única antes de usar técnicas que la asumen.
+
+## 5. Módulo `app`
+
+### 5.1 Pantallas
+
+1. **Escáner**: cámara a pantalla completa; el contorno del tablero detectado se dibuja en el acento y la captura es automática cuando la lectura se estabiliza (votación multi-frame). Botones secundarios: cerrar, flash, elegir de galería; disparador manual como respaldo.
+2. **Revisión**: tablero reconocido y editable. Tocar una celda la selecciona; debajo hay un teclado numérico fijo (1–9 + borrar). Las celdas sospechosas llevan borde punteado de acento y un aviso "N celdas por revisar" salta entre ellas. Botón "Ver pista".
+3. **Pista**: tablero a todo el ancho y un *bottom sheet* con la técnica, la explicación y los botones. El revelado es gradual (ver §5.3). Botones "Aplicar paso" y "Siguiente".
+4. *(Posterior)* **Overlay en vivo** dibujado sobre la cámara mediante la homografía inversa.
+
+### 5.2 Estado
+
+Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board) → ShowingHint(board, step, revealLevel)`.
+
+`board` incluye, además de los valores, el origen de cada dígito (`GIVEN` impreso / `USER` manuscrito / `UNKNOWN`) y las celdas sospechosas. `revealLevel` va de 1 a 3.
+
+### 5.3 Diseño visual (D-12)
+
+**Estilo**: minimalista monocromo. El tablero es lo principal; un único acento azul marca todo lo que tiene que ver con la pista. Paleta propia (sin Dynamic Color) y modo claro y oscuro desde el inicio.
+
+**Tokens de color**
+
+| Token | Claro | Oscuro | Uso |
+|---|---|---|---|
+| `background` | `#FFFFFF` | `#0F0F10` | Fondo de pantalla |
+| `surface` | `#F4F4F5` | `#1A1A1C` | Bottom sheet, teclado |
+| `ink` | `#111111` | `#EDEDED` | Dígitos, texto, líneas gruesas de caja |
+| `inkMuted` | `#6B6B6F` | `#9A9A9F` | Texto secundario, candidatos eliminados |
+| `gridLine` | `#D4D4D8` | `#34343A` | Líneas finas entre celdas |
+| `accent` | `#1F5FD1` | `#6EA0FF` | Colocación, contornos, celdas sospechosas, botón principal |
+| `accentSoft` | `#E3ECFB` | `#1C2B47` | Relleno de celdas del patrón y de la celda seleccionada |
+| `onAccent` | `#FFFFFF` | `#0F0F10` | Texto sobre el acento |
+
+**Tipografía**: una sola familia sans con cifras tabulares (IBM Plex Sans, licencia OFL; se incluye en la app como fuente descargable o empaquetada). Pistas impresas en **negrita** (`ink`), dígitos del usuario en peso regular (`ink`, algo más ligeros). Si el origen es `UNKNOWN`, todos los dígitos se muestran en peso regular.
+
+**Lenguaje del resaltado** (un acento con variaciones)
+
+| Elemento del `Step` | Representación |
+|---|---|
+| `highlight` (celdas del patrón) | Relleno `accentSoft` |
+| `placement` | Dígito en `accent`, celda con contorno `accent` |
+| `eliminations` | Candidato en `inkMuted` tachado |
+| Candidatos relevantes | Mini-rejilla 3×3 solo en las celdas implicadas; el resto del tablero queda limpio |
+
+**Maqueta**: lienzo con las tres pantallas en claro y oscuro: <https://claude.ai/artifact/RBrWurNUeeJH8y5QJqf7aZ>.
+
+**Revelado gradual** (los niveles salen directamente de los campos de `Step`):
+
+1. **Técnica**: solo el nombre (`technique`) y su nivel; el tablero no cambia.
+2. **Dónde**: se rellenan las celdas de `highlight` y aparecen sus candidatos.
+3. **Qué**: se muestran `placement` y `eliminations`, y se despliega `explanation`.
+
+El *bottom sheet* tiene un botón "Mostrar más" que sube de nivel; en el nivel 3 aparecen "Aplicar paso" y "Siguiente".
+
+**Riesgo abierto**: en cadenas y coloración (nivel 7) puede hacer falta un segundo tono de acento o distinguir enlaces fuertes y débiles con líneas continuas o discontinuas.
+
+## 6. Datos para el reconocimiento
+
+- **Sintético**: dígitos 1–9 renderizados con muchas fuentes, con ruido, desenfoque, rotaciones y cambios de contraste.
+- **MNIST** para variedad manuscrita.
+- **Propio**: fotos reales de los sudokus del usuario, celdas etiquetadas.
+- Clase extra "vacía".
+
+## 7. Pruebas
+
+| Nivel | Qué | Cómo |
+|---|---|---|
+| Unidad | Técnicas del solver | JUnit/Kotlin test, sin Android |
+| Propiedad | Pasos compatibles con la solución | Backtracking de referencia |
+| Oráculo | Mismas técnicas que HoDoKu | `hodoku-py` en `tools/oracle` |
+| Visión | Detección y OCR sobre fotos etiquetadas | Conjunto `vision/testdata` + métricas |
+| Instrumentadas | Flujo completo en dispositivo | Android instrumented tests |
+
+## 8. Referencias
+
+- HoDoKu: <https://hodoku.sourceforge.net/en/docs_intro.php>
+- hodoku-py (port de HoDoKu con API de pistas): <https://pypi.org/project/hodoku-py/>
+- KyouyamaKazusa/Sudoku (SDK de técnicas en C#): <https://github.com/kyoyama-kazusa/Sudoku>
+- Ejemplo OpenCV + ML Kit para Android: <https://github.com/hypertensiune/android-sudoku-solver-ocr>
+- LiteRT samples (clasificación de dígitos MNIST): <https://github.com/google-ai-edge/litert-samples>
