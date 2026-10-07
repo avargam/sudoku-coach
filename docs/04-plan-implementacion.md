@@ -11,8 +11,8 @@ El detalle de las Fases 0 y 1 (tareas, orden y criterios de cada una) está en [
 - [x] `git init`
 - [x] Decidir licencia (D-10: Apache-2.0)
 - [x] JDK 21 en WSL y Gradle wrapper (D-15)
-- [ ] Archivo `LICENSE`, primer commit y repositorio remoto privado en GitHub
-- [ ] CI básico (GitHub Actions: `./gradlew :solver:test`)
+- [x] Archivo `LICENSE`, primer commit y repositorio remoto privado en GitHub
+- [x] CI básico (GitHub Actions: `./gradlew :solver:test`)
 - [x] Configurar `tools/oracle` (Python + `hodoku-py`)
 
 ## Fase 1 · Motor lógico (`solver`)
