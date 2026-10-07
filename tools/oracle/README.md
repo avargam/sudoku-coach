@@ -55,8 +55,29 @@ Para regenerar la lista completa:
 python -c "from hodoku.config import DEFAULT_CONFIG as C; [print(s.solution_type.name, s.category.name) for s in C.solver_steps]"
 ```
 
+## Banco de puzzles
+
+`generate_bank.py` genera el banco → `solver/src/test/resources/bank/` (versionado). Con los valores por defecto (100 por grupo, semilla 2026) tarda ~1,5 min en 12 núcleos y es reproducible: cada puzzle usa su propia semilla.
+
+```bash
+python generate_bank.py --per-group 100 --seed 2026
+```
+
+Resultado actual: 5749 intentos, 1130 no resolubles solo con la Fase 1. Puzzles del banco que usan cada técnica:
+
+| Técnica | Puzzles | | Técnica | Puzzles |
+|---|---|---|---|---|
+| FULL_HOUSE | 300 | | NAKED_PAIR | 71 |
+| NAKED_SINGLE | 300 | | NAKED_TRIPLE | 27 |
+| HIDDEN_SINGLE | 284 | | HIDDEN_PAIR | 9 |
+| LOCKED_PAIR | 48 | | HIDDEN_TRIPLE | 2 |
+| LOCKED_TRIPLE | 7 | | NAKED_QUADRUPLE | 1 |
+| LOCKED_CANDIDATES_1 | 160 | | HIDDEN_QUADRUPLE | 0 |
+| LOCKED_CANDIDATES_2 | 54 | | | |
+
+Las técnicas raras (tríos ocultos y cuartetos) no se fuerzan en el banco: se cubren con tableros construidos en sus tests unitarios y con reglib.
+
 ## Scripts previstos (Fase 1)
 
-- `generate_bank.py`: genera el banco de puzzles → `solver/src/test/resources/bank/` (versionado).
 - `export_steps.py`: exporta los pasos de HoDoKu → `solver/src/test/resources/oracle/` (versionado; la CI no necesita Python).
 - `fetch_reglib.py`: descarga *reglib* en `reglib/` (solo local).
