@@ -23,12 +23,13 @@ object Units {
     fun row(cell: Int) = cell / 9
     fun col(cell: Int) = cell % 9
 
-    /** Nombre legible de una celda, p. ej. "F3C7" (fila 3, columna 7). */
+    /** Nombre corto de una celda para depurar, p. ej. "F3C7" (fila 3, columna 7). */
     fun cellName(cell: Int) = "F${row(cell) + 1}C${col(cell) + 1}"
 
+    /** Nombre corto de una unidad para depurar, p. ej. "columna 1". No es texto para el usuario (D-14). */
     fun unitName(unit: Int): String = when (unit) {
-        in 0..8 -> "la fila ${unit + 1}"
-        in 9..17 -> "la columna ${unit - 8}"
-        else -> "la caja ${unit - 17}"
+        in 0..8 -> "fila ${unit + 1}"
+        in 9..17 -> "columna ${unit - 8}"
+        else -> "caja ${unit - 17}"
     }
 }
