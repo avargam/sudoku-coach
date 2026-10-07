@@ -70,7 +70,7 @@ Cada técnica implementa `Technique.find(grid): Step?`. El `HintEngine` recibe u
 
 | Nivel | Categoría | Técnicas | Fase | Estado |
 |---|---|---|---|---|
-| 1 | Singles | Full House, Naked Single, Hidden Single | 1 | 🟨 faltan Full House y la migración a `TechniqueId` |
+| 1 | Singles | Full House, Naked Single, Hidden Single | 1 | 🟨 falta Full House |
 | 2 | Intersecciones | Locked Pair/Triple, Locked Candidates: Pointing (tipo 1) y Claiming (tipo 2) | 1 | ⬜ |
 | 3 | Subconjuntos | Naked/Hidden Pair, Triple, Quad | 1 | ⬜ |
 
@@ -168,7 +168,7 @@ Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board)
 
 1. **Técnica**: solo el nombre (`technique`) y su nivel; el tablero no cambia.
 2. **Dónde**: se rellenan las celdas de `highlight` y aparecen sus candidatos.
-3. **Qué**: se muestran `placement` y `eliminations`, y se despliega `explanation`.
+3. **Qué**: se muestran `placement` y `eliminations`, y se despliega la explicación que la app compone a partir del `Step` (D-14).
 
 El *bottom sheet* tiene un botón "Mostrar más" que sube de nivel; en el nivel 3 aparecen "Aplicar paso" y "Siguiente".
 
