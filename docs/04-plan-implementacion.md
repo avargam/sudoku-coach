@@ -20,7 +20,7 @@ El detalle de las Fases 0 y 1 (tareas, orden y criterios de cada una) está en [
 Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subconjuntos (niveles 1–3).
 
 - [x] `Step` estructurado con `TechniqueId` y categoría (D-14)
-- [ ] Backtracking de referencia + comprobación de unicidad
+- [x] Backtracking de referencia + comprobación de unicidad
 - [ ] Banco de puzzles generado con `hodoku-py`
 - [ ] Test de propiedad: todo paso es compatible con la solución
 - [ ] Full House
