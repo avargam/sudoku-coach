@@ -6,11 +6,16 @@ const val ALL_CANDIDATES = 0x3FE
 /**
  * Estado inmutable del tablero: valores colocados y máscaras de candidatos.
  * `values[i] == 0` indica celda vacía.
+ *
+ * Los candidatos se pueden pasar explícitamente (p. ej. para reproducir un estado de HoDoKu con
+ * eliminaciones acumuladas) o calcular a partir de los valores con [fromValues].
  */
 class Grid(val values: IntArray, val candidates: IntArray) {
 
     init {
         require(values.size == 81 && candidates.size == 81) { "El tablero debe tener 81 celdas" }
+        require(values.all { it in 0..9 }) { "Los valores deben estar entre 0 y 9" }
+        require(candidates.all { it and ALL_CANDIDATES.inv() == 0 }) { "Las máscaras solo admiten los bits 1..9" }
     }
 
     fun isEmpty(cell: Int) = values[cell] == 0
@@ -18,6 +23,9 @@ class Grid(val values: IntArray, val candidates: IntArray) {
     fun hasCandidate(cell: Int, digit: Int) = candidates[cell] and (1 shl digit) != 0
 
     fun isSolved() = values.all { it != 0 }
+
+    /** Candidatos de una celda en orden ascendente. */
+    fun candidatesOf(cell: Int): List<Int> = (1..9).filter { hasCandidate(cell, it) }
 
     /** Aplica un paso y devuelve un tablero nuevo. */
     fun apply(step: Step): Grid {
@@ -34,6 +42,13 @@ class Grid(val values: IntArray, val candidates: IntArray) {
 
     /** Representación de 81 caracteres ('.' = vacía). */
     fun toText(): String = values.joinToString("") { if (it == 0) "." else it.toString() }
+
+    override fun equals(other: Any?): Boolean =
+        other is Grid && values.contentEquals(other.values) && candidates.contentEquals(other.candidates)
+
+    override fun hashCode(): Int = 31 * values.contentHashCode() + candidates.contentHashCode()
+
+    override fun toString(): String = toText()
 
     companion object {
         /** Crea un tablero a partir de 81 caracteres; '0', '.' o '_' son celdas vacías. */

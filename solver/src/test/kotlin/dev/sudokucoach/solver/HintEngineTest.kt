@@ -1,5 +1,7 @@
 package dev.sudokucoach.solver
 
+import dev.sudokucoach.solver.techniques.HiddenSingle
+import dev.sudokucoach.solver.techniques.NakedSingle
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -49,11 +51,27 @@ class HintEngineTest {
 
         for (step in steps) {
             val p = assertNotNull(step.placement)
-            assertEquals(solution[p.cell] - '0', p.digit, "${step.technique} dio un paso incorrecto")
+            assertEquals(solution[p.cell] - '0', p.digit, "Paso incorrecto: ${step.describe()}")
             grid = grid.apply(step)
         }
         assertTrue(grid.isSolved())
         assertEquals(solution, grid.toText())
+    }
+
+    @Test
+    fun `los singles rellenan tecnica, unidad y digitos`() {
+        val grid = Grid.parse(puzzle)
+        val naked = assertNotNull(NakedSingle.find(grid))
+        val nakedPlacement = assertNotNull(naked.placement)
+        assertEquals(TechniqueId.NAKED_SINGLE, naked.technique)
+        assertEquals(listOf(nakedPlacement.digit), naked.digits)
+        assertEquals(listOf(nakedPlacement.cell), naked.highlight)
+
+        val hidden = assertNotNull(HiddenSingle.find(grid))
+        val hiddenPlacement = assertNotNull(hidden.placement)
+        assertEquals(TechniqueId.HIDDEN_SINGLE, hidden.technique)
+        assertEquals(1, hidden.units.size)
+        assertTrue(hiddenPlacement.cell in Units.units[hidden.units.single()])
     }
 
     @Test

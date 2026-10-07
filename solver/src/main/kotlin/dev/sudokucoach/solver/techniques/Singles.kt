@@ -4,11 +4,12 @@ import dev.sudokucoach.solver.Grid
 import dev.sudokucoach.solver.Placement
 import dev.sudokucoach.solver.Step
 import dev.sudokucoach.solver.Technique
+import dev.sudokucoach.solver.TechniqueId
 import dev.sudokucoach.solver.Units
 
 /** Una celda vacía con un único candidato posible. */
 object NakedSingle : Technique {
-    override val name = "Naked Single"
+    override val id = TechniqueId.NAKED_SINGLE
 
     override fun find(grid: Grid): Step? {
         for (cell in 0 until 81) {
@@ -17,11 +18,10 @@ object NakedSingle : Technique {
             if (Integer.bitCount(mask) == 1) {
                 val digit = Integer.numberOfTrailingZeros(mask)
                 return Step(
-                    technique = name,
+                    technique = id,
                     highlight = listOf(cell),
+                    digits = listOf(digit),
                     placement = Placement(cell, digit),
-                    explanation = "En ${Units.cellName(cell)} solo cabe el $digit: " +
-                        "los demás dígitos ya aparecen en su fila, columna o caja.",
                 )
             }
         }
@@ -31,7 +31,7 @@ object NakedSingle : Technique {
 
 /** Un dígito que solo puede ir en una celda dentro de una fila, columna o caja. */
 object HiddenSingle : Technique {
-    override val name = "Hidden Single"
+    override val id = TechniqueId.HIDDEN_SINGLE
 
     override fun find(grid: Grid): Step? {
         for ((unitIndex, unit) in Units.units.withIndex()) {
@@ -46,11 +46,11 @@ object HiddenSingle : Technique {
                 }
                 if (count == 1) {
                     return Step(
-                        technique = name,
+                        technique = id,
                         highlight = listOf(only),
+                        units = listOf(unitIndex),
+                        digits = listOf(digit),
                         placement = Placement(only, digit),
-                        explanation = "En ${Units.unitName(unitIndex)}, el $digit solo puede ir en " +
-                            "${Units.cellName(only)}: es la única celda donde todavía es posible.",
                     )
                 }
             }
