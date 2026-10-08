@@ -28,7 +28,6 @@ dependencyResolutionManagement {
 }
 
 include(":solver")
+include(":vision-core")
 include(":vision")
-// Pendientes:
-// include(":vision-core")  (tarea 2.2)
-// include(":app")          (Fase 3)
+// Pendiente: include(":app") (Fase 3)

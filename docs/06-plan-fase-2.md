@@ -69,6 +69,8 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 
 **Hecho cuando:** un test carga una foto del conjunto con OpenCV en WSL y en la CI.
 
+**Resultado:** `vision-core` compila contra `org.bytedeco:opencv` 4.14.0-1.5.14 como `compileOnly`; los tests añaden los nativos `linux-x86_64` de `opencv`, `openblas` y `javacpp` (~32 MB el de OpenCV) y los cargan con `OpenCvTestSupport`. Primer código de producción: `DigitRecognizer` y `Prediction`. `VisionTestData` lee `testdata/vision/` (ruta pasada por Gradle) y `PhotoLabel` interpreta el formato de etiqueta. `OpenCvSetupTest` comprueba la versión (4.14), procesa y codifica una imagen sintética y lee las fotos del conjunto; este último se **omite** hasta que existan fotos (2.1). La CI ejecuta `:solver:test :vision-core:test`.
+
 ## 2.3 Detección del tablero y rectificación (D-07)
 - Escala de grises, desenfoque, umbral adaptativo; contorno mayor aproximable a cuadrilátero convexo.
 - Validación geométrica: relación de aspecto ≈ 1, área mínima, ángulos razonables.
