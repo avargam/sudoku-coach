@@ -7,7 +7,7 @@ on:
 
 jobs:
   solver:
-    name: solver tests
+    name: tests JVM (solver y vision-core)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -16,4 +16,4 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
-      - run: ./gradlew :solver:test
+      - run: ./gradlew :solver:test :vision-core:test
