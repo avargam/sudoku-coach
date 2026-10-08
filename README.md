@@ -13,6 +13,7 @@ App Android que escanea un sudoku en papel con la cámara, reconoce el estado ac
 | [docs/03-diseno.md](docs/03-diseno.md) | Outline del diseño de la solución |
 | [docs/04-plan-implementacion.md](docs/04-plan-implementacion.md) | Pasos a seguir, por fases |
 | [docs/05-plan-fase-0-1.md](docs/05-plan-fase-0-1.md) | Plan detallado de las Fases 0 (preparación) y 1 (motor lógico) |
+| [docs/06-plan-fase-2.md](docs/06-plan-fase-2.md) | Plan detallado de la Fase 2 (visión sobre fotos fijas) |
 
 ## Estructura del repositorio
 

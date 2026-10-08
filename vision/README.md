@@ -1,10 +1,9 @@
 # vision (pendiente)
 
-Módulo Android library. Responsabilidades (ver [docs/03-diseno.md](../docs/03-diseno.md), sección 4):
+Librería Android de la Fase 2 (ver [docs/06-plan-fase-2.md](../docs/06-plan-fase-2.md) y la decisión D-16):
 
-- Detección del tablero y homografía (OpenCV)
-- Segmentación en 81 celdas
-- `DigitRecognizer`: ML Kit (MVP) y CNN en LiteRT (objetivo)
-- `testdata/`: fotos etiquetadas para medir detección y reconocimiento
+- Conversión `Bitmap` ⇄ `Mat` con el AAR de OpenCV 4.14
+- `MlKitDigitRecognizer`: ML Kit Text Recognition v2 con el modelo incluido en la app (MVP)
+- `TfLiteDigitRecognizer`: CNN propia en LiteRT (Fase 5)
 
-Se crea en la Fase 2 del [plan](../docs/04-plan-implementacion.md), desde Android Studio, y después se activa en `settings.gradle.kts`.
+La detección del tablero, la rectificación y la segmentación viven en `vision-core` (Kotlin/JVM puro), que se prueba en la JVM con las fotos de `testdata/vision/`.
