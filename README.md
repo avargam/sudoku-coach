@@ -30,7 +30,7 @@ sudoku-coach/
 
 - JDK 21 (`sudo apt install openjdk-21-jdk`)
 - Gradle: no hace falta instalarlo; se usa el wrapper `./gradlew`
-- Para `vision` y `app`: Android SDK (command-line tools) en WSL y un dispositivo con depuración inalámbrica; Android Studio es opcional (ver [D-15](docs/02-decisiones.md))
+- Para `vision` y `app`: Android SDK (command-line tools) en WSL y un dispositivo conectado por USB (en WSL, con usbipd-win); Android Studio es opcional (ver [D-15](docs/02-decisiones.md))
 
 ## Probar el solver
 
