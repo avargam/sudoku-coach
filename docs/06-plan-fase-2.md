@@ -142,6 +142,17 @@ Por ángulo no hay diferencias (frontal 99,8 %, moderado 99,8 %). Los 5 fallos s
 - Se prueban dos estrategias y se mide cuál funciona mejor: reconocer cada celda recortada (ampliada y con margen) frente a reconocer la cuadrícula rectificada entera y asignar cada texto a su celda por posición.
 - La CI compila `:vision` con el SDK de Android (`android-actions/setup-android`).
 
+**Resultado:** `vision-core` gana `BoardReader`, que encadena detección, segmentación y un `DigitRecognizer` (las celdas vacías no llegan al reconocedor). En `vision`:
+
+- `OpenCvAndroid`: carga OpenCV con `OpenCVLoader.initLocal()` y convierte `Bitmap` ⇄ `Mat` en gris.
+- `MlKitDigitRecognizer` (celda a celda): normaliza el recorte, lo amplía a 64 px y le añade 32 px de borde blanco.
+- `MlKitGridReader` (cuadrícula entera): una pasada sobre el tablero rectificado ampliado ×2; cada símbolo va a la celda que contiene el centro de su caja y se queda el de más confianza.
+- Ambos reinterpretan las letras parecidas a dígitos (I/l → 1, S → 5, B → 8...) y devuelven confianza 0 cuando no leen nada.
+
+**Hallazgo:** con las líneas de la rejilla, ML Kit no detectaba 4 de los 11 dígitos del tablero sintético (no se equivocaba, simplemente no los veía). El lector deja en blanco todo lo que no sea la caja de un dígito según el segmentador, y así lee los 11 a cualquier escala (×1, ×2, ×3).
+
+Tests instrumentados en el A57: carga de OpenCV 4.14, ida y vuelta `Bitmap` ⇄ `Mat`, los 9 dígitos sintéticos celda a celda (≈ 1 s en total, con la carga del modelo) y la cuadrícula entera (≈ 0,2 s). La CI tiene un segundo trabajo que instala el SDK y compila `:vision` y sus tests instrumentados; ejecutarlos requiere el móvil. La comparación de estrategias con fotos reales queda para 2.8.
+
 ## 2.8 Métricas en el móvil
 - Test instrumentado que recorre las fotos (copiadas como assets de `androidTest`), ejecuta el pipeline completo y escribe los resultados en JSON.
 - `adb pull` del JSON y un test/informe en la JVM que calcula: **acierto por celda**, separado en **impresos** y **manuscritos**, confusiones más frecuentes (1/7, 4/9…) y tiempo por foto.
