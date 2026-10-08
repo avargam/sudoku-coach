@@ -43,8 +43,8 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 - [x] 2.1 Reunir 30–50 fotos y prepararlas (`testdata/vision`, D-17)
 - [x] 2.2 Módulo `vision-core` con OpenCV 4.14 (Bytedeco) y tests en la CI
 - [x] 2.3 Detección de tablero + homografía + validación geométrica
-- [ ] 2.4 Segmentación de celdas y detección de celda vacía
-- [ ] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
+- [x] 2.4 Segmentación de celdas y detección de celda vacía
+- [x] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
 - [ ] 2.6 Métricas en la JVM: detección y celdas vacías
 - [ ] 2.7 Módulo `vision` (Android) con OpenCV 4.14 y `MlKitDigitRecognizer`
 - [ ] 2.8 Métricas en el móvil: acierto por celda (impresos y manuscritos)

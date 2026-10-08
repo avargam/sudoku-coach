@@ -89,10 +89,33 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 - Celda vacía por proporción de tinta en la zona central tras binarizar.
 - Para cada celda con tinta, recorte centrado del dígito (caja delimitadora + relleno) listo para el reconocedor.
 
+**Resultado:** `GridSegmenter` binariza el tablero rectificado (umbral adaptativo de 15 px, que saca bien el lápiz), **borra las líneas de la rejilla** con aperturas morfológicas de 1,5 celdas y decide cada celda por la **unión de sus componentes conexas** (altura ≥ 35 % de la celda y tinta ≥ 35 px). Lo que se aprendió con las fotos:
+- Contar tinta o exigir una sola mancha falla con el lápiz: un 7 tenue se binariza como la barra más trozos sueltos de la diagonal (001, 019). Por eso se unen los fragmentos.
+- Con el papel curvado, una línea vertical y otra horizontal entran en el recorte como una L que ningún filtro por forma reconoce (009); borrar las líneas antes lo resuelve. Con un elemento de 0,8 celdas se borraban también los 1 altos; con 1,5 celdas no.
+- Un resto de línea es fino en la dirección perpendicular al borde que toca: un 1 alto que toca el borde inferior no lo es (003).
+- `inkContrast` (oscuridad de la tinta respecto al papel) es bimodal: lápiz 10–30 %, impreso 50–65 %; umbral 0,4 para proponer el origen.
+
+Contra las etiquetas (2.5): **vacía/no vacía correcta en 2425/2430 celdas (99,8 %)** y **origen correcto en 2195/2197**. Los 5 fallos de vacía son 4 dígitos a lápiz muy tenues que no se detectan y una mancha por transparencia del reverso de la página tomada por dígito (ruido habitual en papel de libro fino); los 2 de origen están en el umbral (contraste 0,39–0,40). Tests sintéticos: impreso y lápiz, contraste, motas y líneas desplazadas, 1 alto tocando el borde y recorte del dígito.
+
 ## 2.5 Etiquetado asistido
 - Herramienta JVM (`./gradlew :vision-core:labelHelper --args=NNN`): rectifica la foto, guarda una imagen con la rejilla numerada por filas y columnas y rellena la plantilla de etiqueta con las celdas vacías detectadas (`.`) y `?` donde hay tinta.
 - Tú completas los dígitos y el origen. Cuando exista el reconocedor (2.8), sus resultados se usan como propuesta.
 - **Validación de etiquetas** con el `solver`: un test comprueba que cada etiqueta no repite dígitos en ninguna unidad y que el tablero tiene solución (`Backtracker`), lo que detecta errores de transcripción.
+
+**Resultado:** `./gradlew :vision-core:labelHelper` genera la plantilla (`.` vacía, `?` por transcribir, origen propuesto) y una imagen de revisión con filas y columnas numeradas en `vision-core/build/labeling/`. Las etiquetas con `?` cuentan como pendientes y no se usan en las métricas. **Transcripción:** la hizo Claude leyendo las imágenes de revisión, con revisión posterior del usuario (decisión tomada en la fase). Las **30 etiquetas pasan la validación** con el `solver` (21 tableros completos, donde un dígito mal leído casi siempre crea un repetido). Metadatos: `luz=interior`, `papel=libro`, `angulo` según la desviación de las esquinas (frontal < 4°, moderado; máximo 6,6°) y `notas` con la curvatura y las celdas dudosas. Los datos de prueba se declararon como entrada de la tarea `test` (sin `raw/`), porque Gradle no volvía a ejecutar los tests al cambiar una etiqueta.
+
+**Celdas revisadas a mano** (las únicas en que etiqueta y segmentador discrepan). El usuario confirmó las 30 etiquetas, incluidas estas:
+
+| Foto | Celda | Etiqueta | Motivo |
+|---|---|---|---|
+| 003 | F1C6 | 9 manuscrito | lápiz muy tenue; ¿escrito o borrado? |
+| 003 | F4C1 | 8 impreso | contraste en el umbral (0,40) |
+| 015 | F4C2 | 3 manuscrito | lápiz muy tenue; ¿escrito o borrado? |
+| 016 | F2C9 | 9 manuscrito | trazo tenue; deducido por la columna |
+| 019 | F1C8 | 8 impreso | contraste en el umbral (0,39) |
+| 025 | F1C9 | 9 manuscrito | lápiz muy tenue; ¿escrito o borrado? |
+| 026 | F3C3 | vacía | mancha por transparencia de la tinta del reverso de la página (confirmado); no puede ser un 1 |
+| 027 | F1C2 | 5 manuscrito | lápiz tenue; lo exige la columna |
 
 ## 2.6 Métricas en la JVM
 Test de métricas sobre todas las fotos, con informe por condiciones (metadatos):
