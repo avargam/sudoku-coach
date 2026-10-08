@@ -38,7 +38,8 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 
 Objetivo: de una foto en galería a un tablero 9×9 de enteros.
 
-- [ ] Instalar Android Studio y el SDK en Windows; decidir si se abre el repositorio vía `\\wsl$` o con un clon en Windows (D-15)
+- [ ] Instalar el Android SDK (command-line tools) en WSL y conectar el Galaxy A57 por depuración inalámbrica (D-15)
+- [ ] Decidir si `vision` se separa en núcleo JVM + capa Android para probar los algoritmos sin dispositivo
 - [ ] Crear módulo Android library `vision` e integrar OpenCV
 - [ ] Reunir 30–50 fotos propias de sudokus (distintas luces, ángulos, papeles) y etiquetarlas (`vision/testdata`)
 - [ ] Detección de tablero + homografía + validación geométrica
