@@ -20,7 +20,7 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-12 | Diseño visual: minimalista monocromo con acento azul | Aceptada |
 | D-13 | Orden de técnicas alineado con HoDoKu, configurable | Aceptada |
 | D-14 | `Step` estructurado; los textos se componen en la app | Aceptada |
-| D-15 | Entorno: todo en WSL (JDK 21, Gradle wrapper, Android SDK por línea de comandos); app en el móvil por depuración inalámbrica | Aceptada |
+| D-15 | Entorno: todo en WSL (JDK 21, Gradle wrapper, Android SDK por línea de comandos); app en el móvil por USB con usbipd-win | Aceptada |
 | D-16 | `vision` separado en `vision-core` (JVM) y `vision` (Android); OpenCV 4.14; `minSdk` 26 | Aceptada |
 | D-17 | Fotos de prueba reducidas y versionadas, con dígitos y origen por celda | Aceptada |
 
@@ -100,7 +100,8 @@ El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (c
 ## D-15 · Entorno de desarrollo
 - **WSL2 (Ubuntu)**: `openjdk-21-jdk` instalado con apt y **Gradle wrapper** versionado (`./gradlew`); Gradle global solo se usa una vez para generar el wrapper. El `solver` compila a bytecode JVM 17 para que Android lo pueda usar.
 - **Android en WSL, por línea de comandos** (revisado al cerrar la Fase 1; antes era Android Studio en Windows). El repositorio sigue en `~/sudoku-coach` y no hay clon en Windows. El Android SDK (command-line tools) se instala en `~/Android/Sdk`, sin `sudo`, y la app se compila con `./gradlew`. Así la compilación y los tests de `vision` y `app` se ejecutan en el mismo entorno que los del `solver`.
-- **Ejecución en el dispositivo físico** (Samsung Galaxy A57, Android 16) por **depuración inalámbrica** con `adb pair`/`adb connect`. Si la red NAT de WSL2 impide la conexión, se activa `networkingMode=mirrored` en `.wslconfig` o se usa el `adb.exe` de Windows desde WSL.
+- **Ejecución en el dispositivo físico** (Samsung Galaxy A57, Android 16) por **depuración USB**. Como WSL2 no ve los USB de Windows, el móvil se pasa a WSL con **usbipd-win** (`usbipd bind` una vez como administrador; `usbipd attach --wsl --auto-attach`), y el `adb` de Linux lo ve como un USB normal; una regla udev para Samsung (`idVendor` `04e8`, grupo `plugdev`) da permisos al usuario. Se descartó usar el `adb` de Windows como servidor (dos adb que mantener y red entre WSL y Windows). En Samsung hay que desactivar el **Bloqueador automático** para poder depurar. La depuración inalámbrica queda como alternativa.
+- **SDK:** las *command-line tools* 23 sustituyen `sdkmanager` por el **Android CLI** (`android sdk install ...`). Paquetes: `platform-tools` 37.0.1, `platforms/android-37.0` (`compileSdk` 37) y `build-tools/37.0.0`.
 - **Opcionales:** el emulador (WSL tiene `/dev/kvm` y WSLg; requiere añadir el usuario al grupo `kvm` y probablemente subir la memoria de WSL, hoy ~7,6 GB) y Android Studio dentro de WSL vía WSLg, solo si hacen falta las vistas previas de Compose o el inspector de interfaz.
 - **Consecuencia para la Fase 2:** los algoritmos de visión se prueban en la JVM, sin dispositivo (D-16).
 - **CI**: GitHub Actions con `./gradlew :solver:test`.

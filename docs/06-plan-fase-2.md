@@ -49,9 +49,9 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 ---
 
 ## 2.0 Entorno Android en WSL (D-15)
-- Instalar las *command-line tools* en `~/Android/Sdk` (sin `sudo`) y, con `sdkmanager`: `platform-tools`, la plataforma estable más reciente y sus `build-tools`. `ANDROID_HOME` en el perfil del shell; `local.properties` (ya ignorado) con `sdk.dir`.
-- Versiones: AGP 9.4.x (compatible con Gradle 9.8.1), `compileSdk`/`targetSdk` = última estable, `minSdk` = 26.
-- Emparejar el Galaxy A57: `adb pair <ip>:<puerto>` con el código de "Depuración inalámbrica" y `adb connect`. Si la red NAT de WSL lo impide: `networkingMode=mirrored` en `.wslconfig` o el `adb.exe` de Windows.
+- Instalar las *command-line tools* en `~/Android/Sdk` (sin `sudo`) y, con el Android CLI (`android sdk install`): `platform-tools`, `platforms/android-37.0` y `build-tools/37.0.0`. `ANDROID_HOME` en el perfil del shell; `local.properties` (ya ignorado) con `sdk.dir`.
+- Versiones: AGP 9.4.x (compatible con Gradle 9.8.1), `compileSdk`/`targetSdk` = 37, `minSdk` = 26.
+- Conectar el Galaxy A57 por **USB con usbipd-win**: en Windows, `usbipd bind --busid <id>` (una vez, como administrador) y `usbipd attach --wsl --busid <id> --auto-attach`; en WSL, regla udev para Samsung y `adb devices`. Bloqueador automático de Samsung desactivado y "Depuración USB" activada.
 
 **Hecho cuando:** `adb devices` lista el A57 y una librería Android vacía compila con `./gradlew`.
 
@@ -124,7 +124,7 @@ El test exige los umbrales cuando estén alcanzados (detección ≥ 90 %), como 
 
 | Riesgo | Mitigación |
 |---|---|
-| La red NAT de WSL2 impide `adb pair`/`connect` | `networkingMode=mirrored` o `adb.exe` de Windows (D-15) |
+| WSL2 no ve el USB del móvil | usbipd-win con `--auto-attach`; alternativa: depuración inalámbrica (D-15) |
 | Diferencias entre OpenCV de Bytedeco y el AAR de Android | Misma versión (4.14) y misma API `org.opencv.*`; las métricas del móvil (2.8) lo confirmarían |
 | ML Kit reconoce mal dígitos aislados y pequeños | Ampliar recortes y añadir margen; alternativa de reconocer la cuadrícula entera (2.7); CNN propia en la Fase 5 |
 | Pocas fotos o poco variadas | Etiquetar por condiciones y añadir fotos difíciles a propósito |
