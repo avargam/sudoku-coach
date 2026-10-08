@@ -64,6 +64,18 @@ class ModelTest {
     }
 
     @Test
+    fun `una celda colocada no puede tener candidatos`() {
+        assertFailsWith<IllegalArgumentException> { Grid(IntArray(81) { if (it == 0) 5 else 0 }, IntArray(81) { ALL_CANDIDATES }) }
+    }
+
+    @Test
+    fun `cellsWithCandidate devuelve las celdas de la unidad que admiten el digito`() {
+        val grid = openGrid().without(5, listOf(cell(0, 0), cell(0, 4)))
+        assertEquals((0..8).filter { it != 0 && it != 4 }.map { cell(0, it) }, grid.cellsWithCandidate(0, 5))
+        assertEquals(Units.units[9].toList(), grid.cellsWithCandidate(9, 1)) // columna 1, el 1 sigue en todas
+    }
+
+    @Test
     fun `un tablero rechaza mascaras con bits fuera de 1 a 9`() {
         assertFailsWith<IllegalArgumentException> { Grid(IntArray(81), IntArray(81) { 1 }) }
         assertFailsWith<IllegalArgumentException> { Grid(IntArray(81) { 10 }, IntArray(81)) }

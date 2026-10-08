@@ -34,25 +34,16 @@ object HiddenSingle : Technique {
     override val id = TechniqueId.HIDDEN_SINGLE
 
     override fun find(grid: Grid): Step? {
-        for ((unitIndex, unit) in Units.units.withIndex()) {
+        for (unitIndex in Units.units.indices) {
             for (digit in 1..9) {
-                var only = -1
-                var count = 0
-                for (cell in unit) {
-                    if (grid.isEmpty(cell) && grid.hasCandidate(cell, digit)) {
-                        only = cell
-                        count++
-                    }
-                }
-                if (count == 1) {
-                    return Step(
-                        technique = id,
-                        highlight = listOf(only),
-                        units = listOf(unitIndex),
-                        digits = listOf(digit),
-                        placement = Placement(only, digit),
-                    )
-                }
+                val only = grid.cellsWithCandidate(unitIndex, digit).singleOrNull() ?: continue
+                return Step(
+                    technique = id,
+                    highlight = listOf(only),
+                    units = listOf(unitIndex),
+                    digits = listOf(digit),
+                    placement = Placement(only, digit),
+                )
             }
         }
         return null

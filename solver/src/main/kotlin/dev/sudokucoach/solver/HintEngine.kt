@@ -1,11 +1,15 @@
 package dev.sudokucoach.solver
 
+import dev.sudokucoach.solver.techniques.FullHouse
 import dev.sudokucoach.solver.techniques.HiddenSingle
+import dev.sudokucoach.solver.techniques.LockedCandidatesClaiming
+import dev.sudokucoach.solver.techniques.LockedCandidatesPointing
 import dev.sudokucoach.solver.techniques.NakedSingle
 
 /**
- * Recorre las técnicas por orden de dificultad y devuelve el primer paso que aplique.
- * El orden de la lista es el orden de las pistas: las técnicas más simples van primero.
+ * Recorre las técnicas en orden y devuelve el primer paso que aplique.
+ * Por defecto usa el orden de declaración de [TechniqueId], que sigue a HoDoKu (D-13);
+ * [withOrder] permite otro.
  */
 class HintEngine(private val techniques: List<Technique> = DEFAULT_TECHNIQUES) {
 
@@ -32,6 +36,26 @@ class HintEngine(private val techniques: List<Technique> = DEFAULT_TECHNIQUES) {
     }
 
     companion object {
-        val DEFAULT_TECHNIQUES: List<Technique> = listOf(NakedSingle, HiddenSingle)
+        /**
+         * Técnicas implementadas, en cualquier orden: el orden lo da [TechniqueId].
+         * Registrar aquí cada técnica nueva es el único paso necesario para que el motor la use.
+         */
+        val IMPLEMENTED: Map<TechniqueId, Technique> = listOf(
+            FullHouse,
+            NakedSingle,
+            HiddenSingle,
+            LockedCandidatesPointing,
+            LockedCandidatesClaiming,
+        ).also { all ->
+            // associateBy descartaría en silencio una técnica registrada dos veces con el mismo id.
+            check(all.map { it.id }.toSet().size == all.size) { "Hay técnicas con el mismo TechniqueId" }
+        }.associateBy { it.id }
+
+        /** Técnicas implementadas en el orden de declaración de [TechniqueId] (D-13). */
+        val DEFAULT_TECHNIQUES: List<Technique> = TechniqueId.entries.mapNotNull { IMPLEMENTED[it] }
+
+        /** Motor con un orden propio; falla si se pide una técnica que aún no está implementada. */
+        fun withOrder(order: List<TechniqueId>): HintEngine =
+            HintEngine(order.map { requireNotNull(IMPLEMENTED[it]) { "Técnica no implementada: $it" } })
     }
 }

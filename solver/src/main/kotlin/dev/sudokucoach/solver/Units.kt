@@ -20,11 +20,22 @@ object Units {
         units.filter { cell in it }.flatMap { it.asList() }.filter { it != cell }.distinct().toIntArray()
     }
 
-    fun row(cell: Int) = cell / 9
-    fun col(cell: Int) = cell % 9
+    /** Fila (0..8) de una celda. */
+    fun row(cell: Int): Int = cell / 9
+
+    /** Columna (0..8) de una celda. */
+    fun col(cell: Int): Int = cell % 9
+
+    /** Caja (0..8, por filas de cajas) de una celda. */
+    fun box(cell: Int): Int = (cell / 27) * 3 + (cell % 9) / 3
+
+    /** Índices de unidad (0..26) de la fila, columna y caja de una celda. */
+    fun rowUnit(cell: Int): Int = row(cell)
+    fun colUnit(cell: Int): Int = 9 + col(cell)
+    fun boxUnit(cell: Int): Int = 18 + box(cell)
 
     /** Nombre corto de una celda para depurar, p. ej. "F3C7" (fila 3, columna 7). */
-    fun cellName(cell: Int) = "F${row(cell) + 1}C${col(cell) + 1}"
+    fun cellName(cell: Int): String = "F${row(cell) + 1}C${col(cell) + 1}"
 
     /** Nombre corto de una unidad para depurar, p. ej. "columna 1". No es texto para el usuario (D-14). */
     fun unitName(unit: Int): String = when (unit) {

@@ -109,6 +109,8 @@ Hasta que estén todas las técnicas, el test valida los pasos que se den aunque
 
 **Tests:** un tablero por tipo, en fila y en columna; caso sin eliminaciones (no debe devolver paso).
 
+**Resultado (1.5 y 1.6):** el motor resuelve singles 100/100, intersecciones 85/100 y subconjuntos 0/100; HoDoKu limitado a las mismas cinco técnicas da exactamente lo mismo. Los 15 restantes de intersecciones necesitan Locked Pair/Triple (1.7). Los tests de técnica construyen tableros a partir de candidatos (`openGrid().without(...)`) para aislar cada patrón.
+
 ### 1.7 Subconjuntos desnudos
 - Búsqueda genérica de N celdas con N candidatos en total en una unidad (N = 2, 3, 4); una sola implementación parametrizada por N.
 - **Locked Pair/Triple:** subconjunto desnudo contenido a la vez en una línea y una caja; elimina en ambas unidades. HoDoKu lo clasifica como intersección y lo prueba antes que Locked Candidates; reutiliza la búsqueda de subconjuntos desnudos.
@@ -123,6 +125,8 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 ### 1.9 Orden de HoDoKu y configuración (D-13)
 - `HintEngine.DEFAULT_TECHNIQUES` en el orden de `SolverConfig` anotado en 0.6, filtrado a las técnicas implementadas.
 - El constructor ya acepta una lista; añadir un test que compruebe que un orden distinto cambia la técnica elegida.
+
+**Adelantado en la revisión de 1.5/1.6:** el orden ya no se escribe a mano; sale del orden de declaración de `TechniqueId` (`HintEngine.IMPLEMENTED` solo registra las técnicas). `HintEngine.withOrder(ids)` permite otro orden y ya tiene test. Queda para 1.9 confirmar que la declaración de `TechniqueId` coincide con HoDoKu cuando estén todas las técnicas (lo verificará `OracleTest`).
 
 ### 1.10 Oráculo
 - `tools/oracle/export_steps.py`: para cada puzzle del banco, el camino de resolución de HoDoKu con las técnicas de la Fase 1. En cada paso guarda la técnica, las colocaciones y eliminaciones, y **todas** las instancias de esa técnica disponibles en ese estado (`find_all_steps`).
@@ -158,6 +162,10 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 ```
 
 Se propone **un commit por tarea**, con sus tests. A partir de 0.5, cada tarea de la Fase 1 en su propia rama con PR, para que la CI la valide antes de mezclar.
+
+## Pendientes detectados
+
+- **`Grid` expone sus `IntArray`** (`values`, `candidates`) y se pueden modificar desde fuera, aunque la clase se documenta como inmutable. Detectado en la revisión de 1.5/1.6; se trata en una tarea aparte (p. ej. copias defensivas o accesores de solo lectura), midiendo el impacto en rendimiento.
 
 ## Riesgos de estas fases
 
