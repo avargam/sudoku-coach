@@ -101,8 +101,9 @@ class HintEngineTest {
     }
 
     @Test
-    fun `withOrder rechaza tecnicas no implementadas`() {
-        assertFailsWith<IllegalArgumentException> { HintEngine.withOrder(listOf(TechniqueId.HIDDEN_QUAD)) }
+    fun `todas las tecnicas declaradas estan registradas en el motor`() {
+        // Si se declara un TechniqueId nuevo sin registrar su implementación, el motor lo ignoraría en silencio.
+        assertEquals(TechniqueId.entries.toSet(), HintEngine.IMPLEMENTED.keys)
     }
 
     @Test

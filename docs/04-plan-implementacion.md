@@ -25,10 +25,12 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 - [x] Test de propiedad: todo paso es compatible con la solución
 - [x] Full House
 - [x] Locked Candidates (Pointing / Claiming)
-- [ ] Naked Pair/Triple/Quad y Locked Pair/Triple
-- [ ] Hidden Pair/Triple/Quad
-- [ ] Orden de HoDoKu por defecto, configurable (D-13)
-- [ ] Oráculo: pasos esperados exportados a JSON y test de comparación
+- [x] Naked Pair/Triple/Quad y Locked Pair/Triple
+- [x] Hidden Pair/Triple/Quad
+- [x] Orden de HoDoKu por defecto, configurable (D-13)
+- [x] Oráculo: pasos esperados exportados a JSON y test de comparación
+
+**Cerrada:** 300/300 puzzles del banco resueltos y 16 753/16 753 pasos coincidentes con HoDoKu. reglib (1.11, opcional) se pospone a la Fase 6.
 
 **Hecho cuando:** resuelve todos los puzzles del banco que HoDoKu resuelve con esas técnicas, coincide con HoDoKu en la técnica elegida en cada paso y la CI está en verde.
 
@@ -36,7 +38,8 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 
 Objetivo: de una foto en galería a un tablero 9×9 de enteros.
 
-- [ ] Instalar Android Studio y el SDK en Windows; decidir si se abre el repositorio vía `\\wsl$` o con un clon en Windows (D-15)
+- [ ] Instalar el Android SDK (command-line tools) en WSL y conectar el Galaxy A57 por depuración inalámbrica (D-15)
+- [ ] Decidir si `vision` se separa en núcleo JVM + capa Android para probar los algoritmos sin dispositivo
 - [ ] Crear módulo Android library `vision` e integrar OpenCV
 - [ ] Reunir 30–50 fotos propias de sudokus (distintas luces, ángulos, papeles) y etiquetarlas (`vision/testdata`)
 - [ ] Detección de tablero + homografía + validación geométrica
@@ -79,6 +82,9 @@ Objetivo: elegir una foto → revisar → ver la primera pista.
 ## Fase 6 · Técnicas avanzadas
 
 Una familia por iteración, cada una con tests y verificación contra el oráculo:
+
+- [ ] reglib de HoDoKu en local (tarea 1.11 pospuesta): casos de regresión por técnica, útiles sobre todo para las familias avanzadas
+- [ ] Ampliar el banco y `export_steps.py` a las técnicas nuevas
 
 - [ ] X-Wing, Swordfish, Jellyfish
 - [ ] XY-Wing, XYZ-Wing, W-Wing

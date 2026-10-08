@@ -117,10 +117,14 @@ Hasta que estén todas las técnicas, el test valida los pasos que se den aunque
 
 **Tests:** par, trío (incluido el caso en que ninguna celda tiene los 3 candidatos) y cuarteto; Locked Pair con eliminaciones en las dos unidades. Añadir el Naked Pair de la maqueta (columna 1, {1,3}) como caso de prueba.
 
+**Resultado:** una sola búsqueda (`NakedSubset`) para las cinco técnicas, con la semántica de HoDoKu: se elimina en todas las unidades que comparten las celdas; es *locked* (solo pares y tríos) si comparte caja y línea y elimina en la caja y en la línea fuera de la caja; las variantes naked excluyen los casos locked; se busca en cajas, filas y columnas, en ese orden. El motor resuelve 100/100/97 puzzles del banco, igual que HoDoKu con las mismas técnicas; los 3 restantes necesitan subconjuntos ocultos. El motor da exactamente el Naked Pair de la maqueta, que es también la pista de HoDoKu para ese estado.
+
 ### 1.8 Subconjuntos ocultos
 N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → se eliminan los demás candidatos de esas celdas. Implementación paralela a 1.7.
 
 **Tests:** par, trío y cuarteto ocultos; caso en que el subconjunto oculto es también desnudo (no debe dar un paso vacío).
+
+**Resultado:** semántica de HoDoKu: la unidad necesita más de N celdas vacías; se combinan dígitos que aparecen en 1..N celdas y cuyas posiciones juntas ocupan exactamente N celdas; solo se elimina dentro de esas celdas; búsqueda en cajas, filas y columnas. Con todas las técnicas de la Fase 1 el motor resuelve los 300 puzzles del banco (100/100/100) y el test de propiedad lo exige. Todos los `TechniqueId` declarados tienen implementación registrada (hay un test que lo comprueba).
 
 ### 1.9 Orden de HoDoKu y configuración (D-13)
 - `HintEngine.DEFAULT_TECHNIQUES` en el orden de `SolverConfig` anotado en 0.6, filtrado a las técnicas implementadas.
@@ -139,7 +143,12 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 
 **Hecho cuando:** `OracleTest` pasa sobre todo el banco.
 
-### 1.11 reglib en local *(opcional)*
+**Resultado:** `export_steps.py` exporta 16 753 pasos (~1,2 MB en tres JSON, un puzzle por línea; 2 min 17 s en 12 núcleos). Cada instancia se codifica como `celdas|colocaciones|eliminaciones`. `OracleTest` compara los 16 753 pasos: **en todos coincide la técnica y el efecto, y también las celdas del patrón**. Un segundo test comprueba que `TechniqueId` está declarado en el mismo orden que HoDoKu, lo que cierra la verificación pendiente de 1.9. Se comprobó con una mutación (intercambiar Naked Triple y Hidden Pair en el enum) que ambos tests fallan. `kotlinx-serialization-json` 1.11.0 se añadió solo como dependencia de test.
+
+### 1.11 reglib en local *(opcional; pospuesta a la Fase 6)*
+
+Se decidió no hacerla en la Fase 1: el oráculo ya coincide en todos los pasos del banco y las técnicas raras (Hidden Triple/Quad, Naked Quad) tienen tests construidos a mano. Aportará más con fish, wings y cadenas.
+
 - `tools/oracle/fetch_reglib.py` descarga la suite de regresión de `hodoku-py` en `tools/oracle/reglib/` (ignorado por git; es material GPL) y la convierte a un formato simple: candidatos de partida, técnica y eliminaciones esperadas.
 - `ReglibTest` carga esos casos para las técnicas implementadas y se **omite** si la carpeta no existe, así que la CI no la necesita.
 
@@ -148,6 +157,8 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 - Revisar que D-09 puede pasar de *Provisional* a *Aceptada*.
 
 **Criterio de la Fase 1** (de `04-plan-implementacion.md`): todos los puzzles del banco se resuelven con el motor, `OracleTest` y `StepConsistencyTest` pasan, y la CI está en verde.
+
+**Resultado:** §3.2 de `03-diseno.md` con niveles 1–3 en ✅, casillas de la Fase 1 marcadas, D-09 aceptada. Banco 300/300, oráculo 16 753/16 753, 59 tests en verde en local. Queda pendiente para la Fase 6 la reglib y, como deuda técnica, el encapsulado de `Grid` (ver "Pendientes detectados").
 
 ---
 

@@ -71,8 +71,8 @@ Cada técnica implementa `Technique.find(grid): Step?`. El `HintEngine` recibe u
 | Nivel | Categoría | Técnicas | Fase | Estado |
 |---|---|---|---|---|
 | 1 | Singles | Full House, Naked Single, Hidden Single | 1 | ✅ |
-| 2 | Intersecciones | Locked Pair/Triple, Locked Candidates: Pointing (tipo 1) y Claiming (tipo 2) | 1 | 🟨 faltan Locked Pair/Triple |
-| 3 | Subconjuntos | Naked/Hidden Pair, Triple, Quad | 1 | ⬜ |
+| 2 | Intersecciones | Locked Pair/Triple, Locked Candidates: Pointing (tipo 1) y Claiming (tipo 2) | 1 | ✅ |
+| 3 | Subconjuntos | Naked/Hidden Pair, Triple, Quad | 1 | ✅ |
 
 Orden del motor en la Fase 1 (el de HoDoKu): Full House → Naked Single → Hidden Single → Locked Pair → Locked Triple → Locked Candidates 1 (Pointing) → Locked Candidates 2 (Claiming) → Naked Pair → Naked Triple → Hidden Pair → Hidden Triple → Naked Quad → Hidden Quad.
 | 4 | Fish | X-Wing, Swordfish, Jellyfish | 6 | ⬜ |
