@@ -20,7 +20,9 @@ data class Elimination(val cell: Int, val digit: Int) {
  *
  * @property technique técnica que justifica el paso.
  * @property highlight celdas que forman el patrón.
- * @property units unidades implicadas (0..26, ver [Units]), p. ej. la columna de un Naked Pair.
+ * @property units unidades implicadas (0..26, ver [Units]), p. ej. la columna de un Naked Pair. Cuando hay
+ *   varias, la primera es donde está el patrón y la siguiente donde se elimina (p. ej. caja y fila en
+ *   un Pointing; fila y caja en un Claiming).
  * @property digits dígitos del patrón, p. ej. {1, 3} en un Naked Pair.
  * @property placement dígito que se puede colocar, si la técnica llega a eso.
  * @property eliminations candidatos que se pueden descartar.
