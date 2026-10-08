@@ -34,18 +34,21 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 
 **Hecho cuando:** resuelve todos los puzzles del banco que HoDoKu resuelve con esas técnicas, coincide con HoDoKu en la técnica elegida en cada paso y la CI está en verde.
 
-## Fase 2 · Visión sobre fotos fijas (`vision`)
+## Fase 2 · Visión sobre fotos fijas (`vision-core` + `vision`)
 
-Objetivo: de una foto en galería a un tablero 9×9 de enteros.
+Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.md](06-plan-fase-2.md).
 
-- [ ] Instalar el Android SDK (command-line tools) en WSL y conectar el Galaxy A57 por depuración inalámbrica (D-15)
-- [ ] Decidir si `vision` se separa en núcleo JVM + capa Android para probar los algoritmos sin dispositivo
-- [ ] Crear módulo Android library `vision` e integrar OpenCV
-- [ ] Reunir 30–50 fotos propias de sudokus (distintas luces, ángulos, papeles) y etiquetarlas (`vision/testdata`)
-- [ ] Detección de tablero + homografía + validación geométrica
-- [ ] Segmentación de celdas y detección de celda vacía
-- [ ] `DigitRecognizer` con ML Kit
-- [ ] Métricas: % de tableros detectados y % de celdas correctas sobre el conjunto de fotos
+- [x] Decidir la separación de `vision` (D-16: `vision-core` JVM + `vision` Android)
+- [ ] 2.0 Android SDK en WSL y Galaxy A57 por depuración inalámbrica (D-15)
+- [ ] 2.1 Reunir 30–50 fotos y prepararlas (`testdata/vision`, D-17)
+- [ ] 2.2 Módulo `vision-core` con OpenCV 4.14 (Bytedeco) y tests en la CI
+- [ ] 2.3 Detección de tablero + homografía + validación geométrica
+- [ ] 2.4 Segmentación de celdas y detección de celda vacía
+- [ ] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
+- [ ] 2.6 Métricas en la JVM: detección y celdas vacías
+- [ ] 2.7 Módulo `vision` (Android) con OpenCV 4.14 y `MlKitDigitRecognizer`
+- [ ] 2.8 Métricas en el móvil: acierto por celda (impresos y manuscritos)
+- [ ] 2.9 Cierre: revisar D-07 y D-08
 
 **Hecho cuando:** se cumple el criterio de detección ≥ 90 % y se conoce la tasa de error por celda.
 

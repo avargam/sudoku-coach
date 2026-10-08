@@ -27,10 +27,11 @@ Overlay sobre imagen en vivo  ◄──────────────  Pas
 | Módulo | Tipo | Responsabilidad | Depende de |
 |---|---|---|---|
 | `solver` | Kotlin/JVM puro | Modelo del tablero, candidatos, técnicas, motor de pistas | — |
-| `vision` | Android library | Detección del tablero, rectificación, segmentación de celdas, reconocimiento | OpenCV, ML Kit, LiteRT |
+| `vision-core` | Kotlin/JVM puro | Detección del tablero, rectificación, segmentación de celdas, interfaz `DigitRecognizer` | OpenCV 4.14 (API `org.opencv.*`, `compileOnly`) |
+| `vision` | Android library | `Bitmap` ⇄ `Mat`, reconocedores (ML Kit; LiteRT en la Fase 5) | `vision-core`, OpenCV 4.14 AAR, ML Kit |
 | `app` | Android app | Cámara, pantallas, overlay, orquestación | `vision`, `solver` |
 
-Regla: `solver` nunca depende de Android ni de `vision`.
+Reglas: `solver` nunca depende de Android ni de `vision`; `vision-core` nunca depende de Android (D-16).
 
 ## 3. Módulo `solver`
 
@@ -87,7 +88,9 @@ Orden del motor en la Fase 1 (el de HoDoKu): Full House → Naked Single → Hid
 - Contraste contra `hodoku-py` (ver `tools/oracle/` y D-09): banco de puzzles generado y pasos esperados exportados a JSON y versionados; los tests de Kotlin los leen sin necesitar Python.
 - reglib de HoDoKu: test opcional en local; se omite si los datos no están descargados.
 
-## 4. Módulo `vision`
+## 4. Módulos `vision-core` y `vision`
+
+Todo lo de §4.1 y §4.2 vive en `vision-core` y se prueba en la JVM con las fotos de `testdata/vision/` (D-16, D-17). El plan detallado está en `06-plan-fase-2.md`.
 
 ### 4.1 Detección y rectificación
 
@@ -106,11 +109,11 @@ Orden del motor en la Fase 1 (el de HoDoKu): Full House → Naked Single → Hid
 
 ```kotlin
 interface DigitRecognizer {
-    fun recognize(cell: Bitmap): Prediction   // dígito 0..9 + confianza
+    fun recognize(cell: Mat): Prediction   // dígito 0..9 + confianza
 }
 ```
 
-Implementaciones previstas: `MlKitDigitRecognizer` (MVP) y `TfLiteDigitRecognizer` (CNN en LiteRT).
+La interfaz está en `vision-core` y usa `org.opencv.core.Mat`. Implementaciones previstas en `vision`: `MlKitDigitRecognizer` (MVP, modelo incluido en la app) y `TfLiteDigitRecognizer` (CNN en LiteRT, Fase 5).
 
 ### 4.4 Robustez
 
@@ -188,7 +191,8 @@ El *bottom sheet* tiene un botón "Mostrar más" que sube de nivel; en el nivel 
 | Unidad | Técnicas del solver | JUnit/Kotlin test, sin Android |
 | Propiedad | Pasos compatibles con la solución | Backtracking de referencia |
 | Oráculo | Mismas técnicas que HoDoKu | `hodoku-py` en `tools/oracle` |
-| Visión | Detección y OCR sobre fotos etiquetadas | Conjunto `vision/testdata` + métricas |
+| Visión (JVM) | Detección y segmentación sobre fotos etiquetadas | `testdata/vision` + métricas en `vision-core` |
+| Visión (móvil) | Reconocimiento con ML Kit | Test instrumentado sobre las mismas fotos |
 | Instrumentadas | Flujo completo en dispositivo | Android instrumented tests |
 
 ## 8. Referencias
