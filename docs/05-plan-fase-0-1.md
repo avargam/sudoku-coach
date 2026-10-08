@@ -117,6 +117,8 @@ Hasta que estén todas las técnicas, el test valida los pasos que se den aunque
 
 **Tests:** par, trío (incluido el caso en que ninguna celda tiene los 3 candidatos) y cuarteto; Locked Pair con eliminaciones en las dos unidades. Añadir el Naked Pair de la maqueta (columna 1, {1,3}) como caso de prueba.
 
+**Resultado:** una sola búsqueda (`NakedSubset`) para las cinco técnicas, con la semántica de HoDoKu: se elimina en todas las unidades que comparten las celdas; es *locked* (solo pares y tríos) si comparte caja y línea y elimina en la caja y en la línea fuera de la caja; las variantes naked excluyen los casos locked; se busca en cajas, filas y columnas, en ese orden. El motor resuelve 100/100/97 puzzles del banco, igual que HoDoKu con las mismas técnicas; los 3 restantes necesitan subconjuntos ocultos. El motor da exactamente el Naked Pair de la maqueta, que es también la pista de HoDoKu para ese estado.
+
 ### 1.8 Subconjuntos ocultos
 N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → se eliminan los demás candidatos de esas celdas. Implementación paralela a 1.7.
 

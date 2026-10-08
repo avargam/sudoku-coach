@@ -25,7 +25,7 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 - [x] Test de propiedad: todo paso es compatible con la solución
 - [x] Full House
 - [x] Locked Candidates (Pointing / Claiming)
-- [ ] Naked Pair/Triple/Quad y Locked Pair/Triple
+- [x] Naked Pair/Triple/Quad y Locked Pair/Triple
 - [ ] Hidden Pair/Triple/Quad
 - [ ] Orden de HoDoKu por defecto, configurable (D-13)
 - [ ] Oráculo: pasos esperados exportados a JSON y test de comparación
