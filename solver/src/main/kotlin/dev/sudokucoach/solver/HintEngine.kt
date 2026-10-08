@@ -1,7 +1,10 @@
 package dev.sudokucoach.solver
 
 import dev.sudokucoach.solver.techniques.FullHouse
+import dev.sudokucoach.solver.techniques.HiddenPair
+import dev.sudokucoach.solver.techniques.HiddenQuad
 import dev.sudokucoach.solver.techniques.HiddenSingle
+import dev.sudokucoach.solver.techniques.HiddenTriple
 import dev.sudokucoach.solver.techniques.LockedCandidatesClaiming
 import dev.sudokucoach.solver.techniques.LockedCandidatesPointing
 import dev.sudokucoach.solver.techniques.LockedPair
@@ -56,6 +59,9 @@ class HintEngine(private val techniques: List<Technique> = DEFAULT_TECHNIQUES) {
             NakedPair,
             NakedTriple,
             NakedQuad,
+            HiddenPair,
+            HiddenTriple,
+            HiddenQuad,
         ).also { all ->
             // associateBy descartaría en silencio una técnica registrada dos veces con el mismo id.
             check(all.map { it.id }.toSet().size == all.size) { "Hay técnicas con el mismo TechniqueId" }
