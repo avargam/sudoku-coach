@@ -143,7 +143,12 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 
 **Hecho cuando:** `OracleTest` pasa sobre todo el banco.
 
-### 1.11 reglib en local *(opcional)*
+**Resultado:** `export_steps.py` exporta 16 753 pasos (~1,2 MB en tres JSON, un puzzle por línea; 2 min 17 s en 12 núcleos). Cada instancia se codifica como `celdas|colocaciones|eliminaciones`. `OracleTest` compara los 16 753 pasos: **en todos coincide la técnica y el efecto, y también las celdas del patrón**. Un segundo test comprueba que `TechniqueId` está declarado en el mismo orden que HoDoKu, lo que cierra la verificación pendiente de 1.9. Se comprobó con una mutación (intercambiar Naked Triple y Hidden Pair en el enum) que ambos tests fallan. `kotlinx-serialization-json` 1.11.0 se añadió solo como dependencia de test.
+
+### 1.11 reglib en local *(opcional; pospuesta a la Fase 6)*
+
+Se decidió no hacerla en la Fase 1: el oráculo ya coincide en todos los pasos del banco y las técnicas raras (Hidden Triple/Quad, Naked Quad) tienen tests construidos a mano. Aportará más con fish, wings y cadenas.
+
 - `tools/oracle/fetch_reglib.py` descarga la suite de regresión de `hodoku-py` en `tools/oracle/reglib/` (ignorado por git; es material GPL) y la convierte a un formato simple: candidatos de partida, técnica y eliminaciones esperadas.
 - `ReglibTest` carga esos casos para las técnicas implementadas y se **omite** si la carpeta no existe, así que la CI no la necesita.
 
@@ -152,6 +157,8 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 - Revisar que D-09 puede pasar de *Provisional* a *Aceptada*.
 
 **Criterio de la Fase 1** (de `04-plan-implementacion.md`): todos los puzzles del banco se resuelven con el motor, `OracleTest` y `StepConsistencyTest` pasan, y la CI está en verde.
+
+**Resultado:** §3.2 de `03-diseno.md` con niveles 1–3 en ✅, casillas de la Fase 1 marcadas, D-09 aceptada. Banco 300/300, oráculo 16 753/16 753, 59 tests en verde en local. Queda pendiente para la Fase 6 la reglib y, como deuda técnica, el encapsulado de `Grid` (ver "Pendientes detectados").
 
 ---
 

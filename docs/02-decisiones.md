@@ -14,7 +14,7 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-06 | Candidatos no se leen del papel; se calculan | Aceptada |
 | D-07 | Detección de tablero: contorno + homografía (OpenCV), Hough como respaldo | Provisional |
 | D-08 | Reconocimiento: ML Kit para el MVP, CNN propia en LiteRT como objetivo | Provisional |
-| D-09 | Motor de técnicas propio en Kotlin; HoDoKu como oráculo de pruebas | Provisional |
+| D-09 | Motor de técnicas propio en Kotlin; HoDoKu como oráculo de pruebas | Aceptada |
 | D-10 | Licencia: Apache-2.0; repositorio privado hasta la Fase 7 | Aceptada |
 | D-11 | Estructura multi-módulo con `solver` en Kotlin/JVM puro | Aceptada |
 | D-12 | Diseño visual: minimalista monocromo con acento azul | Aceptada |
@@ -51,13 +51,15 @@ Contorno mayor con 4 esquinas + homografía con OpenCV. Se añade validación ge
 - Ambos detrás de una interfaz `DigitRecognizer`, de modo que el reemplazo no toque el resto.
 - Criterio de revisión: comparar ambos sobre un conjunto de fotos propias etiquetadas.
 
-## D-09 · Motor de técnicas (provisional)
+## D-09 · Motor de técnicas
 Implementación propia en Kotlin, sin portar el núcleo de HoDoKu, usando `hodoku-py` (port en Python de HoDoKu 2.2.0, GPL-3.0) **solo como oráculo** de pruebas. Razones: aprendizaje, sin acoplamiento a su GUI, salida estructurada pensada para la UI y libertad de licencia. Alternativa descartada por ahora: embeber el núcleo de HoDoKu (GPL-3.0).
 
 Uso concreto de `hodoku-py`:
 - **Generador** del banco de puzzles de prueba, clasificados por dificultad. Los puzzles generados son datos, no código GPL, y se versionan.
 - **Pasos esperados**: un script local exporta a JSON el camino de resolución de HoDoKu y se versiona. La CI solo ejecuta `./gradlew :solver:test`, sin Python.
 - **reglib** (la suite de regresión de HoDoKu, un tablero por técnica): se descarga y se usa solo en local. No se copia al repositorio porque es material GPL.
+
+**Aceptada al cerrar la Fase 1:** el motor propio coincide con HoDoKu en los 16 753 pasos del banco (técnica, efecto y celdas del patrón), sin incorporar código de HoDoKu. El esquema oráculo + banco versionado se mantiene para la Fase 6.
 
 ## D-10 · Licencia: Apache-2.0
 Licencia permisiva con cláusula de patentes, habitual en el ecosistema Android/Kotlin. Consecuencia: **no se puede copiar ni portar código de HoDoKu ni de `hodoku-py`** al repositorio; solo se usan como herramienta externa. El repositorio vive en GitHub en modo **privado** y se hace público en la Fase 7.

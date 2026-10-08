@@ -27,8 +27,10 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 - [x] Locked Candidates (Pointing / Claiming)
 - [x] Naked Pair/Triple/Quad y Locked Pair/Triple
 - [x] Hidden Pair/Triple/Quad
-- [ ] Orden de HoDoKu por defecto, configurable (D-13)
-- [ ] Oráculo: pasos esperados exportados a JSON y test de comparación
+- [x] Orden de HoDoKu por defecto, configurable (D-13)
+- [x] Oráculo: pasos esperados exportados a JSON y test de comparación
+
+**Cerrada:** 300/300 puzzles del banco resueltos y 16 753/16 753 pasos coincidentes con HoDoKu. reglib (1.11, opcional) se pospone a la Fase 6.
 
 **Hecho cuando:** resuelve todos los puzzles del banco que HoDoKu resuelve con esas técnicas, coincide con HoDoKu en la técnica elegida en cada paso y la CI está en verde.
 
@@ -79,6 +81,9 @@ Objetivo: elegir una foto → revisar → ver la primera pista.
 ## Fase 6 · Técnicas avanzadas
 
 Una familia por iteración, cada una con tests y verificación contra el oráculo:
+
+- [ ] reglib de HoDoKu en local (tarea 1.11 pospuesta): casos de regresión por técnica, útiles sobre todo para las familias avanzadas
+- [ ] Ampliar el banco y `export_steps.py` a las técnicas nuevas
 
 - [ ] X-Wing, Swordfish, Jellyfish
 - [ ] XY-Wing, XYZ-Wing, W-Wing
