@@ -124,6 +124,17 @@ Test de métricas sobre todas las fotos, con informe por condiciones (metadatos)
 
 El test exige los umbrales cuando estén alcanzados (detección ≥ 90 %), como se hizo con el banco en la Fase 1. Si la detección no llega, se evalúa el respaldo con Hough (D-07).
 
+**Resultado:** `VisionMetricsTest` escribe `vision-core/build/reports/vision/metrics.md` y exige detección ≥ 90 %, vacía/no vacía ≥ 99 % y origen ≥ 98 %. Sobre las 30 fotos:
+
+| Métrica | Resultado |
+|---|---|
+| Tableros detectados | 30/30 (100 %) |
+| Celdas vacía/no vacía | 2425/2430 (99,8 %): impresos 746/746, manuscritos 1451/1455, vacías 228/229 |
+| Origen propuesto | 2195/2197 (99,9 %) |
+| Tiempo detección + segmentación (JVM, WSL) | mediana 28 ms, máximo 93 ms |
+
+Por ángulo no hay diferencias (frontal 99,8 %, moderado 99,8 %). Los 5 fallos son los ya conocidos de 2.5. **Hough (D-07) no hace falta con este conjunto.** Estas cifras son optimistas: todas las fotos son del mismo libro, con luz interior y ángulos ≤ 6,6°. Antes de cerrar la fase (2.9) conviene añadir fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, más curvatura) para medir la robustez real. `DetectionReportTest` se eliminó: la inspección visual la cubren las imágenes de `labelHelper`.
+
 ## 2.7 Módulo `vision` (Android)
 - Librería Android (AGP 9.4, `minSdk` 26) que depende de `vision-core` y del AAR de OpenCV 4.14.
 - Conversión `Bitmap` ⇄ `Mat`.

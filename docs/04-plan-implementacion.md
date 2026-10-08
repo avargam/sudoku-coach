@@ -45,7 +45,7 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 - [x] 2.3 Detección de tablero + homografía + validación geométrica
 - [x] 2.4 Segmentación de celdas y detección de celda vacía
 - [x] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
-- [ ] 2.6 Métricas en la JVM: detección y celdas vacías
+- [x] 2.6 Métricas en la JVM: detección y celdas vacías
 - [ ] 2.7 Módulo `vision` (Android) con OpenCV 4.14 y `MlKitDigitRecognizer`
 - [ ] 2.8 Métricas en el móvil: acierto por celda (impresos y manuscritos)
 - [ ] 2.9 Cierre: revisar D-07 y D-08
