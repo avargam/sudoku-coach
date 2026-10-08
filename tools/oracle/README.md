@@ -77,7 +77,16 @@ Resultado actual: 5749 intentos, 1130 no resolubles solo con la Fase 1. Puzzles 
 
 Las técnicas raras (tríos ocultos y cuartetos) no se fuerzan en el banco: se cubren con tableros construidos en sus tests unitarios y con reglib.
 
-## Scripts previstos (Fase 1)
+## Pasos de HoDoKu para el OracleTest
 
-- `export_steps.py`: exporta los pasos de HoDoKu → `solver/src/test/resources/oracle/` (versionado; la CI no necesita Python).
-- `fetch_reglib.py`: descarga *reglib* en `reglib/` (solo local).
+`export_steps.py` reproduce el bucle de resolución de HoDoKu sobre el banco (solo técnicas de la Fase 1) y guarda, en cada estado, el paso elegido y todas las instancias de esa técnica (`find_all`) → `solver/src/test/resources/oracle/<grupo>.json` (versionado; la CI no necesita Python). Tarda ~2,5 min en 12 núcleos.
+
+```bash
+python export_steps.py
+```
+
+Formato: un puzzle por línea dentro de `"puzzles"`; cada paso es `{"t": <SolutionType>, "chosen": <índice>, "options": [...]}` y cada instancia `celdas|colocaciones|eliminaciones` (p. ej. `9,63||27-3,54-3,72-3`). Hay que regenerarlo si cambia el banco o la versión de `hodoku-py`.
+
+## Scripts previstos
+
+- `fetch_reglib.py`: descarga *reglib* en `reglib/` (solo local, tarea 1.11).
