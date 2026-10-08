@@ -55,6 +55,8 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 
 **Hecho cuando:** `adb devices` lista el A57 y una librería Android vacía compila con `./gradlew`.
 
+**Resultado:** SDK en `~/Android/Sdk` (`platform-tools` 37.0.1, `platforms/android-37.0`, `build-tools/37.0.0`); el A57 aparece como `SM-A576B`, Android 16 (API 36), `arm64-v8a`. Esqueleto de `:vision` con AGP 9.4.1 (`compileSdk` 37, `minSdk` 26; AGP 9 trae el soporte de Kotlin integrado) y repositorio de Google en `settings.gradle.kts`. `DeviceSmokeTest` se ejecuta en el móvil con `./gradlew :vision:connectedDebugAndroidTest`. Sin SDK, `:solver:test` sigue funcionando (AGP solo exige el SDK en tareas de Android), así que la CI no cambia hasta 2.7.
+
 ## 2.1 Fotos *(paralelizable desde ya)*
 - 30–50 fotos de sudokus en papel con dígitos impresos y manuscritos, variando luz (natural, artificial, sombra), ángulo (frontal, moderado, fuerte), papel y fondo. Incluir algunas difíciles a propósito.
 - Traerlas a `testdata/vision/raw/` (con `adb pull` desde `DCIM` una vez emparejado el móvil).

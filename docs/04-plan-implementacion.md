@@ -39,7 +39,7 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.md](06-plan-fase-2.md).
 
 - [x] Decidir la separación de `vision` (D-16: `vision-core` JVM + `vision` Android)
-- [ ] 2.0 Android SDK en WSL y Galaxy A57 por USB con usbipd-win (D-15)
+- [x] 2.0 Android SDK en WSL y Galaxy A57 por USB con usbipd-win (D-15)
 - [ ] 2.1 Reunir 30–50 fotos y prepararlas (`testdata/vision`, D-17)
 - [ ] 2.2 Módulo `vision-core` con OpenCV 4.14 (Bytedeco) y tests en la CI
 - [ ] 2.3 Detección de tablero + homografía + validación geométrica
