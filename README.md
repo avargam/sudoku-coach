@@ -2,7 +2,7 @@
 
 App Android que escanea un sudoku en papel con la cámara, reconoce el estado actual del tablero y muestra **el siguiente paso lógico** a seguir, indicando la técnica humana que lo justifica (Naked Single, X-Wing, XY-Wing, etc.) y explicándola.
 
-> Estado: **esqueleto inicial**. El módulo `solver` tiene las primeras técnicas y tests; `vision` y `app` están por implementar.
+> Estado: **Fase 1 completada**. El módulo `solver` implementa las 13 técnicas hasta subconjuntos (singles, intersecciones, subconjuntos desnudos y ocultos) y coincide con HoDoKu en todos los pasos de un banco de 300 puzzles. `vision` y `app` están por implementar.
 
 ## Documentación
 
@@ -29,7 +29,7 @@ sudoku-coach/
 
 - JDK 21 (`sudo apt install openjdk-21-jdk`)
 - Gradle: no hace falta instalarlo; se usa el wrapper `./gradlew`
-- Para `vision` y `app`: Android Studio y Android SDK en Windows (aún no necesarios)
+- Para `vision` y `app`: Android SDK (command-line tools) en WSL y un dispositivo con depuración inalámbrica; Android Studio es opcional (ver [D-15](docs/02-decisiones.md))
 
 ## Probar el solver
 

@@ -15,3 +15,10 @@ fun cell(r: Int, c: Int) = r * 9 + c
 
 /** Candidatos eliminados por un paso, como pares (celda, dígito) para compararlos sin depender del orden. */
 fun Step.eliminated(): Set<Pair<Int, Int>> = eliminations.map { it.cell to it.digit }.toSet()
+
+/** Copia del tablero en la que [cell] solo admite [digits]. */
+fun Grid.restrict(cell: Int, vararg digits: Int): Grid {
+    val c = candidates.copyOf()
+    c[cell] = digits.fold(0) { mask, d -> mask or (1 shl d) }
+    return Grid(values.copyOf(), c)
+}
