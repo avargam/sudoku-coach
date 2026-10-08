@@ -4,7 +4,12 @@ import dev.sudokucoach.solver.techniques.FullHouse
 import dev.sudokucoach.solver.techniques.HiddenSingle
 import dev.sudokucoach.solver.techniques.LockedCandidatesClaiming
 import dev.sudokucoach.solver.techniques.LockedCandidatesPointing
+import dev.sudokucoach.solver.techniques.LockedPair
+import dev.sudokucoach.solver.techniques.LockedTriple
+import dev.sudokucoach.solver.techniques.NakedPair
+import dev.sudokucoach.solver.techniques.NakedQuad
 import dev.sudokucoach.solver.techniques.NakedSingle
+import dev.sudokucoach.solver.techniques.NakedTriple
 
 /**
  * Recorre las técnicas en orden y devuelve el primer paso que aplique.
@@ -46,6 +51,11 @@ class HintEngine(private val techniques: List<Technique> = DEFAULT_TECHNIQUES) {
             HiddenSingle,
             LockedCandidatesPointing,
             LockedCandidatesClaiming,
+            LockedPair,
+            LockedTriple,
+            NakedPair,
+            NakedTriple,
+            NakedQuad,
         ).also { all ->
             // associateBy descartaría en silencio una técnica registrada dos veces con el mismo id.
             check(all.map { it.id }.toSet().size == all.size) { "Hay técnicas con el mismo TechniqueId" }

@@ -23,7 +23,8 @@ class StepConsistencyTest {
 
         // Mínimos según las técnicas implementadas; coinciden con lo que HoDoKu resuelve con esas mismas técnicas.
         assertEquals(100, solvedByGroup.getValue("singles"), "El grupo singles debería resolverse entero")
-        assertTrue(solvedByGroup.getValue("intersections") >= 85, "Con Locked Candidates se resuelven al menos 85 intersecciones")
+        assertEquals(100, solvedByGroup.getValue("intersections"), "Con Locked Pair/Triple las intersecciones se resuelven enteras")
+        assertTrue(solvedByGroup.getValue("subsets") >= 97, "Con los subconjuntos desnudos se resuelven al menos 97 subsets")
     }
 
     /** Recorre el puzzle paso a paso validando cada uno; devuelve si quedó resuelto. */
