@@ -14,14 +14,19 @@ class HintEngine(private val techniques: List<Technique> = DEFAULT_TECHNIQUES) {
         return techniques.firstNotNullOfOrNull { it.find(grid) }
     }
 
-    /** Aplica pasos hasta resolver el tablero o hasta que ninguna técnica aplique. */
+    /**
+     * Aplica pasos hasta resolver el tablero o hasta que ninguna técnica aplique.
+     * Falla si una técnica devuelve un paso que no cambia el tablero, en lugar de entrar en un bucle infinito.
+     */
     fun solveLogically(grid: Grid): List<Step> {
         val steps = mutableListOf<Step>()
         var current = grid
         while (true) {
             val step = nextStep(current) ?: break
+            val next = current.apply(step)
+            check(next != current) { "Paso sin efecto: ${step.describe()}" }
             steps += step
-            current = current.apply(step)
+            current = next
         }
         return steps
     }

@@ -75,6 +75,16 @@ class HintEngineTest {
     }
 
     @Test
+    fun `solveLogically falla ante un paso sin efecto en lugar de colgarse`() {
+        // Técnica defectuosa: elimina siempre un candidato que F1C1 ya no tiene (está ocupada).
+        val broken = object : Technique {
+            override val id = TechniqueId.NAKED_PAIR
+            override fun find(grid: Grid) = Step(id, highlight = listOf(0), eliminations = listOf(Elimination(0, 1)))
+        }
+        assertFailsWith<IllegalStateException> { HintEngine(listOf(broken)).solveLogically(Grid.parse(puzzle)) }
+    }
+
+    @Test
     fun `un tablero resuelto no tiene siguiente paso`() {
         assertNull(HintEngine().nextStep(Grid.parse(solution)))
     }
