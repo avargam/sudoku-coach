@@ -26,6 +26,8 @@ dependencies {
     compileOnly("org.bytedeco:opencv:$bytedecoOpenCv")
 
     testImplementation(kotlin("test"))
+    // Solo en los tests: valida que las etiquetas de las fotos sean tableros posibles (tarea 2.5).
+    testImplementation(project(":solver"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.bytedeco:opencv:$bytedecoOpenCv")
     testRuntimeOnly("org.bytedeco:opencv:$bytedecoOpenCv:$bytedecoNatives")
@@ -33,8 +35,21 @@ dependencies {
     testRuntimeOnly("org.bytedeco:javacpp:1.5.14:$bytedecoNatives")
 }
 
+val testDataDir = rootProject.file("testdata/vision").absolutePath
+
 tasks.test {
     useJUnitPlatform()
-    // Las fotos y etiquetas de prueba viven fuera del módulo (D-17).
-    systemProperty("sudokucoach.testdata", rootProject.file("testdata/vision").absolutePath)
+    // Las fotos y etiquetas de prueba viven fuera del módulo (D-17). Se declaran como entrada para que
+    // Gradle vuelva a ejecutar los tests al cambiar una foto o una etiqueta.
+    systemProperty("sudokucoach.testdata", testDataDir)
+    inputs.files(fileTree(testDataDir) { exclude("raw/**") }).withPropertyName("testdata")
+}
+
+// Etiquetado asistido (tarea 2.5): ./gradlew :vision-core:labelHelper [--args="003 004"]
+tasks.register<JavaExec>("labelHelper") {
+    group = "vision"
+    description = "Genera plantillas de etiqueta e imágenes de revisión para las fotos de testdata/vision."
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass = "dev.sudokucoach.vision.core.LabelHelperKt"
+    systemProperty("sudokucoach.testdata", testDataDir)
 }
