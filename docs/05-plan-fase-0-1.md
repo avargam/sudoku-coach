@@ -97,6 +97,8 @@ Script `tools/oracle/generate_bank.py`:
 
 Hasta que estén todas las técnicas, el test valida los pasos que se den aunque el puzzle no se termine; el criterio de "resolver todo el banco" se comprueba en 1.10.
 
+**Resultado:** en lugar de `solveLogically`, el test recorre los pasos con `nextStep` y valida cada uno antes de aplicarlo, para que un paso sin efecto falle en vez de colgar el test; `solveLogically` también lo detecta ahora. Las comprobaciones viven en `assertStepConsistent` (reutilizable en los tests de cada técnica), que a su vez tiene tests que verifican que detecta cada tipo de error. Estado actual: singles 100/100, intersecciones 0/100, subconjuntos 0/100.
+
 ### 1.5 Full House
 Última celda vacía de una unidad. Va antes que Naked Single (orden de HoDoKu).
 **Tests:** tablero construido con una Full House; comprobar que se elige antes que un Naked Single presente a la vez.
