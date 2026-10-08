@@ -20,6 +20,10 @@ enum class Category {
 /**
  * Identificador estable de cada técnica. La app elige con él la plantilla de texto
  * de la explicación (D-14). Se amplía por familias según avanza el plan.
+ *
+ * **El orden de declaración es el orden por defecto del [HintEngine]** y reproduce el de
+ * `SolverConfig` de HoDoKu (D-13, ver `tools/oracle/README.md`). Una técnica nueva se declara
+ * en la posición que le corresponde en ese orden.
  */
 enum class TechniqueId(val category: Category) {
     FULL_HOUSE(Category.SINGLES),

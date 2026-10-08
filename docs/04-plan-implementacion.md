@@ -23,8 +23,8 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 - [x] Backtracking de referencia + comprobación de unicidad
 - [x] Banco de puzzles generado con `hodoku-py`
 - [x] Test de propiedad: todo paso es compatible con la solución
-- [ ] Full House
-- [ ] Locked Candidates (Pointing / Claiming)
+- [x] Full House
+- [x] Locked Candidates (Pointing / Claiming)
 - [ ] Naked Pair/Triple/Quad y Locked Pair/Triple
 - [ ] Hidden Pair/Triple/Quad
 - [ ] Orden de HoDoKu por defecto, configurable (D-13)

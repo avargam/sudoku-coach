@@ -3,6 +3,7 @@ package dev.sudokucoach.solver
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 /**
  * Test de propiedad (tarea 1.4): sobre todo el banco, cada paso del motor es compatible
@@ -20,8 +21,9 @@ class StepConsistencyTest {
         }
         println("Puzzles resueltos por el motor actual: $solvedByGroup")
 
-        // Full House está cubierto en efecto por Naked Single, así que los singles ya se terminan todos.
+        // Mínimos según las técnicas implementadas; coinciden con lo que HoDoKu resuelve con esas mismas técnicas.
         assertEquals(100, solvedByGroup.getValue("singles"), "El grupo singles debería resolverse entero")
+        assertTrue(solvedByGroup.getValue("intersections") >= 85, "Con Locked Candidates se resuelven al menos 85 intersecciones")
     }
 
     /** Recorre el puzzle paso a paso validando cada uno; devuelve si quedó resuelto. */
