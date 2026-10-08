@@ -17,3 +17,19 @@ jobs:
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
       - run: ./gradlew :solver:test :vision-core:test
+
+  vision-android:
+    name: compila vision (Android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: android-actions/setup-android@v4.0.4
+        with:
+          packages: "platform-tools platforms;android-37.0 build-tools;37.0.0"
+      - uses: gradle/actions/setup-gradle@v6
+      # Los tests instrumentados necesitan el móvil; en la CI solo se comprueba que compilan.
+      - run: ./gradlew :vision:assembleDebug :vision:assembleDebugAndroidTest
