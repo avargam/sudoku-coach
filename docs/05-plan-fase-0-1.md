@@ -124,6 +124,8 @@ N dígitos que, dentro de una unidad, solo aparecen en las mismas N celdas → s
 
 **Tests:** par, trío y cuarteto ocultos; caso en que el subconjunto oculto es también desnudo (no debe dar un paso vacío).
 
+**Resultado:** semántica de HoDoKu: la unidad necesita más de N celdas vacías; se combinan dígitos que aparecen en 1..N celdas y cuyas posiciones juntas ocupan exactamente N celdas; solo se elimina dentro de esas celdas; búsqueda en cajas, filas y columnas. Con todas las técnicas de la Fase 1 el motor resuelve los 300 puzzles del banco (100/100/100) y el test de propiedad lo exige. Todos los `TechniqueId` declarados tienen implementación registrada (hay un test que lo comprueba).
+
 ### 1.9 Orden de HoDoKu y configuración (D-13)
 - `HintEngine.DEFAULT_TECHNIQUES` en el orden de `SolverConfig` anotado en 0.6, filtrado a las técnicas implementadas.
 - El constructor ya acepta una lista; añadir un test que compruebe que un orden distinto cambia la técnica elegida.
