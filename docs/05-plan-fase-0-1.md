@@ -87,6 +87,8 @@ Script `tools/oracle/generate_bank.py`:
 
 **Hecho cuando:** existen los tres ficheros y cada puzzle tiene solución única según el `Backtracker` (lo comprueba un test).
 
+**Resultado:** 300 puzzles (5749 intentos, ~1,5 min). Hidden Triple, Naked Quad y Hidden Quad casi no aparecen (2, 1 y 0 puzzles); se decidió no forzarlas en el banco y cubrirlas con tests unitarios construidos a mano (1.7, 1.8) y con reglib (1.11). Cobertura completa en `tools/oracle/README.md`.
+
 ### 1.4 Test de propiedad
 `StepConsistencyTest`: para cada puzzle del banco, resolver con `HintEngine.solveLogically` y comprobar en cada paso que:
 - la colocación coincide con la solución;

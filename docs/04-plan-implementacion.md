@@ -21,7 +21,7 @@ Objetivo: dado un tablero, devolver el siguiente paso con técnicas hasta subcon
 
 - [x] `Step` estructurado con `TechniqueId` y categoría (D-14)
 - [x] Backtracking de referencia + comprobación de unicidad
-- [ ] Banco de puzzles generado con `hodoku-py`
+- [x] Banco de puzzles generado con `hodoku-py`
 - [ ] Test de propiedad: todo paso es compatible con la solución
 - [ ] Full House
 - [ ] Locked Candidates (Pointing / Claiming)
