@@ -85,6 +85,27 @@ class HintEngineTest {
     }
 
     @Test
+    fun `el orden por defecto es el de declaracion de TechniqueId`() {
+        val ids = HintEngine.DEFAULT_TECHNIQUES.map { it.id }
+        assertEquals(ids.sortedBy { it.ordinal }, ids)
+        assertEquals(HintEngine.IMPLEMENTED.keys, ids.toSet())
+    }
+
+    @Test
+    fun `withOrder cambia la tecnica elegida`() {
+        // Una sola celda vacía es a la vez Full House y Naked Single: gana la que vaya primero.
+        val grid = Grid.parse(solution.replaceRange(40, 41, "."))
+        assertEquals(TechniqueId.FULL_HOUSE, assertNotNull(HintEngine().nextStep(grid)).technique)
+        val reordered = HintEngine.withOrder(listOf(TechniqueId.NAKED_SINGLE, TechniqueId.FULL_HOUSE))
+        assertEquals(TechniqueId.NAKED_SINGLE, assertNotNull(reordered.nextStep(grid)).technique)
+    }
+
+    @Test
+    fun `withOrder rechaza tecnicas no implementadas`() {
+        assertFailsWith<IllegalArgumentException> { HintEngine.withOrder(listOf(TechniqueId.HIDDEN_QUAD)) }
+    }
+
+    @Test
     fun `un tablero resuelto no tiene siguiente paso`() {
         assertNull(HintEngine().nextStep(Grid.parse(solution)))
     }

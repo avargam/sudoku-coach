@@ -16,6 +16,9 @@ class Grid(val values: IntArray, val candidates: IntArray) {
         require(values.size == 81 && candidates.size == 81) { "El tablero debe tener 81 celdas" }
         require(values.all { it in 0..9 }) { "Los valores deben estar entre 0 y 9" }
         require(candidates.all { it and ALL_CANDIDATES.inv() == 0 }) { "Las máscaras solo admiten los bits 1..9" }
+        // Invariante: una celda colocada no tiene candidatos, así que basta con hasCandidate para saber
+        // si un dígito es posible en una celda vacía.
+        require((0 until 81).all { values[it] == 0 || candidates[it] == 0 }) { "Una celda colocada no puede tener candidatos" }
     }
 
     fun isEmpty(cell: Int) = values[cell] == 0
@@ -26,6 +29,9 @@ class Grid(val values: IntArray, val candidates: IntArray) {
 
     /** Candidatos de una celda en orden ascendente. */
     fun candidatesOf(cell: Int): List<Int> = (1..9).filter { hasCandidate(cell, it) }
+
+    /** Celdas de la unidad [unit] (0..26) que todavía admiten [digit]; por el invariante, todas vacías. */
+    fun cellsWithCandidate(unit: Int, digit: Int): List<Int> = Units.units[unit].filter { hasCandidate(it, digit) }
 
     /** Aplica un paso y devuelve un tablero nuevo. */
     fun apply(step: Step): Grid {

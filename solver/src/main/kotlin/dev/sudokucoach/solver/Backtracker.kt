@@ -46,7 +46,7 @@ object Backtracker {
             var bestCount = 10
             for (cell in 0 until 81) {
                 if (values[cell] != 0) continue
-                val options = ALL_CANDIDATES and (rows[row(cell)] or cols[col(cell)] or boxes[box(cell)]).inv()
+                val options = ALL_CANDIDATES and (rows[Units.row(cell)] or cols[Units.col(cell)] or boxes[Units.box(cell)]).inv()
                 val count = Integer.bitCount(options)
                 if (count < bestCount) {
                     best = cell
@@ -72,23 +72,19 @@ object Backtracker {
 
         private fun place(cell: Int, bit: Int) {
             values[cell] = Integer.numberOfTrailingZeros(bit)
-            rows[row(cell)] = rows[row(cell)] or bit
-            cols[col(cell)] = cols[col(cell)] or bit
-            boxes[box(cell)] = boxes[box(cell)] or bit
+            rows[Units.row(cell)] = rows[Units.row(cell)] or bit
+            cols[Units.col(cell)] = cols[Units.col(cell)] or bit
+            boxes[Units.box(cell)] = boxes[Units.box(cell)] or bit
         }
 
         private fun remove(cell: Int, bit: Int) {
             values[cell] = 0
-            rows[row(cell)] = rows[row(cell)] and bit.inv()
-            cols[col(cell)] = cols[col(cell)] and bit.inv()
-            boxes[box(cell)] = boxes[box(cell)] and bit.inv()
+            rows[Units.row(cell)] = rows[Units.row(cell)] and bit.inv()
+            cols[Units.col(cell)] = cols[Units.col(cell)] and bit.inv()
+            boxes[Units.box(cell)] = boxes[Units.box(cell)] and bit.inv()
         }
 
         companion object {
-            private fun row(cell: Int) = cell / 9
-            private fun col(cell: Int) = cell % 9
-            private fun box(cell: Int) = (cell / 27) * 3 + (cell % 9) / 3
-
             /** Prepara la búsqueda, o devuelve `null` si los valores ya repiten un dígito en alguna unidad. */
             fun from(initial: IntArray): Search? {
                 val search = Search(IntArray(81), IntArray(9), IntArray(9), IntArray(9))
@@ -96,7 +92,7 @@ object Backtracker {
                     val digit = initial[cell]
                     if (digit == 0) continue
                     val bit = 1 shl digit
-                    val used = search.rows[row(cell)] or search.cols[col(cell)] or search.boxes[box(cell)]
+                    val used = search.rows[Units.row(cell)] or search.cols[Units.col(cell)] or search.boxes[Units.box(cell)]
                     if (used and bit != 0) return null
                     search.place(cell, bit)
                 }
