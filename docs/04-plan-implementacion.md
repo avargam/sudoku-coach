@@ -40,9 +40,9 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 
 - [x] Decidir la separación de `vision` (D-16: `vision-core` JVM + `vision` Android)
 - [x] 2.0 Android SDK en WSL y Galaxy A57 por USB con usbipd-win (D-15)
-- [ ] 2.1 Reunir 30–50 fotos y prepararlas (`testdata/vision`, D-17)
+- [x] 2.1 Reunir 30–50 fotos y prepararlas (`testdata/vision`, D-17)
 - [x] 2.2 Módulo `vision-core` con OpenCV 4.14 (Bytedeco) y tests en la CI
-- [ ] 2.3 Detección de tablero + homografía + validación geométrica
+- [x] 2.3 Detección de tablero + homografía + validación geométrica
 - [ ] 2.4 Segmentación de celdas y detección de celda vacía
 - [ ] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
 - [ ] 2.6 Métricas en la JVM: detección y celdas vacías

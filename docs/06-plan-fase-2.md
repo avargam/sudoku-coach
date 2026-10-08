@@ -62,6 +62,8 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 - Traerlas a `testdata/vision/raw/` (con `adb pull` desde `DCIM` una vez emparejado el móvil).
 - Script `tools/vision/prepare_photos.py` (Pillow): reescala, quita EXIF (la ubicación GPS no debe llegar al repo público), numera y crea la plantilla de etiqueta con la línea de metadatos.
 
+**Resultado:** 30 fotos de `DCIM/Sudoku` del A57 (4000×3000, con GPS en el EXIF y `orientation` girada). `prepare_photos.py` aplica la orientación antes de quitar el EXIF, reescala a 1200×1600 y numera 001–030 (`sources.csv` guarda la correspondencia); 7 MB versionados. Las plantillas de etiqueta las genera la herramienta de 2.5. **Sesgo del conjunto:** todas son del mismo libro, con luz parecida y ángulos frontales o moderados; los manuscritos son a lápiz (gris claro) y hay recortes de otros sudokus y barras grises en casi todas. Para medir robustez hacen falta fotos más difíciles (otro papel, sombras, ángulos fuertes, curvatura).
+
 ## 2.2 Módulo `vision-core`
 - Módulo Kotlin/JVM (`kotlin("jvm")`, bytecode JVM 17 como el `solver`), con la API de OpenCV `compileOnly` y Bytedeco 4.14 `linux-x86_64` en los tests.
 - Utilidad de test para cargar OpenCV y leer las fotos y etiquetas (`VisionTestData`).
@@ -79,6 +81,8 @@ La primera línea (metadatos) permite desglosar las métricas por condiciones.
 - Salida: `BoardScan` con las 4 esquinas, la imagen rectificada y una puntuación de confianza.
 
 **Tests:** fotos sintéticas (tablero dibujado con perspectiva conocida) para comprobar las esquinas con tolerancia; las fotos reales se miden en 2.6.
+
+**Resultado:** `BoardDetector` detecta **30/30** fotos y los 30 tableros rectificados se revisaron a ojo (rejilla alineada en todos). La puntuación de rejilla mide, sobre la imagen rectificada, cuántas de las 20 líneas esperadas son claramente más oscuras que el centro de las celdas vecinas; descarta marcos y recuadros que no son un sudoku (comprobado con una mutación: sin ese filtro fallan los tests del distractor y del cuadrado vacío). La foto 030 (papel curvado) obligó a aproximar el cuadrilátero sobre la envolvente convexa con tolerancias crecientes (2–5 % del perímetro): con la más estricta salían 7 vértices. La curvatura del papel no la corrige la homografía; se nota levemente en 003, 009 y 030 y se absorberá con el margen de las celdas (2.4). Tests sintéticos: frente, giro, perspectiva, distractores (marco mayor, sudoku pequeño, barra gris) e imagen sin tablero. `DetectionReportTest` guarda en `vision-core/build/vision-debug/` la foto con el cuadrilátero y el tablero rectificado para revisarlos.
 
 ## 2.4 Segmentación en celdas y detección de vacías
 - 81 recortes con margen ≈ 10 % para quitar las líneas.
