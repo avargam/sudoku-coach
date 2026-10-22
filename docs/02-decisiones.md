@@ -12,15 +12,17 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-04 | Técnicas hasta nivel avanzado | Aceptada |
 | D-05 | Dígitos impresos + manuscritos | Aceptada |
 | D-06 | Candidatos no se leen del papel; se calculan | Aceptada |
-| D-07 | Detección de tablero: contorno + homografía (OpenCV), Hough como respaldo | Provisional |
-| D-08 | Reconocimiento: ML Kit para el MVP, CNN propia en LiteRT como objetivo | Provisional |
+| D-07 | Detección de tablero: contorno + homografía (OpenCV); Hough solo si lo piden las métricas | Aceptada |
+| D-08 | Reconocimiento: ML Kit (lámina) para el MVP, CNN propia en LiteRT como objetivo | Aceptada |
 | D-09 | Motor de técnicas propio en Kotlin; HoDoKu como oráculo de pruebas | Aceptada |
 | D-10 | Licencia: Apache-2.0; repositorio privado hasta la Fase 7 | Aceptada |
 | D-11 | Estructura multi-módulo con `solver` en Kotlin/JVM puro | Aceptada |
 | D-12 | Diseño visual: minimalista monocromo con acento azul | Aceptada |
 | D-13 | Orden de técnicas alineado con HoDoKu, configurable | Aceptada |
 | D-14 | `Step` estructurado; los textos se componen en la app | Aceptada |
-| D-15 | Entorno: todo en WSL (JDK 21, Gradle wrapper, Android SDK por línea de comandos); app en el móvil por depuración inalámbrica | Aceptada |
+| D-15 | Entorno: todo en WSL (JDK 21, Gradle wrapper, Android SDK por línea de comandos); app en el móvil por USB con usbipd-win | Aceptada |
+| D-16 | `vision` separado en `vision-core` (JVM) y `vision` (Android); OpenCV 4.14; `minSdk` 26 | Aceptada |
+| D-17 | Fotos de prueba reducidas y versionadas, con dígitos y origen por celda | Aceptada |
 
 ---
 
@@ -42,14 +44,23 @@ El reconocedor debe manejar ambos. Esto desfavorece a un OCR genérico y favorec
 ## D-06 · Candidatos calculados, no leídos
 El usuario no anota candidatos; la app los deriva de los dígitos. Simplifica mucho el reconocimiento. Consecuencia: las pistas suponen un solucionador que mantiene candidatos completos.
 
-## D-07 · Detección del tablero (provisional)
+## D-07 · Detección del tablero
 Contorno mayor con 4 esquinas + homografía con OpenCV. Se añade validación geométrica (cuadrado, área mínima, rejilla 9×9). Si falla en fotos reales, se incorpora Hough lines como respaldo. Limitaciones conocidas del enfoque: falla si hay una forma mayor que el tablero y si el tablero está rotado más de ~45°.
 
-## D-08 · Reconocimiento de dígitos (provisional)
+**Aceptada al cerrar la Fase 2:** detecta 30/30 fotos; la puntuación de rejilla descarta marcos mayores y recuadros que no son sudokus, y aproximar sobre la envolvente convexa resuelve el papel curvado. **Hough no se implementa.** Salvedad: las 30 fotos son de un solo libro, con luz interior y ángulos ≤ 6,6°. Las fotos difíciles (otro papel, sombra, ángulo > 15°, curvatura fuerte) se miden en la Fase 4, donde la cámara en vivo las produce de forma natural; si la detección baja del 90 %, se reabre.
+
+## D-08 · Reconocimiento de dígitos
 - **MVP**: ML Kit Text Recognition v2 sobre el tablero rectificado (dígitos de al menos 16×16 px).
 - **Objetivo**: CNN propia con LiteRT (antes TensorFlow Lite), 10 clases (vacía + 1–9), entrenada con dataset sintético de fuentes + MNIST + fotos propias.
 - Ambos detrás de una interfaz `DigitRecognizer`, de modo que el reemplazo no toque el resto.
 - Criterio de revisión: comparar ambos sobre un conjunto de fotos propias etiquetadas.
+- **Concretado al planificar la Fase 2:** se empieza con ML Kit, usando el **modelo incluido en la app** (`com.google.mlkit:text-recognition`) y no la variante que se descarga con Play Services, para cumplir D-03 desde el primer uso. Como ML Kit solo funciona en Android, su acierto se mide en el móvil con un test instrumentado; detección y segmentación se miden en la JVM (D-16).
+
+**Aceptada al cerrar la Fase 2.** ML Kit basta para el MVP con la estrategia de la **lámina** (`MlKitGridReader`): los dígitos se redibujan en líneas, con el contraste estirado y sin rejilla, y se leen en una sola llamada. En el A57, sobre 30 fotos: impresos 746/746 (100 %), manuscritos 1376/1455 (94,6 %), 0,3 s por foto. Celda a celda solo llega al 77 % / 29 % y tarda 8,5 s, así que se descarta.
+- **Umbral de confianza 0,5**: ninguna lectura con confianza ≥ 0,5 es errónea (1706/1706); por debajo, el dígito se marca "por confirmar" en la revisión (21 % de los leídos). Los no leídos (29) también se piden al usuario.
+- **Punto de sustitución**: la interfaz por celda no sirve para la lámina, así que el reconocedor se inyecta a nivel de tablero (`BoardRecognizer`: tablero rectificado + celdas → 81 predicciones). Un `DigitRecognizer` por celda, como la CNN, se adapta con `BoardRecognizer.cellByCell`.
+- **Motivo para la CNN (Fase 5)**: el 90 % de los errores son 1 manuscritos leídos como 4, propios de la letra del usuario; ML Kit no se puede ajustar a ella.
+- El **origen** (impreso / manuscrito) ya lo propone el segmentador por el contraste de la tinta (99,9 % correcto), sin reconocedor.
 
 ## D-09 · Motor de técnicas
 Implementación propia en Kotlin, sin portar el núcleo de HoDoKu, usando `hodoku-py` (port en Python de HoDoKu 2.2.0, GPL-3.0) **solo como oráculo** de pruebas. Razones: aprendizaje, sin acoplamiento a su GUI, salida estructurada pensada para la UI y libertad de licencia. Alternativa descartada por ahora: embeber el núcleo de HoDoKu (GPL-3.0).
@@ -97,10 +108,23 @@ El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (c
 ## D-15 · Entorno de desarrollo
 - **WSL2 (Ubuntu)**: `openjdk-21-jdk` instalado con apt y **Gradle wrapper** versionado (`./gradlew`); Gradle global solo se usa una vez para generar el wrapper. El `solver` compila a bytecode JVM 17 para que Android lo pueda usar.
 - **Android en WSL, por línea de comandos** (revisado al cerrar la Fase 1; antes era Android Studio en Windows). El repositorio sigue en `~/sudoku-coach` y no hay clon en Windows. El Android SDK (command-line tools) se instala en `~/Android/Sdk`, sin `sudo`, y la app se compila con `./gradlew`. Así la compilación y los tests de `vision` y `app` se ejecutan en el mismo entorno que los del `solver`.
-- **Ejecución en el dispositivo físico** (Samsung Galaxy A57, Android 16) por **depuración inalámbrica** con `adb pair`/`adb connect`. Si la red NAT de WSL2 impide la conexión, se activa `networkingMode=mirrored` en `.wslconfig` o se usa el `adb.exe` de Windows desde WSL.
+- **Ejecución en el dispositivo físico** (Samsung Galaxy A57, Android 16) por **depuración USB**. Como WSL2 no ve los USB de Windows, el móvil se pasa a WSL con **usbipd-win** (`usbipd bind` una vez como administrador; `usbipd attach --wsl --auto-attach`), y el `adb` de Linux lo ve como un USB normal; una regla udev para Samsung (`idVendor` `04e8`, grupo `plugdev`) da permisos al usuario. Se descartó usar el `adb` de Windows como servidor (dos adb que mantener y red entre WSL y Windows). En Samsung hay que desactivar el **Bloqueador automático** para poder depurar. La depuración inalámbrica queda como alternativa.
+- **SDK:** las *command-line tools* 23 sustituyen `sdkmanager` por el **Android CLI** (`android sdk install ...`). Paquetes: `platform-tools` 37.0.1, `platforms/android-37.0` (`compileSdk` 37) y `build-tools/37.0.0`.
 - **Opcionales:** el emulador (WSL tiene `/dev/kvm` y WSLg; requiere añadir el usuario al grupo `kvm` y probablemente subir la memoria de WSL, hoy ~7,6 GB) y Android Studio dentro de WSL vía WSLg, solo si hacen falta las vistas previas de Compose o el inspector de interfaz.
-- **Consecuencia para la Fase 2:** conviene que los algoritmos de visión se puedan probar en la JVM (OpenCV para Java de escritorio) sobre `vision/testdata`, sin dispositivo. Se decide al empezar la fase.
+- **Consecuencia para la Fase 2:** los algoritmos de visión se prueban en la JVM, sin dispositivo (D-16).
 - **CI**: GitHub Actions con `./gradlew :solver:test`.
+
+## D-16 · `vision-core` (JVM) + `vision` (Android), OpenCV 4.14, `minSdk` 26
+- **`vision-core`**: módulo Kotlin/JVM puro con detección, rectificación, segmentación y la interfaz `DigitRecognizer`. Usa la API Java oficial de OpenCV (`org.opencv.*`) como `compileOnly`; en los tests la aporta **Bytedeco 4.14** (solo nativos `linux-x86_64`). Se prueba en WSL y en la CI con las fotos reales, igual que el `solver`.
+- **`vision`**: librería Android que depende de `vision-core`, del AAR oficial **`org.opencv:opencv` 4.14** y de ML Kit. Solo adapta `Bitmap` ⇄ `Mat` e implementa el reconocedor de ML Kit.
+- Misma versión de OpenCV en los dos lados para que el código de `vision-core` se comporte igual en la JVM y en el móvil. Se descartó OpenCV 5.0 (sin binding de JVM equivalente) y openpnp (estancado en 4.9).
+- El tipo de imagen entre módulos es `org.opencv.core.Mat`; no se crea uno propio.
+- **`minSdk` 26** (Android 8.0) para la app y las librerías Android: cubre prácticamente todos los móviles en uso y CameraX, ML Kit y Compose lo soportan.
+
+## D-17 · Conjunto de fotos de prueba
+- 30–50 fotos propias. Los originales quedan en `testdata/vision/raw/` (ignorado por git); se versiona una copia **reescalada (lado mayor 1600 px), en JPEG y sin EXIF**, porque el repositorio será público en la Fase 7 y el EXIF puede llevar la ubicación.
+- Cada foto tiene una etiqueta de texto con **los 81 dígitos y el origen de cada celda** (impreso, manuscrito o vacía) y una línea de metadatos (luz, ángulo, papel) para desglosar las métricas. El origen hace falta para medir por separado los manuscritos y para la Fase 5 (D-12).
+- Etiquetado **asistido por el pipeline**: una herramienta de `vision-core` rectifica la foto y prerrellena las celdas vacías; cuando haya reconocedor, también propone los dígitos. Un test valida cada etiqueta con el `solver` (sin repetidos y con solución).
 
 ---
 
@@ -109,9 +133,9 @@ El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (c
 - ¿Qué orden de técnicas usar al elegir "el siguiente paso"? Propuesta: el orden de dificultad de la sección 3 del diseño, configurable.
 - Dataset de entrenamiento: ¿cuántas fotos propias se pueden recopilar y etiquetar?
 - ¿Cómo se distinguen patrón y eliminaciones en cadenas/coloración con un solo acento? (ver D-12)
-- ¿Se separa `vision` en un núcleo JVM puro (probado con OpenCV de escritorio) y una capa Android, como el `solver`? (ver D-15)
 
 ### Resueltas
 
+- ~~¿Se separa `vision` en un núcleo JVM puro y una capa Android?~~ Sí (D-16).
 - ~~¿Se distingue visualmente entre pista impresa y dígito del usuario?~~ Sí, por peso tipográfico (D-12).
 - ~~¿Se ofrece un modo "mostrar solo la técnica" antes de revelar las celdas exactas?~~ Sí, revelado gradual por niveles (D-12).

@@ -2,6 +2,13 @@ rootProject.name = "sudoku-coach"
 
 pluginManagement {
     repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         gradlePluginPortal()
         mavenCentral()
     }
@@ -9,11 +16,18 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
     }
 }
 
 include(":solver")
-// Pendientes (se activan al crearlos desde Android Studio):
-// include(":vision")
-// include(":app")
+include(":vision-core")
+include(":vision")
+// Pendiente: include(":app") (Fase 3)
