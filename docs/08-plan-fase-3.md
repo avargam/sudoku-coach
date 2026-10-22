@@ -68,10 +68,15 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 
 ## 3.1 Tema y tokens (D-12)
 - `SudokuColors` con los 8 tokens de §5.3 en claro y oscuro, expuestos con un `CompositionLocal`, y un `ColorScheme` de Material 3 derivado de ellos para los componentes estándar. Sin Dynamic Color.
-- Tipografía: IBM Plex Sans (regular, medium y bold) con cifras tabulares (`fontFeatureSettings = "tnum"`) y licencia OFL en `app/src/main/assets/licenses/`.
+- Tipografía: IBM Plex Sans (regular, medium y bold) con cifras tabulares y licencia OFL en `app/src/main/assets/licenses/`.
 - **Test de contraste** (JVM): ratio WCAG de cada par de uso (`ink`/`background`, `accent`/`background`, `onAccent`/`accent`, `ink`/`accentSoft`, `inkMuted`/`surface`) ≥ 4,5 en los dos modos. Así un cambio de paleta no rompe la legibilidad sin que se note.
 
 **Hecho cuando:** el test de contraste pasa y la app sigue el modo del sistema.
+
+**Resultado:** `SudokuColors` (`Light` y `Dark`) con `LocalSudokuColors`, `SudokuTheme.colors` para leerlos y `SudokuCoachTheme`, que deriva de ellos el `ColorScheme` de Material 3: el acento ocupa primario, secundario y terciario, y las superficies son `background` y `surface`, para que ningún componente estándar meta otro color. La ventana usa el mismo `background` en claro y oscuro, así que no hay destello al abrir. Comprobado en el A57 en los dos modos.
+
+- **Fuente:** IBM Plex Sans **variable** de Google Fonts (un TTF de 537 KB, ejes `wght` 100–700 y `wdth`), en `res/font`, con los pesos 400, 500 y 700 por `FontVariation`; licencia en `assets/licenses/`. El paquete npm de IBM solo trae WOFF, que Android no lee. **Sin `tnum`**: la fuente no tiene esa característica porque sus cifras ya son tabulares (las diez miden 600 unidades).
+- **Contraste:** `ContrastTest` comprueba 10 pares de texto en los dos modos, no solo los 5 previstos: también los candidatos eliminados y el dígito a colocar dentro de una celda del patrón. Ese caso daba 4,46 en claro con `inkMuted` `#6B6B6F`, así que el token pasa a **`#69696D`** (4,60; el cambio no se aprecia a la vista). El test falla con el valor antiguo.
 
 ## 3.2 Componente `SudokuBoard`
 - Un único `Canvas` (no 81 composables): líneas finas `gridLine` y gruesas de caja `ink`, dígitos en negrita si son impresos y en regular si son manuscritos o de origen desconocido.

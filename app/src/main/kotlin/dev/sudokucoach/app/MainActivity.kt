@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import dev.sudokucoach.app.ui.theme.SudokuCoachTheme
 
 /** Única `Activity` de la app (D-18): todo lo demás son pantallas de Compose. */
 class MainActivity : ComponentActivity() {
@@ -24,8 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            // El tema propio con los tokens de D-12 llega en la tarea 3.1.
-            MaterialTheme {
+            SudokuCoachTheme {
                 CoachApp(onExit = ::finish)
             }
         }

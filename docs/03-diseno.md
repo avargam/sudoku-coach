@@ -156,13 +156,13 @@ Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board)
 | `background` | `#FFFFFF` | `#0F0F10` | Fondo de pantalla |
 | `surface` | `#F4F4F5` | `#1A1A1C` | Bottom sheet, teclado |
 | `ink` | `#111111` | `#EDEDED` | Dígitos, texto, líneas gruesas de caja |
-| `inkMuted` | `#6B6B6F` | `#9A9A9F` | Texto secundario, candidatos eliminados |
+| `inkMuted` | `#69696D` | `#9A9A9F` | Texto secundario, candidatos eliminados |
 | `gridLine` | `#D4D4D8` | `#34343A` | Líneas finas entre celdas |
 | `accent` | `#1F5FD1` | `#6EA0FF` | Colocación, contornos, celdas sospechosas, botón principal |
 | `accentSoft` | `#E3ECFB` | `#1C2B47` | Relleno de celdas del patrón y de la celda seleccionada |
 | `onAccent` | `#FFFFFF` | `#0F0F10` | Texto sobre el acento |
 
-**Tipografía**: una sola familia sans con cifras tabulares (IBM Plex Sans, licencia OFL; se incluye en la app como fuente descargable o empaquetada). Pistas impresas en **negrita** (`ink`), dígitos del usuario en peso regular (`ink`, algo más ligeros). Si el origen es `UNKNOWN`, todos los dígitos se muestran en peso regular.
+**Tipografía**: una sola familia sans con cifras tabulares (IBM Plex Sans, licencia OFL), empaquetada en la app como fuente variable (D-03, D-18). Pistas impresas en **negrita** (`ink`), dígitos del usuario en peso regular (`ink`, algo más ligeros). Si el origen es `UNKNOWN`, todos los dígitos se muestran en peso regular.
 
 **Lenguaje del resaltado** (un acento con variaciones)
 
