@@ -13,6 +13,14 @@ data class Prediction(val digit: Int, val confidence: Float) {
         require(digit in 0..9) { "Dígito fuera de rango: $digit" }
         require(confidence in 0f..1f) { "Confianza fuera de rango: $confidence" }
     }
+
+    companion object {
+        /** Celda vacía según el segmentador. */
+        val EMPTY = Prediction(digit = 0, confidence = 1f)
+
+        /** Celda con tinta en la que el reconocedor no ha leído ningún dígito. */
+        val UNREADABLE = Prediction(digit = 0, confidence = 0f)
+    }
 }
 
 /**
@@ -22,4 +30,24 @@ data class Prediction(val digit: Int, val confidence: Float) {
  */
 interface DigitRecognizer {
     fun recognize(cell: Mat): Prediction
+}
+
+/**
+ * Reconoce todos los dígitos del tablero rectificado a partir de su segmentación: es el punto de
+ * sustitución del reconocedor (D-08). Existe además de [DigitRecognizer] porque la estrategia que
+ * mejor funciona con ML Kit lee el tablero entero de una vez (tarea 2.8).
+ */
+fun interface BoardRecognizer {
+    /** Una predicción por celda, en el orden de [cells]; las vacías deben quedar como [Prediction.EMPTY]. */
+    fun recognize(rectified: Mat, cells: List<Cell>): List<Prediction>
+
+    companion object {
+        /** Reconoce celda a celda con [recognizer]; las celdas vacías no llegan a él. */
+        fun cellByCell(recognizer: DigitRecognizer) = BoardRecognizer { _, cells ->
+            cells.map { cell ->
+                val digit = cell.digit
+                if (cell.empty || digit == null) Prediction.EMPTY else recognizer.recognize(digit)
+            }
+        }
+    }
 }

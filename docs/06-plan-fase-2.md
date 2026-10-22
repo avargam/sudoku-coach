@@ -158,10 +158,46 @@ Tests instrumentados en el A57: carga de OpenCV 4.14, ida y vuelta `Bitmap` ⇄ 
 - `adb pull` del JSON y un test/informe en la JVM que calcula: **acierto por celda**, separado en **impresos** y **manuscritos**, confusiones más frecuentes (1/7, 4/9…) y tiempo por foto.
 - Los resultados del reconocedor alimentan el etiquetado (2.5) de las fotos que falten.
 
+**Resultado:** las fotos se copian como assets del APK de test (sin `raw/`). `DeviceMetricsTest` (solo con `metrics=true`, ≈ 4 min) guarda las predicciones de las dos estrategias en `device-metrics.json`, AGP lo descarga y `:vision:saveDeviceMetrics` lo versiona en `testdata/vision/results/`. `DeviceMetricsReportTest` (`vision-core`) lo compara con las etiquetas y escribe `build/reports/vision/device.md`. Resultados en el A57 (30 fotos, 2201 dígitos):
+
+| | Celda a celda | Cuadrícula entera (lámina) |
+|---|---|---|
+| Impresos | 574/746 (76,9 %) | **746/746 (100 %)** |
+| Manuscritos | 426/1455 (29,3 %) | **1376/1455 (94,6 %)** |
+| Sin lectura / dígito equivocado | 978 / 223 | 29 / 50 |
+| Dígitos en celdas vacías | 0 | 0 |
+| Lecturas con confianza ≥ 0,5 | 873/1064 correctas (82 %) | **1706/1706 correctas (100 %)** |
+| Tiempo por foto | mediana 8,5 s | **mediana 0,3 s** |
+
+**Cómo se llegó a la lámina.** La primera medición de la cuadrícula entera (tablero rectificado ampliado, con las cajas de los dígitos sobre blanco) dio un 23 % en impresos y un 0,3 % en manuscritos. Se exploraron variantes en el móvil:
+
+- **Lámina.** ML Kit es un lector de líneas, así que se redibujan los dígitos en líneas, a la misma altura (48 px) y sin rejilla.
+- **Contraste estirado.** Es lo decisivo: papel a blanco y tinta a negro. Sin él, la lámina se queda en un 7 %.
+- **Separación entre glifos igual a su altura.** Con 8 px une dígitos (90 % / 88 %); con huecos más grandes deja de leer filas enteras.
+- **Líneas repartidas.** ML Kit no lee líneas de un solo carácter, así que los dígitos se reparten por igual en ⌈n/9⌉ líneas en vez de una por fila del tablero.
+
+**Errores restantes.** El 90 % de los dígitos equivocados son 1 manuscritos leídos como 4 (45). El 1 del usuario lleva un trazo superior largo y curvado, parecido a un 4 abierto, y la relación ancho/alto no los separa (mediana 0,61 frente a 0,65). Todos tienen confianza < 0,5, igual que el resto de errores, así que con un umbral de 0,5 ningún dígito equivocado se da por bueno, a cambio de marcar "por confirmar" el 21 % de los dígitos leídos (466 de 2172). La solución de fondo es la CNN propia (Fase 5).
+
+Se eliminaron las equivalencias de letras salvo I y | → 1: de las demás (g → 9, Z → 2, J/i/l → 1...) solo resultaban dígitos equivocados. El 2.7 decía que la cuadrícula entera dejaba en blanco todo salvo las cajas; la lámina sustituye a esa versión. Celda a celda se mantiene solo como referencia en las métricas; la decisión sobre D-08 queda para 2.9.
+
 ## 2.9 Cierre de fase
 - Comprobar el criterio: detección ≥ 90 % y tasa de error por celda conocida (impresos y manuscritos por separado).
 - Revisar D-07 (¿hace falta Hough?) y D-08 (¿basta ML Kit hasta la Fase 5?) con los datos.
 - Actualizar `03-diseno.md` §4 y las casillas de `04-plan-implementacion.md`.
+
+**Resultado:** criterio cumplido.
+
+| Criterio | Resultado |
+|---|---|
+| Detección ≥ 90 % | 30/30 (100 %) |
+| Error por celda, impresos | 0 % (746/746) |
+| Error por celda, manuscritos | 5,4 % (79/1455: 29 sin lectura, 50 equivocados, 45 de ellos 1 → 4) |
+| Dígitos equivocados con confianza ≥ 0,5 | 0 |
+
+- **D-07 aceptada** sin Hough.
+- **D-08 aceptada**: ML Kit con la lámina hasta la Fase 5, con umbral de confianza 0,5 para pedir confirmación. La CNN sigue siendo el objetivo, sobre todo por los 1 manuscritos.
+- **Cambio de interfaz:** la lámina lee el tablero entero, así que no encajaba en `DigitRecognizer` (por celda) y `BoardReader` no podía usarla. Se añade `BoardRecognizer` en `vision-core` (tablero rectificado + celdas → 81 predicciones), que implementa `MlKitGridReader` y recibe `BoardReader`; los reconocedores por celda se adaptan con `BoardRecognizer.cellByCell`. `Prediction.EMPTY` y `Prediction.UNREADABLE` sustituyen a las constantes repetidas en cada clase.
+- **Fotos difíciles:** se decidió cerrar con el sesgo anotado (un solo libro, luz interior, ángulos ≤ 6,6°) y medirlas en la Fase 4, añadida como tarea en `04-plan-implementacion.md`.
 
 ---
 

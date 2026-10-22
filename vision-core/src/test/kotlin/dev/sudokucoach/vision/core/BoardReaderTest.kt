@@ -23,7 +23,7 @@ class BoardReaderTest {
         val photo = VisionTestData.photos().firstOrNull { it.label != null }
         assumeTrue(photo != null, "No hay fotos etiquetadas")
         val recognizer = FixedRecognizer(7)
-        val reading = assertNotNull(BoardReader(recognizer).read(photo!!.read()))
+        val reading = assertNotNull(BoardReader(BoardRecognizer.cellByCell(recognizer)).read(photo!!.read()))
 
         val nonEmpty = reading.cells.count { !it.empty }
         assertEquals(nonEmpty, recognizer.calls)

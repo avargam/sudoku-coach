@@ -12,8 +12,8 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-04 | Técnicas hasta nivel avanzado | Aceptada |
 | D-05 | Dígitos impresos + manuscritos | Aceptada |
 | D-06 | Candidatos no se leen del papel; se calculan | Aceptada |
-| D-07 | Detección de tablero: contorno + homografía (OpenCV), Hough como respaldo | Provisional |
-| D-08 | Reconocimiento: ML Kit para el MVP, CNN propia en LiteRT como objetivo | Provisional |
+| D-07 | Detección de tablero: contorno + homografía (OpenCV); Hough solo si lo piden las métricas | Aceptada |
+| D-08 | Reconocimiento: ML Kit (lámina) para el MVP, CNN propia en LiteRT como objetivo | Aceptada |
 | D-09 | Motor de técnicas propio en Kotlin; HoDoKu como oráculo de pruebas | Aceptada |
 | D-10 | Licencia: Apache-2.0; repositorio privado hasta la Fase 7 | Aceptada |
 | D-11 | Estructura multi-módulo con `solver` en Kotlin/JVM puro | Aceptada |
@@ -44,15 +44,23 @@ El reconocedor debe manejar ambos. Esto desfavorece a un OCR genérico y favorec
 ## D-06 · Candidatos calculados, no leídos
 El usuario no anota candidatos; la app los deriva de los dígitos. Simplifica mucho el reconocimiento. Consecuencia: las pistas suponen un solucionador que mantiene candidatos completos.
 
-## D-07 · Detección del tablero (provisional)
+## D-07 · Detección del tablero
 Contorno mayor con 4 esquinas + homografía con OpenCV. Se añade validación geométrica (cuadrado, área mínima, rejilla 9×9). Si falla en fotos reales, se incorpora Hough lines como respaldo. Limitaciones conocidas del enfoque: falla si hay una forma mayor que el tablero y si el tablero está rotado más de ~45°.
 
-## D-08 · Reconocimiento de dígitos (provisional)
+**Aceptada al cerrar la Fase 2:** detecta 30/30 fotos; la puntuación de rejilla descarta marcos mayores y recuadros que no son sudokus, y aproximar sobre la envolvente convexa resuelve el papel curvado. **Hough no se implementa.** Salvedad: las 30 fotos son de un solo libro, con luz interior y ángulos ≤ 6,6°. Las fotos difíciles (otro papel, sombra, ángulo > 15°, curvatura fuerte) se miden en la Fase 4, donde la cámara en vivo las produce de forma natural; si la detección baja del 90 %, se reabre.
+
+## D-08 · Reconocimiento de dígitos
 - **MVP**: ML Kit Text Recognition v2 sobre el tablero rectificado (dígitos de al menos 16×16 px).
 - **Objetivo**: CNN propia con LiteRT (antes TensorFlow Lite), 10 clases (vacía + 1–9), entrenada con dataset sintético de fuentes + MNIST + fotos propias.
 - Ambos detrás de una interfaz `DigitRecognizer`, de modo que el reemplazo no toque el resto.
 - Criterio de revisión: comparar ambos sobre un conjunto de fotos propias etiquetadas.
 - **Concretado al planificar la Fase 2:** se empieza con ML Kit, usando el **modelo incluido en la app** (`com.google.mlkit:text-recognition`) y no la variante que se descarga con Play Services, para cumplir D-03 desde el primer uso. Como ML Kit solo funciona en Android, su acierto se mide en el móvil con un test instrumentado; detección y segmentación se miden en la JVM (D-16).
+
+**Aceptada al cerrar la Fase 2.** ML Kit basta para el MVP con la estrategia de la **lámina** (`MlKitGridReader`): los dígitos se redibujan en líneas, con el contraste estirado y sin rejilla, y se leen en una sola llamada. En el A57, sobre 30 fotos: impresos 746/746 (100 %), manuscritos 1376/1455 (94,6 %), 0,3 s por foto. Celda a celda solo llega al 77 % / 29 % y tarda 8,5 s, así que se descarta.
+- **Umbral de confianza 0,5**: ninguna lectura con confianza ≥ 0,5 es errónea (1706/1706); por debajo, el dígito se marca "por confirmar" en la revisión (21 % de los leídos). Los no leídos (29) también se piden al usuario.
+- **Punto de sustitución**: la interfaz por celda no sirve para la lámina, así que el reconocedor se inyecta a nivel de tablero (`BoardRecognizer`: tablero rectificado + celdas → 81 predicciones). Un `DigitRecognizer` por celda, como la CNN, se adapta con `BoardRecognizer.cellByCell`.
+- **Motivo para la CNN (Fase 5)**: el 90 % de los errores son 1 manuscritos leídos como 4, propios de la letra del usuario; ML Kit no se puede ajustar a ella.
+- El **origen** (impreso / manuscrito) ya lo propone el segmentador por el contraste de la tinta (99,9 % correcto), sin reconocedor.
 
 ## D-09 · Motor de técnicas
 Implementación propia en Kotlin, sin portar el núcleo de HoDoKu, usando `hodoku-py` (port en Python de HoDoKu 2.2.0, GPL-3.0) **solo como oráculo** de pruebas. Razones: aprendizaje, sin acoplamiento a su GUI, salida estructurada pensada para la UI y libertad de licencia. Alternativa descartada por ahora: embeber el núcleo de HoDoKu (GPL-3.0).

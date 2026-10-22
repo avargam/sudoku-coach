@@ -29,7 +29,7 @@ class MlKitRecognizersTest {
         val cells = GridSegmenter().segment(rectified)
         assertEquals(digits.map { it != 0 }, cells.map { !it.empty }) // el segmentador encuentra las mismas celdas
 
-        val read = MlKitGridReader().use { it.read(rectified, cells) }.map { it.digit }
+        val read = MlKitGridReader().use { it.recognize(rectified, cells) }.map { it.digit }
         assertEquals(digits.toList(), read)
     }
 }

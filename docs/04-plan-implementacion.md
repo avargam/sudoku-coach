@@ -47,8 +47,10 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 - [x] 2.5 Etiquetado asistido y validación de etiquetas con el `solver`
 - [x] 2.6 Métricas en la JVM: detección y celdas vacías
 - [x] 2.7 Módulo `vision` (Android) con OpenCV 4.14 y `MlKitDigitRecognizer`
-- [ ] 2.8 Métricas en el móvil: acierto por celda (impresos y manuscritos)
-- [ ] 2.9 Cierre: revisar D-07 y D-08
+- [x] 2.8 Métricas en el móvil: acierto por celda (impresos y manuscritos)
+- [x] 2.9 Cierre: revisar D-07 y D-08
+
+**Cerrada:** tablero detectado en 30/30 fotos y vacía/no vacía correcta en el 99,8 % de las celdas. Error por celda con ML Kit en el A57: impresos 0 % (746/746), manuscritos 5,4 % (79/1455, 29 sin lectura y 50 equivocados); con el umbral de confianza 0,5 ningún dígito equivocado se da por bueno. D-07 y D-08 aceptadas; las cifras vienen de un solo libro, así que las fotos difíciles se miden en la Fase 4.
 
 **Hecho cuando:** se cumple el criterio de detección ≥ 90 % y se conoce la tasa de error por celda.
 
@@ -72,6 +74,7 @@ Objetivo: elegir una foto → revisar → ver la primera pista.
 - [ ] Escáner a pantalla completa con contorno del tablero en el acento y captura automática
 - [ ] Votación multi-frame y confianza por celda
 - [ ] Rendimiento: presupuesto de tiempo por fotograma
+- [ ] Fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, curvatura) añadidas a `testdata/vision` y medidas; reabrir D-07 (Hough) si la detección baja del 90 %
 
 ## Fase 5 · CNN propia
 
@@ -80,7 +83,7 @@ Objetivo: elegir una foto → revisar → ver la primera pista.
 - [ ] Entrenar y evaluar en Python; exportar a LiteRT
 - [ ] `TfLiteDigitRecognizer`
 - [ ] Comparar contra ML Kit con el mismo conjunto de fotos y decidir (D-08)
-- [ ] Clasificar el origen de cada dígito (impreso / manuscrito) para la tipografía de D-12
+- [ ] Clasificar el origen de cada dígito (impreso / manuscrito) para la tipografía de D-12; el segmentador ya lo propone por contraste (99,9 % en la Fase 2), así que la CNN solo lo sustituye si mejora
 
 ## Fase 6 · Técnicas avanzadas
 

@@ -27,8 +27,8 @@ Overlay sobre imagen en vivo  ◄──────────────  Pas
 | Módulo | Tipo | Responsabilidad | Depende de |
 |---|---|---|---|
 | `solver` | Kotlin/JVM puro | Modelo del tablero, candidatos, técnicas, motor de pistas | — |
-| `vision-core` | Kotlin/JVM puro | Detección del tablero, rectificación, segmentación de celdas, interfaz `DigitRecognizer` | OpenCV 4.14 (API `org.opencv.*`, `compileOnly`) |
-| `vision` | Android library | `Bitmap` ⇄ `Mat`, reconocedores (ML Kit; LiteRT en la Fase 5) | `vision-core`, OpenCV 4.14 AAR, ML Kit |
+| `vision-core` | Kotlin/JVM puro | Detección del tablero, rectificación, segmentación de celdas, interfaces `BoardRecognizer` y `DigitRecognizer` | OpenCV 4.14 (API `org.opencv.*`, `compileOnly`) |
+| `vision` | Android library | `Bitmap` ⇄ `Mat`, reconocedores (ML Kit con la lámina; LiteRT en la Fase 5) | `vision-core`, OpenCV 4.14 AAR, ML Kit |
 | `app` | Android app | Cámara, pantallas, overlay, orquestación | `vision`, `solver` |
 
 Reglas: `solver` nunca depende de Android ni de `vision`; `vision-core` nunca depende de Android (D-16).
@@ -92,34 +92,42 @@ Orden del motor en la Fase 1 (el de HoDoKu): Full House → Naked Single → Hid
 
 Todo lo de §4.1 y §4.2 vive en `vision-core` y se prueba en la JVM con las fotos de `testdata/vision/` (D-16, D-17). El plan detallado está en `06-plan-fase-2.md`.
 
-### 4.1 Detección y rectificación
+### 4.1 Detección y rectificación (`BoardDetector`, D-07)
 
 1. Escala de grises, desenfoque suave, umbral adaptativo.
-2. Contornos; seleccionar el mayor aproximable a cuadrilátero convexo.
-3. Validar: relación de aspecto ≈ 1, área mínima, rejilla 9×9 verificable.
-4. Homografía a un cuadrado (≥ 360×360 px; propuesta 450×450 → celdas de 50 px).
-5. Respaldo: Hough lines con filtrado de equiespaciado.
+2. Contornos; del mayor al menor, aproximar la envolvente convexa a un cuadrilátero con tolerancias crecientes (2–5 % del perímetro; el papel curvado necesita las mayores).
+3. Validar: cuadrilátero convexo, relación de aspecto ≈ 1, área mínima y **puntuación de rejilla** (cuántas de las 20 líneas interiores esperadas son más oscuras que las celdas vecinas), que descarta marcos y recuadros que no son un sudoku.
+4. Homografía a 450×450 px (celdas de 50 px). Salida: `BoardScan` con esquinas, imagen rectificada y confianza.
+5. Respaldo con Hough: no hizo falta en la Fase 2 (30/30); se reconsidera si las fotos de la Fase 4 lo piden.
 
-### 4.2 Segmentación de celdas
+### 4.2 Segmentación de celdas (`GridSegmenter`)
 
-- Dividir en 81 celdas y recortar un margen (≈ 10 %) para eliminar las líneas de la rejilla.
-- Detectar celda vacía por proporción de píxeles de tinta en el centro, antes de invocar al reconocedor.
+- Binarizar el tablero rectificado con umbral adaptativo y **borrar las líneas de la rejilla** con aperturas morfológicas de 1,5 celdas (las líneas del papel curvado entran en las celdas aunque se recorte un margen).
+- Celda con dígito si la unión de sus componentes conexas alcanza el 35 % de la altura de la celda y un mínimo de tinta; se unen los fragmentos porque el lápiz tenue se binariza a trozos.
+- Para cada dígito: caja delimitadora, recorte y **origen propuesto** (impreso / manuscrito) según el contraste de la tinta con el papel (umbral 0,4).
 
 ### 4.3 Reconocimiento
 
 ```kotlin
-interface DigitRecognizer {
-    fun recognize(cell: Mat): Prediction   // dígito 0..9 + confianza
+fun interface BoardRecognizer {                     // punto de sustitución (D-08)
+    fun recognize(rectified: Mat, cells: List<Cell>): List<Prediction>   // 81 predicciones
+}
+interface DigitRecognizer {                         // por celda; se adapta con BoardRecognizer.cellByCell
+    fun recognize(cell: Mat): Prediction            // dígito 0..9 + confianza
 }
 ```
 
-La interfaz está en `vision-core` y usa `org.opencv.core.Mat`. Implementaciones previstas en `vision`: `MlKitDigitRecognizer` (MVP, modelo incluido en la app) y `TfLiteDigitRecognizer` (CNN en LiteRT, Fase 5).
+Las interfaces están en `vision-core` y usan `org.opencv.core.Mat`; `BoardReader` encadena detección, segmentación y un `BoardRecognizer`. Implementaciones en `vision`:
+
+- `MlKitGridReader` (MVP): redibuja los dígitos en una **lámina** (líneas de hasta 9, glifos de 48 px con el contraste estirado y separación igual a su altura, sin rejilla) y la lee con una sola llamada a ML Kit, con el modelo incluido en la app. Cada lectura va a la celda de su glifo.
+- `MlKitDigitRecognizer`: celda a celda; solo como referencia en las métricas (77 % / 29 %, frente a 100 % / 94,6 % de la lámina).
+- `TfLiteDigitRecognizer` (CNN en LiteRT, Fase 5), por celda.
 
 ### 4.4 Robustez
 
 - **Votación multi-frame**: una celda se acepta tras N lecturas iguales consecutivas.
 - **Validación de reglas**: duplicados en fila/columna/caja marcan celdas sospechosas.
-- **Confianza por celda**: por debajo de un umbral, se pide confirmación.
+- **Confianza por celda**: por debajo de 0,5 se pide confirmación (con ML Kit, ninguna lectura por encima fue errónea en la Fase 2); las celdas con tinta sin lectura también.
 - **Unicidad**: backtracking rápido para verificar solución única antes de usar técnicas que la asumen.
 
 ## 5. Módulo `app`
