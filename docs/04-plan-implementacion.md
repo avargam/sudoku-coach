@@ -59,7 +59,7 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-plan-fase-3.md](08-plan-fase-3.md).
 
 - [x] Decidir la arquitectura de la app (D-18) y la validación antes de las pistas (D-19)
-- [ ] 3.0 Proyecto `app` con Compose, Navigation 3 y `ViewModel`; CI con la app
+- [x] 3.0 Proyecto `app` con Compose, Navigation 3 y `ViewModel`; CI con la app
 - [ ] 3.1 Tema propio con los tokens de color de `03-diseno.md` §5.3, en claro y oscuro
 - [ ] 3.2 Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
 - [ ] 3.3 Lectura de la foto de galería (orientación, 1600 px, origen en `vision-core`)

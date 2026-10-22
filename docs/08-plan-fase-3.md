@@ -55,6 +55,17 @@ Esto aprovecha el origen de cada dígito, que el segmentador acierta en un 99,9 
 
 **Hecho cuando:** `./gradlew :app:installDebug` instala en el A57 una pantalla vacía con el tema y la CI está en verde.
 
+**Resultado:** módulo `app` con AGP 9.4.1, el plugin de Compose de Kotlin 2.4.20, la BOM de Compose 2026.09.00, Navigation 3 1.2.0, Activity 1.13.0 y Lifecycle 2.11.0. `MainActivity` muestra con `NavDisplay` la pila de pantallas de `CoachViewModel` (por ahora solo `Route.Picking`, un marcador de texto). Atrás en la primera pantalla cierra la app. Los tests locales usan JUnit 4 (`kotlin("test-junit")`), porque con `kotlin("test")` AGP no elige variante. La app arranca en el A57 en 0,7 s; el tema propio queda para 3.1.
+
+| APK | Tamaño | Detalle |
+|---|---|---|
+| *debug* | 126 MB | |
+| *release* (R8) | 113 MB | `x86_64` 73 MB, `arm64-v8a` ≈ 40 MB (OpenCV 25 MB, ML Kit 11 MB, código 2 MB) |
+
+Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no se cambia nada: al publicar (Fase 7), el App Bundle reparte por ABI. R8 no necesitó reglas propias para OpenCV ni ML Kit.
+
+`installDebug` se quedó una vez colgado con el APK copiado en el móvil y sin instalar (sin ningún aviso en pantalla); `./gradlew --stop`, reiniciar adb y `adb install -r -t app/build/outputs/apk/debug/app-debug.apk` lo resolvió.
+
 ## 3.1 Tema y tokens (D-12)
 - `SudokuColors` con los 8 tokens de §5.3 en claro y oscuro, expuestos con un `CompositionLocal`, y un `ColorScheme` de Material 3 derivado de ellos para los componentes estándar. Sin Dynamic Color.
 - Tipografía: IBM Plex Sans (regular, medium y bold) con cifras tabulares (`fontFeatureSettings = "tnum"`) y licencia OFL en `app/src/main/assets/licenses/`.
