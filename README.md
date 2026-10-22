@@ -41,7 +41,7 @@ sudoku-coach/
 
 ```bash
 ./gradlew :solver:test :vision-core:test :app:testDebugUnitTest   # en la JVM, sin móvil
-./gradlew :app:installDebug                                        # instala la app en el móvil conectado
+./gradlew :app:deployDebug                                         # compila e instala la app en el móvil conectado
 ```
 
 Más detalle, incluidos los tests en el móvil, en [docs/07-puesta-en-marcha.md](docs/07-puesta-en-marcha.md).

@@ -39,10 +39,10 @@ android {
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // El AAR de OpenCV trae nativos para 4 arquitecturas (123 MB). Basta con la del A57 (arm64-v8a)
-        // y la de un posible emulador (x86_64).
+        // El AAR de OpenCV trae nativos para 4 arquitecturas (123 MB). Basta con la del A57 (arm64-v8a);
+        // si se usa el emulador, añadir "x86_64" (ver app/build.gradle.kts).
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 

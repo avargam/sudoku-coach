@@ -61,7 +61,7 @@ Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-p
 - [x] Decidir la arquitectura de la app (D-18) y la validación antes de las pistas (D-19)
 - [x] 3.0 Proyecto `app` con Compose, Navigation 3 y `ViewModel`; CI con la app
 - [x] 3.1 Tema propio con los tokens de color de `03-diseno.md` §5.3, en claro y oscuro
-- [ ] 3.2 Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
+- [x] 3.2 Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
 - [ ] 3.3 Lectura de la foto de galería (orientación, 1600 px, origen en `vision-core`)
 - [ ] 3.4 Tablero de revisión, celdas sospechosas y validación con el `solver`
 - [ ] 3.5 Pantalla de revisión editable: selección de celda, teclado numérico fijo, celdas sospechosas con contador

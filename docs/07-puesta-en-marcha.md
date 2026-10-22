@@ -56,12 +56,18 @@ Los resultados de los tests quedan en `vision/build/reports/androidTests/connect
 La app:
 
 ```bash
-./gradlew :app:installDebug                       # instala y luego se abre desde el móvil
-adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.MainActivity   # o abrirla desde adb
+./gradlew :app:deployDebug                        # compila e instala (≈ 15 s)
+adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.MainActivity            # abrir la app
+adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.debug.BoardCatalogActivity  # catálogo del tablero
+./gradlew :app:connectedDebugAndroidTest          # tests de Compose en el móvil
 ```
 
-Si `installDebug` se queda parado sin mostrar nada en el móvil: `./gradlew --stop`,
-`adb kill-server` y `adb install -r -t app/build/outputs/apk/debug/app-debug.apk`.
+**No usar `installDebug`:** con el A57 se queda colgado sin instalar. `deployDebug` usa `adb install`
+directamente. Si una copia por USB va muy lenta (a ratos baja de 50 MB/s a menos de 1 MB/s),
+desconectar y volver a conectar el cable suele bastar.
+
+Para ver la app en modo oscuro o claro sin tocar los ajustes: `adb shell cmd uimode night yes|no`
+(y dejarlo después como estaba).
 
 ### 1.4 Al terminar
 

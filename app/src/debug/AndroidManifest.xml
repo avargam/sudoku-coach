@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Solo en debug: todas las decoraciones del tablero para revisarlas en el móvil (tarea 3.2).
+             adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.debug.BoardCatalogActivity -->
+        <activity
+            android:name=".debug.BoardCatalogActivity"
+            android:exported="true" />
+    </application>
+</manifest>

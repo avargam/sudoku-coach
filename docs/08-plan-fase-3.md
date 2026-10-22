@@ -48,12 +48,12 @@ Esto aprovecha el origen de cada dígito, que el segmentador acierta en un 99,9 
 
 ## 3.0 Módulo `app`
 - `include(":app")`, plugin `com.android.application` 9.4.1, plugin de Compose de Kotlin (`org.jetbrains.kotlin.plugin.compose` 2.4.20) y la BOM de Compose estable más reciente compatible. Las versiones se fijan al empezar, comprobando la matriz de compatibilidad, como se hizo con AGP en 2.0.
-- `applicationId` `dev.sudokucoach`, `minSdk` 26, `targetSdk`/`compileSdk` 37, solo `arm64-v8a` y `x86_64` (como `vision`), y nombre "Sudoku Coach".
+- `applicationId` `dev.sudokucoach`, `minSdk` 26, `targetSdk`/`compileSdk` 37, solo `arm64-v8a` y `x86_64` (como `vision`; en 3.2 se quitó `x86_64`), y nombre "Sudoku Coach".
 - Dependencias: `:solver`, `:vision`, `activity-compose`, `lifecycle-viewmodel-compose`, `material3` y Navigation 3 (D-18).
 - **Tamaño del APK**: el de test de `vision` ocupa 124 MB (OpenCV para dos ABI y las 30 fotos). Medir el de la app en *debug* y *release* (con R8) y anotarlo; si pasa de ~60 MB en *release*, valorar los *App Bundles* por ABI.
 - CI: el trabajo de Android pasa a ejecutar `:vision:assembleDebug :vision:assembleDebugAndroidTest :app:assembleDebug :app:testDebugUnitTest`.
 
-**Hecho cuando:** `./gradlew :app:installDebug` instala en el A57 una pantalla vacía con el tema y la CI está en verde.
+**Hecho cuando:** la app se instala en el A57 una pantalla vacía con el tema y la CI está en verde.
 
 **Resultado:** módulo `app` con AGP 9.4.1, el plugin de Compose de Kotlin 2.4.20, la BOM de Compose 2026.09.00, Navigation 3 1.2.0, Activity 1.13.0 y Lifecycle 2.11.0. `MainActivity` muestra con `NavDisplay` la pila de pantallas de `CoachViewModel` (por ahora solo `Route.Picking`, un marcador de texto). Atrás en la primera pantalla cierra la app. Los tests locales usan JUnit 4 (`kotlin("test-junit")`), porque con `kotlin("test")` AGP no elige variante. La app arranca en el A57 en 0,7 s; el tema propio queda para 3.1.
 
@@ -64,7 +64,7 @@ Esto aprovecha el origen de cada dígito, que el segmentador acierta en un 99,9 
 
 Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no se cambia nada: al publicar (Fase 7), el App Bundle reparte por ABI. R8 no necesitó reglas propias para OpenCV ni ML Kit.
 
-`installDebug` se quedó una vez colgado con el APK copiado en el móvil y sin instalar (sin ningún aviso en pantalla); `./gradlew --stop`, reiniciar adb y `adb install -r -t app/build/outputs/apk/debug/app-debug.apk` lo resolvió.
+`installDebug` se quedó colgado con el APK copiado en el móvil y sin instalar (sin ningún aviso en pantalla); `adb install` lo resolvió. En 3.2 se vio que pasa siempre y se sustituyó por `:app:deployDebug`.
 
 ## 3.1 Tema y tokens (D-12)
 - `SudokuColors` con los 8 tokens de §5.3 en claro y oscuro, expuestos con un `CompositionLocal`, y un `ColorScheme` de Material 3 derivado de ellos para los componentes estándar. Sin Dynamic Color.
@@ -86,6 +86,16 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 - Cuadrado, a todo el ancho y con tamaño de texto proporcional a la celda.
 
 **Tests:** instrumentados con `createComposeRule`: tocar una celda la selecciona y la semántica describe el tablero. La revisión visual se hace en el A57 con una pantalla de catálogo solo en *debug* (todas las decoraciones en claro y oscuro), sin capturas de referencia por ahora.
+
+**Resultado:** `SudokuBoard(board: BoardUi, onCellClick)` en `ui/board/`. `BoardUi` son 81 `CellUi` con el valor, el origen (`DigitOrigin`: `GIVEN` negrita, `USER` y `UNKNOWN` regular), un conjunto de `CellDecoration`, la colocación y los candidatos visibles y eliminados.
+
+- **Dibujo:** una sola pasada en `drawWithCache`; los 36 glifos (9 dígitos × impreso, manuscrito, colocación y candidato) se miden una vez por tamaño de celda, con tamaños en px de la celda, así que no crecen con la escala de fuente del sistema. Rellenos, dígitos y candidatos, después las líneas (finas `gridLine`, de caja y borde `ink`) y por encima los contornos, metidos en la celda para no confundirse con las líneas.
+- **Decoraciones:** `SELECTED` y `PATTERN` rellenan con `accentSoft`; `PLACEMENT` y `ERROR`, contorno continuo de acento (el error pinta además el dígito en acento); `SUSPICIOUS`, contorno punteado. El tablero de revisión no tiene colocaciones, así que continuo frente a punteado basta para distinguir error de sospechosa.
+- **Toque y accesibilidad:** en vez de `pointerInput`, encima del dibujo hay 81 cajas transparentes, una por celda, con `clickable`, `contentDescription` ("Fila 1, columna 3: vacía. parte de la pista. candidatos 1, 3. se descarta 8"), `selected` y `testTag`. Así cada celda es un nodo que TalkBack recorre y pulsa, y que los tests pueden tocar.
+- **Tests:** `SudokuBoardTest` (3, en el A57): tocar selecciona, descripción de impresos, manuscritos y vacías (81 nodos) y descripción de las marcas de la pista. Usa `createComposeRule` de `junit4.v2`, porque la v1 está obsoleta.
+- **Catálogo:** `BoardCatalogActivity`, solo en *debug* (`adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.debug.BoardCatalogActivity`), con todas las decoraciones; revisado en claro y oscuro.
+
+**Instalación en el A57.** `installDebug` de AGP se queda colgado siempre (5 min sin instalar, también con el daemon reiniciado), mientras que `adb install` del mismo APK tarda 2–3 s. Se añade `./gradlew :app:deployDebug`, que compila e instala con el `adb` del SDK. `connectedDebugAndroidTest` instala bien y no cambia. Además, las copias por usbipd se vuelven lentas a ratos (de 50 MB/s a 0,6 MB/s con el mismo archivo), así que se quita `x86_64` de `app` y de `vision`: era solo para un emulador que no se usa. El APK de *debug* baja de 126 a 53 MB y el de test de `vision`, de 124 a 50 MB.
 
 ## 3.3 Lectura de la foto (`scan/`)
 - **Photo Picker** (`PickVisualMedia`, solo imágenes): no pide permisos y en API 26–29 lo trae la biblioteca de compatibilidad.
