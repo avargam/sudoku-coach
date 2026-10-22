@@ -41,6 +41,8 @@ val testDataDir = rootProject.file("testdata/vision").absolutePath
 
 tasks.test {
     useJUnitPlatform()
+    // Traza completa en la consola: en la CI es la única forma de ver la causa de un fallo al cargar los nativos.
+    testLogging { exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL }
     // Las fotos y etiquetas de prueba viven fuera del módulo (D-17). Se declaran como entrada para que
     // Gradle vuelva a ejecutar los tests al cambiar una foto o una etiqueta.
     systemProperty("sudokucoach.testdata", testDataDir)

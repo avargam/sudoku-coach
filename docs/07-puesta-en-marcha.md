@@ -77,6 +77,7 @@ Solo hace falta repetirla si se reinstala WSL, se cambia de PC o de móvil.
 | Pieza | Estado actual | Cómo se hizo |
 |---|---|---|
 | JDK 21 | `openjdk-21-jdk` en WSL | `sudo apt install openjdk-21-jdk` |
+| GTK2 (tests de `vision-core`) | `libgtk2.0-0t64` en WSL | `sudo apt install libgtk2.0-0t64`: los nativos de OpenCV de Bytedeco cargan `highgui`, que lo necesita aunque no se use |
 | Gradle | wrapper versionado (9.8.1) | Nada que instalar: `./gradlew` lo descarga |
 | Android SDK | `~/Android/Sdk` | Command-line tools 23 y luego `android sdk install "platform-tools" "platforms;android-37.0" "build-tools;37.0.0"` |
 | Variables | En `~/.bashrc` | `export ANDROID_HOME="$HOME/Android/Sdk"` y `export PATH="$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin"` |

@@ -16,6 +16,9 @@ jobs:
           distribution: temurin
           java-version: "21"
       - uses: gradle/actions/setup-gradle@v6
+      # Los nativos de OpenCV (Bytedeco) cargan siempre highgui, que enlaza con GTK2 del sistema
+      # aunque vision-core no lo use; la imagen del runner no lo trae.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk2.0-0t64
       - run: ./gradlew :solver:test :vision-core:test
 
   vision-android:
