@@ -2,4 +2,17 @@
 <resources>
     <string name="app_name">Sudoku Coach</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
+
+    <!-- Accesibilidad del tablero (SudokuBoard): una descripción por celda. -->
+    <string name="cell_empty">Fila %1$d, columna %2$d: vacía</string>
+    <string name="cell_digit">Fila %1$d, columna %2$d: %3$d</string>
+    <string name="cell_digit_origin">Fila %1$d, columna %2$d: %3$d, %4$s</string>
+    <string name="cell_placement">Fila %1$d, columna %2$d: aquí va un %3$d</string>
+    <string name="cell_origin_given">impreso</string>
+    <string name="cell_origin_user">manuscrito</string>
+    <string name="cell_suspicious">por revisar</string>
+    <string name="cell_error">no encaja con la solución</string>
+    <string name="cell_pattern">parte de la pista</string>
+    <string name="cell_candidates">candidatos %1$s</string>
+    <string name="cell_eliminated">se descarta %1$s</string>
 </resources>

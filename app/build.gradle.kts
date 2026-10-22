@@ -15,9 +15,10 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Como en vision: solo la arquitectura del A57 y la de un posible emulador (OpenCV ocupa mucho por ABI).
+        // Solo la arquitectura del A57, como vision: x86_64 (emulador) sumaba 73 MB de OpenCV y ML Kit y
+        // las copias de APK por usbipd se vuelven lentas a ratos. Si se usa el emulador, añadir "x86_64".
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
@@ -54,4 +55,25 @@ dependencies {
 
     // Tests locales en la JVM: JUnit 4, el que ejecuta AGP para testDebugUnitTest.
     testImplementation(kotlin("test-junit"))
+
+    // Tests de Compose en el móvil (connectedDebugAndroidTest).
+    androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test:runner:1.7.0")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+// `installDebug` de AGP se queda colgado con el A57 (Android 16), con el APK sin instalar, mientras que
+// `adb install` del mismo APK tarda 2-3 s. Esta tarea compila e instala con adb directamente.
+tasks.register<Exec>("deployDebug") {
+    group = "install"
+    description = "Compila la app en debug y la instala en el móvil conectado con adb install."
+    dependsOn("assembleDebug")
+    val adb = androidComponents.sdkComponents.adb
+    val apk = layout.buildDirectory.file("outputs/apk/debug/app-debug.apk")
+    doFirst {
+        executable = adb.get().asFile.absolutePath
+        args("install", "-r", "-t", apk.get().asFile.absolutePath)
+    }
 }
