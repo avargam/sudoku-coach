@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Solo para la ventana antes de que Compose pinte; los colores de la app están en el tema de Compose (D-12). -->
+    <style name="Theme.SudokuCoach" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
