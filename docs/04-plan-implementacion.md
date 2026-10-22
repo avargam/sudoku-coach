@@ -56,15 +56,19 @@ Objetivo: de una foto a un tablero 9×9 de enteros. Detalle en [06-plan-fase-2.m
 
 ## Fase 3 · App mínima de extremo a extremo (`app`)
 
-Objetivo: elegir una foto → revisar → ver la primera pista.
+Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-plan-fase-3.md](08-plan-fase-3.md).
 
-- [ ] Proyecto `app` con Compose, navegación y `ViewModel`
-- [ ] Tema propio con los tokens de color de `03-diseno.md` §5.3, en claro y oscuro
-- [ ] Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
-- [ ] Pantalla de revisión editable: selección de celda, teclado numérico fijo, celdas sospechosas con contador
-- [ ] Pantalla de pista: tablero + bottom sheet con revelado gradual (técnica → celdas → resultado)
-- [ ] Textos de explicación en español por `TechniqueId`, como recursos de Android (D-14)
-- [ ] Botón "aplicar paso" para encadenar pistas
+- [x] Decidir la arquitectura de la app (D-18) y la validación antes de las pistas (D-19)
+- [ ] 3.0 Proyecto `app` con Compose, Navigation 3 y `ViewModel`; CI con la app
+- [ ] 3.1 Tema propio con los tokens de color de `03-diseno.md` §5.3, en claro y oscuro
+- [ ] 3.2 Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
+- [ ] 3.3 Lectura de la foto de galería (orientación, 1600 px, origen en `vision-core`)
+- [ ] 3.4 Tablero de revisión, celdas sospechosas y validación con el `solver`
+- [ ] 3.5 Pantalla de revisión editable: selección de celda, teclado numérico fijo, celdas sospechosas con contador
+- [ ] 3.6 Textos de explicación en español por `TechniqueId`, como recursos de Android (D-14)
+- [ ] 3.7 Pantalla de pista: tablero + bottom sheet con revelado gradual (técnica → celdas → resultado) y "aplicar paso"
+- [ ] 3.8 Estado y navegación, con el tablero guardado ante el cierre del proceso
+- [ ] 3.9 Prueba de extremo a extremo y recorrido con las 30 fotos
 
 **Hecho cuando:** se puede usar la app con fotos de galería de principio a fin.
 
