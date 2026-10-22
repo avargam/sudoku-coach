@@ -13,6 +13,7 @@ App Android que escanea un sudoku en papel con la cámara, reconoce el estado ac
 | [docs/03-diseno.md](docs/03-diseno.md) | Outline del diseño de la solución |
 | [docs/04-plan-implementacion.md](docs/04-plan-implementacion.md) | Pasos a seguir, por fases |
 | [docs/05-plan-fase-0-1.md](docs/05-plan-fase-0-1.md) | Plan detallado de las Fases 0 (preparación) y 1 (motor lógico) |
+| [docs/06-plan-fase-2.md](docs/06-plan-fase-2.md) | Plan detallado de la Fase 2 (visión sobre fotos fijas) |
 
 ## Estructura del repositorio
 
@@ -28,8 +29,9 @@ sudoku-coach/
 ## Requisitos (Ubuntu)
 
 - JDK 21 (`sudo apt install openjdk-21-jdk`)
+- Para los tests de `vision-core`: GTK2 (`sudo apt install libgtk2.0-0t64`), que piden los nativos de OpenCV
 - Gradle: no hace falta instalarlo; se usa el wrapper `./gradlew`
-- Para `vision` y `app`: Android SDK (command-line tools) en WSL y un dispositivo con depuración inalámbrica; Android Studio es opcional (ver [D-15](docs/02-decisiones.md))
+- Para `vision` y `app`: Android SDK (command-line tools) en WSL y un dispositivo conectado por USB (en WSL, con usbipd-win); Android Studio es opcional (ver [D-15](docs/02-decisiones.md))
 
 ## Probar el solver
 
