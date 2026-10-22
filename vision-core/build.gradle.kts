@@ -28,6 +28,8 @@ dependencies {
     testImplementation(kotlin("test"))
     // Solo en los tests: valida que las etiquetas de las fotos sean tableros posibles (tarea 2.5).
     testImplementation(project(":solver"))
+    // Solo en los tests: lee las predicciones del móvil de testdata/vision/results (tarea 2.8).
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.bytedeco:opencv:$bytedecoOpenCv")
     testRuntimeOnly("org.bytedeco:opencv:$bytedecoOpenCv:$bytedecoNatives")

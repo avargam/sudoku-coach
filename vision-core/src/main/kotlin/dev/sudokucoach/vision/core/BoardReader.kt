@@ -19,7 +19,7 @@ class BoardReading(val scan: BoardScan, val cells: List<Cell>, val predictions: 
  * El reconocedor se inyecta, así que el mismo flujo sirve en la JVM (tests) y en Android (ML Kit).
  */
 class BoardReader(
-    private val recognizer: DigitRecognizer,
+    private val recognizer: BoardRecognizer,
     private val detector: BoardDetector = BoardDetector(),
     private val segmenter: GridSegmenter = GridSegmenter(),
 ) {
@@ -27,14 +27,6 @@ class BoardReader(
     fun read(image: Mat): BoardReading? {
         val scan = detector.detect(image) ?: return null
         val cells = segmenter.segment(scan.rectified)
-        val predictions = cells.map { cell ->
-            val digit = cell.digit
-            if (cell.empty || digit == null) EMPTY else recognizer.recognize(digit)
-        }
-        return BoardReading(scan, cells, predictions)
-    }
-
-    private companion object {
-        val EMPTY = Prediction(digit = 0, confidence = 1f)
+        return BoardReading(scan, cells, recognizer.recognize(scan.rectified, cells))
     }
 }

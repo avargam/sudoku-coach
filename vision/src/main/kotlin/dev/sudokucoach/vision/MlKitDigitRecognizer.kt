@@ -33,7 +33,7 @@ class MlKitDigitRecognizer(
         val bitmap = prepared.toBitmap()
         prepared.release()
         val text = Tasks.await(client.process(InputImage.fromBitmap(bitmap, 0)))
-        val best = text.digitSymbols().maxByOrNull { it.confidence } ?: return UNREADABLE
+        val best = text.digitSymbols().maxByOrNull { it.confidence } ?: return Prediction.UNREADABLE
         return Prediction(best.digit, best.confidence)
     }
 
@@ -50,8 +50,4 @@ class MlKitDigitRecognizer(
     }
 
     override fun close() = client.close()
-
-    private companion object {
-        val UNREADABLE = Prediction(digit = 0, confidence = 0f)
-    }
 }
