@@ -2,7 +2,7 @@
 
 App Android que escanea un sudoku en papel con la cámara, reconoce el estado actual del tablero y muestra **el siguiente paso lógico** a seguir, indicando la técnica humana que lo justifica (Naked Single, X-Wing, XY-Wing, etc.) y explicándola.
 
-> Estado: **Fase 3 en curso** (app mínima de extremo a extremo). El `solver` implementa las 13 técnicas hasta subconjuntos y coincide con HoDoKu en los 16 753 pasos de un banco de 300 puzzles (Fase 1). `vision-core` y `vision` leen el tablero de una foto en el móvil: impresos 100 %, manuscritos 94,6 % (Fase 2). El módulo `app` tiene ya el esqueleto con Compose.
+> Estado: **Fase 3 cerrada** (app mínima de extremo a extremo); la siguiente es la Fase 4 (cámara en vivo). El `solver` implementa las 13 técnicas hasta subconjuntos y coincide con HoDoKu en los 16 753 pasos de un banco de 300 puzzles (Fase 1). `vision-core` y `vision` leen el tablero de una foto en el móvil: impresos 100 %, manuscritos 94,6 % (Fase 2). La app lee una foto de la galería en ≈ 0,5 s, marca las celdas dudosas para revisarlas y da pistas con revelado gradual y explicación en español (Fase 3).
 
 ## Documentación
 
