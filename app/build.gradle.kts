@@ -76,6 +76,14 @@ androidComponents {
     }
 }
 
+// Los tests de la revisión (tarea 3.4) usan las etiquetas de las fotos (D-17) como tableros reales.
+// Se declaran como entrada para que Gradle vuelva a ejecutar los tests al cambiar una etiqueta.
+tasks.withType<Test>().configureEach {
+    val labels = rootProject.file("testdata/vision/labels")
+    systemProperty("sudokucoach.labels", labels.absolutePath)
+    inputs.dir(labels).withPropertyName("labels")
+}
+
 dependencies {
     implementation(project(":solver"))
     implementation(project(":vision"))
