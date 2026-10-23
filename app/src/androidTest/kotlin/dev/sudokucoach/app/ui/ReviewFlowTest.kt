@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.sudokucoach.app.CoachViewModel
@@ -45,7 +46,7 @@ class ReviewFlowTest {
         val label = testContext.assets.open("016.txt").bufferedReader().readLines().filter { !it.startsWith("#") }
             .take(9).joinToString("").map { if (it == '.') 0 else it.digitToInt() }
 
-        val viewModel = CoachViewModel(VisionPhotoScanner(appContext.contentResolver))
+        val viewModel = CoachViewModel(VisionPhotoScanner(appContext.contentResolver), SavedStateHandle())
         compose.setContent {
             SudokuCoachTheme {
                 when (viewModel.backStack.last()) {

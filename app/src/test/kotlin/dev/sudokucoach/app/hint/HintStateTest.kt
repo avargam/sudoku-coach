@@ -46,13 +46,14 @@ class HintStateTest {
         val state = eliminating
         val step = assertNotNull(state.step)
         val applied = state.apply()
-        assertEquals(state.grid.apply(step), applied.grid)
+        assertEquals(state.grid.apply(step), applied.current)
+        assertEquals(state.grid, applied.grid, "se guarda el tablero sin aplicar")
         assertTrue(applied.applied)
         assertEquals(3, applied.level)
         assertSame(step, applied.step)
         assertSame(applied, applied.apply(), "aplicar dos veces no hace nada")
         // Un paso de eliminación no coloca nada: cambian los candidatos, no los valores.
-        assertContentEquals(state.grid.values, applied.grid.values)
+        assertContentEquals(state.grid.values, applied.current.values)
     }
 
     @Test
@@ -124,7 +125,7 @@ class HintStateTest {
         val state = eliminating
         val step = state.step!!
         fun decorated(level: Int, applied: Boolean = false) =
-            boardUi(state.copy(level = level, applied = applied, grid = if (applied) state.grid.apply(step) else state.grid), origins).cells
+            boardUi(state.copy(level = level, applied = applied), origins).cells
 
         // Nivel 1: el tablero no cambia.
         assertTrue(decorated(1).all { it.decorations.isEmpty() && it.candidates.isEmpty() })

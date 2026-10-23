@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -34,7 +35,9 @@ class MainActivity : ComponentActivity() {
 fun CoachApp(onExit: () -> Unit) {
     // Sin inyección de dependencias (D-18): la fábrica crea el lector real con el contexto de la app.
     val resolver = LocalContext.current.applicationContext.contentResolver
-    val viewModel: CoachViewModel = viewModel(factory = viewModelFactory { initializer { CoachViewModel(VisionPhotoScanner(resolver)) } })
+    val viewModel: CoachViewModel = viewModel(
+        factory = viewModelFactory { initializer { CoachViewModel(VisionPhotoScanner(resolver), createSavedStateHandle()) } },
+    )
     NavDisplay(
         backStack = viewModel.backStack,
         onBack = { if (!viewModel.back()) onExit() },

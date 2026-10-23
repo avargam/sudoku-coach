@@ -1,10 +1,12 @@
 package dev.sudokucoach.app
 
+import androidx.lifecycle.SavedStateHandle
 import dev.sudokucoach.app.board.DigitOrigin
 import dev.sudokucoach.app.scan.PhotoScanner
 import dev.sudokucoach.app.scan.ScanResult
 import dev.sudokucoach.app.scan.ScannedBoard
 import dev.sudokucoach.app.review.Validation
+import dev.sudokucoach.solver.Backtracker
 import dev.sudokucoach.solver.Grid
 import dev.sudokucoach.solver.HintEngine
 import kotlinx.coroutines.CompletableDeferred
@@ -16,6 +18,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import java.io.File
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -47,21 +50,21 @@ class CoachViewModelTest {
 
     @Test
     fun `empieza eligiendo la foto`() {
-        val viewModel = CoachViewModel { error("no se lee nada") }
+        val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
         assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
         assertEquals(ScanState.Idle, viewModel.scanState.value)
     }
 
     @Test
     fun `atras en la primera pantalla cierra la app`() {
-        val viewModel = CoachViewModel { error("no se lee nada") }
+        val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
         assertFalse(viewModel.back())
         assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
     }
 
     @Test
     fun `una lectura correcta lleva a la revision`() = test {
-        val viewModel = CoachViewModel { ScanResult.Read(board) }
+        val viewModel = CoachViewModel(PhotoScanner { ScanResult.Read(board) }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
         assertEquals(ScanState.Reading("content://foto"), viewModel.scanState.value)
         advanceUntilIdle()
@@ -75,7 +78,7 @@ class CoachViewModelTest {
 
     @Test
     fun `sin tablero se queda eligiendo foto con el motivo`() = test {
-        val viewModel = CoachViewModel { ScanResult.NoBoard }
+        val viewModel = CoachViewModel(PhotoScanner { ScanResult.NoBoard }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
         advanceUntilIdle()
         assertEquals(ScanState.Failed(ScanFailure.NO_BOARD), viewModel.scanState.value)
@@ -85,7 +88,7 @@ class CoachViewModelTest {
 
     @Test
     fun `una foto que no se abre da un error distinto`() = test {
-        val viewModel = CoachViewModel { ScanResult.Failed("formato no soportado") }
+        val viewModel = CoachViewModel(PhotoScanner { ScanResult.Failed("formato no soportado") }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
         advanceUntilIdle()
         assertEquals(ScanState.Failed(ScanFailure.UNREADABLE), viewModel.scanState.value)
@@ -95,7 +98,7 @@ class CoachViewModelTest {
     fun `mientras lee ignora otras fotos`() = test {
         val pending = CompletableDeferred<ScanResult>()
         val photos = mutableListOf<String>()
-        val viewModel = CoachViewModel(PhotoScanner { photos += it; pending.await() })
+        val viewModel = CoachViewModel(PhotoScanner { photos += it; pending.await() }, SavedStateHandle())
         viewModel.onPhotoPicked("content://primera")
         advanceUntilIdle()
         viewModel.onPhotoPicked("content://segunda")
@@ -108,7 +111,7 @@ class CoachViewModelTest {
     @Test
     fun `tras un fallo se puede elegir otra foto`() = test {
         var result: ScanResult = ScanResult.NoBoard
-        val viewModel = CoachViewModel { result }
+        val viewModel = CoachViewModel(PhotoScanner { result }, SavedStateHandle())
         viewModel.onPhotoPicked("content://mala")
         advanceUntilIdle()
         result = ScanResult.Read(board)
@@ -132,7 +135,7 @@ class CoachViewModelTest {
     }
 
     private suspend fun TestScope.reviewing(scanned: ScannedBoard = solvable): CoachViewModel {
-        val viewModel = CoachViewModel { ScanResult.Read(scanned) }
+        val viewModel = CoachViewModel(PhotoScanner { ScanResult.Read(scanned) }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
         advanceUntilIdle()
         return viewModel
@@ -197,5 +200,66 @@ class CoachViewModelTest {
         // Atrás vuelve a la revisión, que conserva las correcciones.
         viewModel.back()
         assertEquals(Route.Reviewing, viewModel.backStack.last())
+    }
+
+    @Test
+    fun `tras cerrarse el proceso sigue en la misma pantalla con el mismo estado`() = test {
+        val saved = SavedStateHandle()
+        val solution = "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+        val values = IntArray(81) { if (it % 2 == 0) solution[it].digitToInt() else 0 }
+        val half = ScannedBoard(
+            values = values,
+            origins = List(81) { if (values[it] != 0) DigitOrigin.GIVEN else DigitOrigin.UNKNOWN },
+            confidences = FloatArray(81) { 1f },
+            inked = BooleanArray(81) { values[it] != 0 },
+            millis = 300,
+        )
+        val first = CoachViewModel(PhotoScanner { ScanResult.Read(half) }, saved)
+        first.onPhotoPicked("content://foto")
+        advanceUntilIdle()
+        first.selectCell(1)
+        first.enterDigit(3) // correcto según la solución
+        first.selectCell(5)
+        first.showHint()
+        first.revealMore()
+        first.applyStep()
+
+        // Un ViewModel nuevo con el mismo SavedStateHandle es lo que crea Android al volver.
+        val restored = CoachViewModel(PhotoScanner { error("no se vuelve a leer") }, saved)
+        assertEquals(first.backStack.toList(), restored.backStack.toList())
+        assertContentEquals(first.review.value!!.board.values, restored.review.value!!.board.values)
+        assertEquals(first.review.value!!.board.origins, restored.review.value!!.board.origins)
+        assertEquals(5, restored.review.value!!.selected)
+        assertEquals(first.review.value!!.validation, restored.review.value!!.validation)
+        assertEquals(first.hint.value, restored.hint.value)
+
+        // Atrás desde la pista restaurada vuelve a la revisión, con la corrección.
+        restored.back()
+        assertEquals(listOf(Route.Picking, Route.Reviewing), restored.backStack.toList())
+        assertEquals(3, CoachViewModel(PhotoScanner { error("") }, saved).review.value!!.board.values[1])
+    }
+
+    @Test
+    fun `sin estado guardado o con uno ilegible empieza eligiendo foto`() {
+        val saved = SavedStateHandle(mapOf("routes" to "picking,reviewing,hint", "review" to "basura"))
+        val viewModel = CoachViewModel(PhotoScanner { error("") }, saved)
+        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertNull(viewModel.review.value)
+    }
+
+    @Test
+    fun `con siguiente se resuelve el tablero leido`() = test {
+        // Un puzzle del banco del oráculo, con solución única (la media solución de arriba tiene varias).
+        val bank = File(requireNotNull(System.getProperty("sudokucoach.bank")), "intersections.txt")
+        val puzzle = bank.readLines().first { it.isNotBlank() && !it.startsWith("#") }.trim()
+        val values = Grid.parse(puzzle).values
+        val scanned = ScannedBoard(values, List(81) { DigitOrigin.GIVEN }, FloatArray(81) { 1f }, BooleanArray(81) { values[it] != 0 }, 300)
+        val viewModel = reviewing(scanned)
+        assertEquals(Validation.Ok, viewModel.review.value!!.validation)
+        viewModel.showHint()
+        var steps = 0
+        while (viewModel.hint.value!!.step != null && steps++ < 200) viewModel.nextHint()
+        assertTrue(viewModel.hint.value!!.solved)
+        assertContentEquals(Backtracker.solve(Grid.parse(puzzle)), viewModel.hint.value!!.grid.values)
     }
 }

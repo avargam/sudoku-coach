@@ -195,7 +195,7 @@ private fun Buttons(state: HintState, onMore: () -> Unit, onApply: () -> Unit, o
  * 3 se muestran la colocación y los candidatos descartados, tachados hasta aplicar el paso.
  */
 fun boardUi(state: HintState, origins: List<DigitOrigin>): BoardUi {
-    val grid = state.grid
+    val grid = state.current
     val step = state.step
     val level = if (step == null) 0 else state.level
     val pattern = if (step != null && level >= 2) step.highlight.toSet() else emptySet()
