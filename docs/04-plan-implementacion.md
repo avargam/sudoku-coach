@@ -76,11 +76,22 @@ Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-p
 
 ## Fase 4 · Cámara en vivo
 
-- [ ] CameraX con análisis de fotogramas
-- [ ] Escáner a pantalla completa con contorno del tablero en el acento y captura automática
-- [ ] Votación multi-frame y confianza por celda
-- [ ] Rendimiento: presupuesto de tiempo por fotograma
-- [ ] Fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, curvatura) añadidas a `testdata/vision` y medidas; reabrir D-07 (Hough) si la detección baja del 90 %
+Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una foto, con menos celdas por revisar. Detalle en [09-plan-fase-4.md](09-plan-fase-4.md).
+
+- [x] Decidir la cámara (D-20), la lectura en vivo con votación (D-21) y las secuencias grabadas como datos de prueba (D-22)
+- [ ] 4.0 CameraX, permiso de la cámara y esqueleto del escáner como primera pantalla
+- [ ] 4.1 Fotogramas → `Mat`, detección por fotograma y medida de la votación frente a una foto
+- [ ] 4.2 Contorno del tablero en vivo, en el acento
+- [ ] 4.3 Estabilidad y votación por celda en `vision-core`
+- [ ] 4.4 Grabación de secuencias (debug) y etiquetado
+- [ ] 4.5 Ajuste con datos: menos sospechosas sin errores sin marcar
+- [ ] 4.6 Pantalla del escáner completa: flash, galería, disparador manual y captura automática
+- [ ] 4.7 Rendimiento: presupuesto por fotograma y < 2 s hasta la revisión
+- [ ] 4.8 Prueba de extremo a extremo y cierre
+
+**Hecho cuando:** escaneando en vivo en el A57 se llega a la revisión en < 2 s desde que el tablero está quieto, con ≤ 8 celdas sospechosas por tablero de media y ninguna lectura errónea sin marcar.
+
+**Aplazado** (decisión del usuario): fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, curvatura) añadidas a `testdata/vision` y medidas; reabrir D-07 (Hough) si la detección baja del 90 %.
 
 ## Fase 5 · CNN propia
 

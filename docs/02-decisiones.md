@@ -25,6 +25,9 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-17 | Fotos de prueba reducidas y versionadas, con dígitos y origen por celda | Aceptada |
 | D-18 | App: una `Activity`, Compose, `ViewModel` con máquina de estados y Navigation 3 | Aceptada |
 | D-19 | Validación antes de las pistas: repetidos, errores del usuario y unicidad | Aceptada |
+| D-20 | Cámara con CameraX: `Preview` + `ImageAnalysis`, plano Y como gris; galería si no hay permiso | Aceptada |
+| D-21 | Lectura en vivo: detección por fotograma, lectura con el tablero quieto y votación por celda | Aceptada |
+| D-22 | Secuencias de fotogramas grabadas en debug como datos de prueba, sin versionar | Aceptada |
 
 ---
 
@@ -137,6 +140,15 @@ Al implementarla (Fase 3): la máquina de estados es la pila de Navigation 3 má
 Aceptada al planificar la Fase 3; detalle en `08-plan-fase-3.md`: los repetidos bloquean la pista; si el tablero no tiene solución pero los impresos sí, los manuscritos que no coinciden con ella se marcan como posibles errores del usuario; con varias soluciones se avisa y se sigue.
 
 Al implementarla (Fase 3): los posibles errores del usuario también bloquean la pista, porque el motor supone un tablero correcto; los dígitos de origen desconocido cuentan como impresos. **Límite medido:** de 176 impresos cambiados por un dígito que no crea repetidos, 112 piden revisar la lectura, 58 no se pueden detectar (el tablero sigue teniendo solución) y 6 (3 %) culpan a manuscritos correctos; por eso el aviso dice "podría". La primera defensa es la confianza de la lectura: ninguna lectura segura de un impreso falló en las pruebas.
+
+## D-20 · Cámara con CameraX
+Aceptada al planificar la Fase 4; detalle en `09-plan-fase-4.md`: `Preview` e `ImageAnalysis` (último fotograma, YUV 420, ≈ 1920 × 1080) y el plano Y como imagen en gris, sin `Bitmap`; visor en Compose si es posible; permiso en tiempo de ejecución, con la galería como alternativa si se deniega.
+
+## D-21 · Lectura en vivo con votación por celda
+Aceptada al planificar la Fase 4, con preferencia del usuario por los fotogramas frente a una foto fija al estabilizarse: detección en cada fotograma para el contorno y la estabilidad; con el tablero quieto, lecturas completas de varios fotogramas y votación por celda (mayoría y confianza combinada); captura automática cuando la votación se estabiliza o al llegar al máximo de lecturas. Umbrales fijados con datos. Se reconsidera si en 4.1 los fotogramas leen claramente peor que una foto. Salvedad conocida: la votación no corrige errores sistemáticos como el 1 manuscrito leído como 4.
+
+## D-22 · Secuencias grabadas como datos de prueba
+Aceptada al planificar la Fase 4: la cámara no se automatiza en los tests, así que una herramienta de debug graba sesiones de fotogramas en gris que se etiquetan y se reproducen en la JVM y en el móvil. No se versionan, como los originales de D-17.
 
 ---
 
