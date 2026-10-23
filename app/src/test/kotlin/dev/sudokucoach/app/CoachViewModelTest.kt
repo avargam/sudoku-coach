@@ -174,10 +174,26 @@ class CoachViewModelTest {
 
     @Test
     fun `ver pista lleva al primer paso del motor`() = test {
-        val viewModel = reviewing()
+        // Media solución (las celdas pares): los únicos bastan para dar una pista.
+        val solution = "534678912672195348198342567859761423426853791713924856961537284287419635345286179"
+        val values = IntArray(81) { if (it % 2 == 0) solution[it].digitToInt() else 0 }
+        val half = ScannedBoard(
+            values = values,
+            origins = List(81) { if (values[it] != 0) DigitOrigin.GIVEN else DigitOrigin.UNKNOWN },
+            confidences = FloatArray(81) { 1f },
+            inked = BooleanArray(81) { values[it] != 0 },
+            millis = 300,
+        )
+        val viewModel = reviewing(half)
         viewModel.showHint()
         assertEquals(listOf(Route.Picking, Route.Reviewing, Route.Hint), viewModel.backStack.toList())
-        assertEquals(HintEngine().nextStep(Grid.fromValues(solvable.values)), viewModel.hint)
+        assertEquals(HintEngine().nextStep(Grid.fromValues(values)), viewModel.hint.value?.step)
+        viewModel.revealMore()
+        viewModel.applyStep()
+        assertEquals(3, viewModel.hint.value?.level)
+        assertTrue(viewModel.hint.value!!.applied)
+        viewModel.nextHint()
+        assertEquals(1, viewModel.hint.value?.level)
         // Atrás vuelve a la revisión, que conserva las correcciones.
         viewModel.back()
         assertEquals(Route.Reviewing, viewModel.backStack.last())
