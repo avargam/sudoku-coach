@@ -2,6 +2,12 @@
 <resources>
     <string name="app_name">Sudoku Coach</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
+    <string name="pick_photo">Elegir foto</string>
+    <string name="scan_reading">Leyendo el tablero…</string>
+    <string name="scan_no_board">No encuentro el tablero en la foto. Prueba con otra en la que se vea entero y sin sombras fuertes.</string>
+    <string name="scan_unreadable">No se pudo abrir la foto. Prueba con otra.</string>
+    <string name="review_title">Tablero leído</string>
+    <string name="review_summary">%1$d dígitos leídos en %2$s s</string>
 
     <!-- Accesibilidad del tablero (SudokuBoard): una descripción por celda. -->
     <string name="cell_empty">Fila %1$d, columna %2$d: vacía</string>

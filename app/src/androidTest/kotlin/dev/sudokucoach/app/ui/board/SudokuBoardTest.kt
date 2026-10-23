@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dev.sudokucoach.app.board.DigitOrigin
 import dev.sudokucoach.app.ui.theme.SudokuCoachTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule

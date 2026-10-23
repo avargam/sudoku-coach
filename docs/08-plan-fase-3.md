@@ -106,6 +106,14 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 
 **Tests:** instrumentado con una foto del conjunto girada por EXIF, generada en el test: se detecta el tablero. JVM: la regla de origen en `vision-core`.
 
+**Resultado:** en `scan/`, `PhotoScanner` (recibe la URI como texto, para probar el `ViewModel` en la JVM) con `ScannedBoard` y `ScanResult`; `PhotoDecoder` (`ImageDecoder` en API ≥ 28; `BitmapFactory` + `exifinterface` en API 26–27) y `VisionPhotoScanner` (`BoardReader` con `MlKitGridReader`, que libera los `Mat`). `CoachViewModel(scanner)` expone `scanState` (`Idle`, `Reading`, `Failed(NO_BOARD | UNREADABLE)`) y añade `Route.Reviewing`; `PickingScreen` abre el selector de fotos y `ReviewingScreen`, provisional, muestra el tablero leído. `vision` expone `vision-core` y OpenCV como `api`, y `DigitOrigin` pasa a `dev.sudokucoach.app.board`.
+
+- **Origen:** `Cell.printed` y `Cell.PRINTED_CONTRAST` en `vision-core`, usados también por `VisionMetricsTest`, `LabelHelper` y `GridSegmenterTest`.
+- **Originales de la cámara:** `PhotoScanTest.leeLosOriginalesDeLaCamara` lee los 30 originales (4000×3000 con EXIF), copiados a `/data/local/tmp/sudoku-raw/` porque no se versionan (en el bucle de copia hace falta `adb shell -n` y `adb push … </dev/null`, o `adb` se come la entrada del `while`). La primera pasada dio 7 lecturas seguras erróneas: 6 eran lápices tenues que el segmentador tomaba por celdas vacías. 4 ya fallaban con las fotos preparadas (ver 2.5), y reducir con `INTER_AREA`, `INTER_LANCZOS4` o `INTER_LINEAR` en vez de con `ImageDecoder` daba 5–7, así que no era la reducción. `GridSegmenter.minDigitHeight` baja de 0,35 a **0,26**: no se pierde ninguno en los dos conjuntos y no aparece tinta falsa nueva hasta 0,24. Métricas JVM: manuscritos 1455/1455 (antes 1451) y vacía/no vacía 2429/2430.
+- Queda **006 F7C6**, un 1 leído como 4 con confianza ≥ 0,5. Repite el 4 de F7C9, así que lo marca la validación de D-19 (3.4); el test exige que no haya lecturas seguras erróneas *sin repetido*. En total, 1697/2201 dígitos con lectura segura y 0,3–0,6 s por foto en el A57.
+- **Tests:** 6 nuevos de `CoachViewModelTest` en la JVM; en el A57, los 8 instrumentados (`PhotoScanTest` y `SudokuBoardTest`). La decodificación endereza una foto de 4000×3000 con EXIF 90° a 1200×1600 por las dos vías, y una foto pequeña no se amplía. Con la pantalla bloqueada, los tests de Compose fallan con "No compose hierarchies found".
+- `leeLaFoto001ComoSuEtiqueta` usa la foto del conjunto tal cual: ampliarla a 4000×3000 y recomprimirla le quitaba nitidez y perdía un 7 a lápiz.
+
 ## 3.4 Tablero de revisión y validación (`review/`, D-19)
 - `ReviewBoard`: 81 valores, origen (`GIVEN`, `USER`, `UNKNOWN`) y confianza de la lectura.
 - **Sospechosas**: celda con tinta sin lectura, confianza < 0,5, o dígito repetido en una unidad.
