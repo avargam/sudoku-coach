@@ -14,6 +14,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import dev.sudokucoach.app.CoachViewModel
 import dev.sudokucoach.app.Route
+import dev.sudokucoach.app.explain.ExplanationText
 import dev.sudokucoach.app.scan.VisionPhotoScanner
 import dev.sudokucoach.app.ui.theme.SudokuCoachTheme
 import dev.sudokucoach.solver.Grid
@@ -73,7 +74,8 @@ class ReviewFlowTest {
         compose.onNodeWithText("Ver pista").assertIsEnabled().performClick()
 
         val expected = HintEngine().nextStep(Grid.fromValues(label.toIntArray()))!!
-        compose.onNodeWithTag("hint_text").assertTextContains(expected.technique.name, substring = true)
+        val name = appContext.getString(ExplanationText.texts(expected.technique).name)
+        compose.onNodeWithTag("hint_text").assertTextContains(name)
     }
 
     private companion object {
