@@ -6,7 +6,7 @@ plugins {
 }
 
 /**
- * Copia la foto 001 de prueba y todas las etiquetas (D-17) a un directorio generado que se usa como assets
+ * Copia las fotos 001 y 016 de prueba y todas las etiquetas (D-17) a un directorio generado que se usa como assets
  * de `androidTest` (tarea 3.3). Las etiquetas sirven también para los originales de la cámara, que no
  * se versionan y se copian al móvil a mano (ver `PhotoScanTest`).
  */
@@ -30,7 +30,7 @@ abstract class CopyTestPhoto : DefaultTask() {
 }
 
 val copyTestPhoto = tasks.register<CopyTestPhoto>("copyTestPhoto") {
-    files.from(rootProject.file("testdata/vision/photos/001.jpg"), rootProject.fileTree("testdata/vision/labels") { include("*.txt") })
+    files.from(rootProject.files("testdata/vision/photos/001.jpg", "testdata/vision/photos/016.jpg"), rootProject.fileTree("testdata/vision/labels") { include("*.txt") })
 }
 
 // App de extremo a extremo (Fase 3, D-18). AGP 9 incluye el soporte de Kotlin, sin plugin aparte.

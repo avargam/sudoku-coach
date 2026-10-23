@@ -138,6 +138,16 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 
 **Hecho cuando:** con la foto 016 (un 9 a lápiz tenue en F2C9), la celda aparece como sospechosa, se corrige con el teclado y se llega a la pista.
 
+**Resultado:** `ReviewingScreen` sigue la maqueta: barra con cerrar (vuelve a elegir foto), aviso "N celdas por revisar" con ◀ ▶ (o "Nada por revisar"), tablero, una línea sobre la celda seleccionada, teclado de 5 × 2 y, fijos abajo, el motivo de la validación y "Ver pista". Si la pantalla es baja, solo se desplaza la parte de arriba. Comprobada en el A57, donde cabe entera.
+
+- **Estado:** `CoachViewModel.review: StateFlow<ReviewState?>` con el `ReviewBoard`, la celda seleccionada y la validación, que se recalcula en cada edición. Al leer la foto se selecciona la primera sospechosa. Acciones: `selectCell`, `enterDigit` (0 borra), `moveToSuspicious` (da la vuelta al llegar al final) y `showHint`, que no hace nada si la validación no lo permite.
+- **Decoraciones:** seleccionada (`SELECTED`), sospechosa (punteado) y posible error del usuario (`ERROR`). La línea de la celda dice por qué se marca ("lectura poco segura: confírmala", "no se pudo leer: escribe el dígito", "el 4 se repite", "este 4 podría no encajar") o su origen. **A diferencia de la maqueta, los impresos también se pueden editar**, porque pueden estar mal leídos. Textos en una línea, para que todo quepa.
+- **Validación en una línea** (D-19): repetidos, posibles errores del usuario (con `plurals` y "podrían", por el límite medido en 3.4), sin solución y varias soluciones, con la que se puede seguir.
+- **Durante la lectura** se muestra la foto (reducida a 800 px con `PhotoDecoder`, que acepta otro lado mayor) con el indicador de progreso. `ScanState.Reading` lleva la foto.
+- **Pista provisional:** `Route.Hint` y `HintScreen` con el patrón, la colocación y el nombre interno de la técnica (`NAKED_PAIR`); la pantalla de verdad es la 3.7. Atrás vuelve a la revisión con las correcciones.
+- **Iconos:** cuatro `ImageVector` de trazo en `StrokeIcons` (cerrar, ◀, ▶, borrar), en vez de añadir la biblioteca de iconos de Material.
+- **Tests:** 4 nuevos de `CoachViewModelTest` (saltar entre sospechosas, corregir y revalidar, un repetido bloquea la pista, "Ver pista" da el paso del motor). Instrumentado `ReviewFlowTest` con la lectura real de la foto 016 (añadida a los assets de test): F2C9 no se lee y sale sospechosa, de 14 sospechosas (la mayoría lecturas correctas con poca confianza). Las dos lecturas distintas de la etiqueta están entre ellas. Se corrigen con el teclado, se llega a "Nada por revisar" y "Ver pista" muestra la técnica que da `HintEngine` sobre la etiqueta.
+
 ## 3.6 Textos de explicación (D-14)
 - `StepExplainer` (Kotlin puro): `Step` → `Explanation(técnica, plantilla, argumentos)`, con celdas como "F3C5", unidades como "fila 3", "columna 5" o "caja 2" y listas de dígitos como "1 y 3" o "1, 3 y 7".
 - Plantillas en `res/values/strings.xml`: una por `TechniqueId` implementada, con nombre, nivel ("NIVEL 3 · SUBCONJUNTOS") y explicación. Se usan `plurals` donde hace falta (una o varias eliminaciones).
