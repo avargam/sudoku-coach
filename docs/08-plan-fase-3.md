@@ -113,6 +113,7 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 - Queda **006 F7C6**, un 1 leído como 4 con confianza ≥ 0,5. Repite el 4 de F7C9, así que lo marca la validación de D-19 (3.4); el test exige que no haya lecturas seguras erróneas *sin repetido*. En total, 1697/2201 dígitos con lectura segura y 0,3–0,6 s por foto en el A57.
 - **Tests:** 6 nuevos de `CoachViewModelTest` en la JVM; en el A57, los 8 instrumentados (`PhotoScanTest` y `SudokuBoardTest`). La decodificación endereza una foto de 4000×3000 con EXIF 90° a 1200×1600 por las dos vías, y una foto pequeña no se amplía. Con la pantalla bloqueada, los tests de Compose fallan con "No compose hierarchies found".
 - `leeLaFoto001ComoSuEtiqueta` usa la foto del conjunto tal cual: ampliarla a 4000×3000 y recomprimirla le quitaba nitidez y perdía un 7 a lápiz.
+- **Prueba a mano** (usuario, A57): con varias fotos de la galería se ve el tablero leído. En algunos tableros completos queda una celda en blanco; se corrige fácilmente a mano y no se ajusta ahora (los tableros completos no son el caso de uso, y el reconocedor propio está planificado).
 
 ## 3.4 Tablero de revisión y validación (`review/`, D-19)
 - `ReviewBoard`: 81 valores, origen (`GIVEN`, `USER`, `UNKNOWN`) y confianza de la lectura.
@@ -121,6 +122,14 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 - Al editar: la celda pasa a confianza 1; un dígito nuevo en una celda vacía tiene origen `UNKNOWN` y cuenta como impreso en la validación.
 
 **Tests (JVM):** con las 30 etiquetas de `testdata/vision/labels` como tableros reales, todas pasan la validación. Con un manuscrito cambiado a propósito, se marca justo esa celda; con un impreso cambiado, se pide revisar.
+
+**Resultado:** en `review/`, `ReviewBoard` (inmutable, con `ReviewBoard.from(ScannedBoard)`) y `BoardValidator`, en Kotlin puro.
+
+- **Sospechosas:** tinta sin lectura, confianza < `MIN_CONFIDENCE` (0,5, D-08) o dígito repetido en una unidad.
+- **Editar** (`edit(cell, digit)`, 0 borra): confianza 1 y tinta solo si hay dígito, así que una celda revisada deja de ser sospechosa salvo por repetido. Un dígito nuevo en una celda vacía tiene origen `UNKNOWN`; corregir una lectura conserva el origen, porque el contraste de la tinta sigue valiendo.
+- **Validación** (`Validation`, con `allowsHints`): `Repeated(celdas)` → bloquea; tablero completo con una solución → `Ok`, con varias → `MultipleSolutions` (se permite seguir); sin solución, si los impresos y los `UNKNOWN` tienen solución única → `UserErrors(manuscritos que no coinciden)`, y si no → `Unsolvable` (revisar la lectura). Los posibles errores del usuario también bloquean la pista, porque `HintEngine` supone un tablero correcto.
+- **Tests (JVM, 8):** las 30 etiquetas pasan sin sospechosas; un manuscrito cambiado sin crear repetidos da `UserErrors` justo en esa celda (en todas las etiquetas donde se puede); en un tablero lleno, cualquier cambio da un repetido; sospechosas, edición y un `UNKNOWN` mal puesto que no se achaca al usuario.
+- **Límite de D-19, medido:** se probaron los 176 cambios de un impreso por un dígito que no crea repetidos. 112 piden revisar, 58 no se pueden detectar (el tablero sigue teniendo solución) y **6 culpan a manuscritos correctos** (004, 015 y 019), porque los impresos cambiados siguen teniendo solución única. El test exige ≥ 60 % de "revisar" y ≤ 5 % de culpas. La primera defensa es la confianza: en el A57 ninguna lectura segura de un impreso falló (3.3). Por eso el texto de 3.5 debe decir "posible error", no afirmarlo.
 
 ## 3.5 Pantalla de revisión
 - Tablero, teclado numérico fijo (1–9 y borrar) y el aviso "N celdas por revisar", que al tocarlo salta a la siguiente sospechosa.

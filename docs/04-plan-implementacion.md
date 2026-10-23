@@ -63,7 +63,7 @@ Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-p
 - [x] 3.1 Tema propio con los tokens de color de `03-diseno.md` §5.3, en claro y oscuro
 - [x] 3.2 Componente `SudokuBoard` reutilizable (dígitos por origen, resaltados, mini-rejilla de candidatos)
 - [x] 3.3 Lectura de la foto de galería (orientación, 1600 px, origen en `vision-core`)
-- [ ] 3.4 Tablero de revisión, celdas sospechosas y validación con el `solver`
+- [x] 3.4 Tablero de revisión, celdas sospechosas y validación con el `solver`
 - [ ] 3.5 Pantalla de revisión editable: selección de celda, teclado numérico fijo, celdas sospechosas con contador
 - [ ] 3.6 Textos de explicación en español por `TechniqueId`, como recursos de Android (D-14)
 - [ ] 3.7 Pantalla de pista: tablero + bottom sheet con revelado gradual (técnica → celdas → resultado) y "aplicar paso"
