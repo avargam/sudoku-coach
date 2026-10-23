@@ -4,13 +4,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.sudokucoach.app.hint.HintState
 import dev.sudokucoach.app.review.ReviewBoard
 import dev.sudokucoach.app.review.Validation
 import dev.sudokucoach.app.scan.PhotoScanner
 import dev.sudokucoach.app.scan.ScanResult
-import dev.sudokucoach.solver.Grid
-import dev.sudokucoach.solver.HintEngine
-import dev.sudokucoach.solver.Step
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +23,7 @@ sealed interface Route {
     /** Revisar y corregir el tablero leído (tarea 3.5). */
     data object Reviewing : Route
 
-    /** Primera pista (provisional hasta la tarea 3.7). */
+    /** Pista con revelado gradual (tarea 3.7). */
     data object Hint : Route
 }
 
@@ -71,9 +69,8 @@ class CoachViewModel(private val scanner: PhotoScanner) : ViewModel() {
     private val _review = MutableStateFlow<ReviewState?>(null)
     val review: StateFlow<ReviewState?> = _review.asStateFlow()
 
-    /** Paso de la pantalla de pista; `null` si hacen falta técnicas que aún no hay (Fase 6). */
-    var hint: Step? = null
-        private set
+    private val _hint = MutableStateFlow<HintState?>(null)
+    val hint: StateFlow<HintState?> = _hint.asStateFlow()
 
     /** Lee la foto elegida; mientras se lee, otras fotos se ignoran. */
     fun onPhotoPicked(photo: String) {
@@ -113,12 +110,27 @@ class CoachViewModel(private val scanner: PhotoScanner) : ViewModel() {
         _review.value = state.copy(selected = next)
     }
 
-    /** Busca la primera pista y la muestra; no hace nada si la validación no lo permite. */
+    /**
+     * Busca la primera pista y la muestra; no hace nada si la validación no lo permite. Empieza
+     * siempre desde el tablero revisado: los pasos aplicados en una pista anterior no se conservan.
+     */
     fun showHint() {
         val state = _review.value ?: return
         if (!state.validation.allowsHints) return
-        hint = HintEngine().nextStep(Grid.fromValues(state.board.values))
+        _hint.value = HintState.start(state.board.values)
         backStack.add(Route.Hint)
+    }
+
+    fun revealMore() = updateHint { it.revealMore() }
+
+    fun applyStep() = updateHint { it.apply() }
+
+    fun nextHint() = updateHint { it.next() }
+
+    fun revealDigit() = updateHint { it.revealDigit() }
+
+    private fun updateHint(change: (HintState) -> HintState) {
+        _hint.value = _hint.value?.let(change)
     }
 
     /** Vuelve a la pantalla anterior; devuelve `false` si ya no hay ninguna y la app debe cerrarse. */

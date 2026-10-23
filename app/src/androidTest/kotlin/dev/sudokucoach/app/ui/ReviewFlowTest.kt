@@ -27,8 +27,8 @@ import java.io.File
 
 /**
  * Criterio de la tarea 3.5 con la lectura real: en la foto 016 el 9 a lápiz de F2C9 es tenue; si no
- * se lee bien, la celda sale como sospechosa. Se corrigen con el teclado las sospechosas y se llega
- * a la pista.
+ * se lee bien, la celda sale como sospechosa. Se corrigen con el teclado las sospechosas, se llega
+ * a la pista y se recorre su revelado gradual hasta la siguiente (tarea 3.7).
  */
 @RunWith(AndroidJUnit4::class)
 class ReviewFlowTest {
@@ -50,7 +50,7 @@ class ReviewFlowTest {
             SudokuCoachTheme {
                 when (viewModel.backStack.last()) {
                     Route.Reviewing -> ReviewingScreen(viewModel, onClose = {})
-                    Route.Hint -> HintScreen(viewModel)
+                    Route.Hint -> HintScreen(viewModel, onBack = {})
                     Route.Picking -> Unit
                 }
             }
@@ -75,7 +75,15 @@ class ReviewFlowTest {
 
         val expected = HintEngine().nextStep(Grid.fromValues(label.toIntArray()))!!
         val name = appContext.getString(ExplanationText.texts(expected.technique).name)
-        compose.onNodeWithTag("hint_text").assertTextContains(name)
+        compose.onNodeWithTag("hint_name").assertTextContains(name)
+
+        // Revelado gradual: dónde, qué y aplicar el paso.
+        compose.onNodeWithText("Mostrar dónde").performClick()
+        compose.onNodeWithText("Mostrar qué").performClick()
+        compose.onNodeWithText("Aplicar paso").performClick()
+        compose.onNodeWithTag("hint_applied").assertExists()
+        compose.onNodeWithText("Siguiente").performClick()
+        compose.onNodeWithText("Mostrar dónde").assertExists()
     }
 
     private companion object {

@@ -41,7 +41,7 @@ fun CoachApp(onExit: () -> Unit) {
         entryProvider = entryProvider {
             entry<Route.Picking> { PickingScreen(viewModel) }
             entry<Route.Reviewing> { ReviewingScreen(viewModel, onClose = { viewModel.back() }) }
-            entry<Route.Hint> { HintScreen(viewModel) }
+            entry<Route.Hint> { HintScreen(viewModel, onBack = { viewModel.back() }) }
         },
     )
 }

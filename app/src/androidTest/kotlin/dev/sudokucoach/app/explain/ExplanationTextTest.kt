@@ -9,6 +9,7 @@ import dev.sudokucoach.solver.Step
 import dev.sudokucoach.solver.TechniqueId
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -53,6 +54,15 @@ class ExplanationTextTest {
             }
             val text = ExplanationText.explanation(resources, explanation)
             assertFalse("$technique: $text", text.contains('%'))
+            // Nivel 1 sin argumentos; nivel 2 con algunos de la explicación y del mismo tipo.
+            assertFalse("$technique: intro", marker.containsMatchIn(resources.getString(texts.intro)))
+            val where = marker.findAll(resources.getString(texts.where)).map { it.groupValues[1].toInt() to it.groupValues[2] }.toSet()
+            assertTrue("$technique: dónde sin marcadores", where.isNotEmpty())
+            for ((index, type) in where) {
+                assertTrue("$technique: dónde usa %$index\$", index <= explanation.args.size)
+                assertEquals("$technique: dónde %$index\$", if (explanation.args[index - 1] is ExplanationArg.Digit) "d" else "s", type)
+            }
+            for (level in 1..3) assertFalse(ExplanationText.stage(resources, explanation, level).contains('%'))
             assertFalse(resources.getString(texts.name).isBlank())
             assertFalse(resources.getString(texts.english).isBlank())
         }
