@@ -101,10 +101,5 @@ class VisionMetricsTest {
         assertTrue(origin.rate >= 0.98, "Origen por debajo del 98 %: $origin")
     }
 
-    /** Mismo criterio que la herramienta de etiquetado. */
-    private fun proposedOrigin(cell: Cell) = if (cell.inkContrast >= PRINTED_CONTRAST) Origin.PRINTED else Origin.HANDWRITTEN
-
-    private companion object {
-        const val PRINTED_CONTRAST = 0.4
-    }
+    private fun proposedOrigin(cell: Cell) = if (cell.printed) Origin.PRINTED else Origin.HANDWRITTEN
 }

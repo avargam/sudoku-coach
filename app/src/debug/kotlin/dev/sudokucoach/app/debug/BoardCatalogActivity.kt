@@ -17,10 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.sudokucoach.app.board.DigitOrigin
 import dev.sudokucoach.app.ui.board.BoardUi
 import dev.sudokucoach.app.ui.board.CellDecoration
 import dev.sudokucoach.app.ui.board.CellUi
-import dev.sudokucoach.app.ui.board.DigitOrigin
 import dev.sudokucoach.app.ui.board.SudokuBoard
 import dev.sudokucoach.app.ui.theme.SudokuCoachTheme
 import dev.sudokucoach.app.ui.theme.SudokuTheme

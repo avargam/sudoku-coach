@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.sudokucoach.app.R
+import dev.sudokucoach.app.board.DigitOrigin
 import dev.sudokucoach.app.ui.theme.PlexSans
 import dev.sudokucoach.app.ui.theme.SudokuColors
 import dev.sudokucoach.app.ui.theme.SudokuTheme

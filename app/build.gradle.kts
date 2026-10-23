@@ -1,6 +1,36 @@
+import javax.inject.Inject
+
 plugins {
     id("com.android.application")
     kotlin("plugin.compose")
+}
+
+/**
+ * Copia la foto 001 de prueba y todas las etiquetas (D-17) a un directorio generado que se usa como assets
+ * de `androidTest` (tarea 3.3). Las etiquetas sirven también para los originales de la cámara, que no
+ * se versionan y se copian al móvil a mano (ver `PhotoScanTest`).
+ */
+abstract class CopyTestPhoto : DefaultTask() {
+    @get:InputFiles
+    abstract val files: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val output: DirectoryProperty
+
+    @get:Inject
+    abstract val fs: FileSystemOperations
+
+    @TaskAction
+    fun copy() {
+        fs.sync {
+            from(files)
+            into(output)
+        }
+    }
+}
+
+val copyTestPhoto = tasks.register<CopyTestPhoto>("copyTestPhoto") {
+    files.from(rootProject.file("testdata/vision/photos/001.jpg"), rootProject.fileTree("testdata/vision/labels") { include("*.txt") })
 }
 
 // App de extremo a extremo (Fase 3, D-18). AGP 9 incluye el soporte de Kotlin, sin plugin aparte.
@@ -40,6 +70,12 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.androidTest?.sources?.assets?.addGeneratedSourceDirectory(copyTestPhoto, CopyTestPhoto::output)
+    }
+}
+
 dependencies {
     implementation(project(":solver"))
     implementation(project(":vision"))
@@ -49,12 +85,16 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+    // Orientación EXIF de las fotos en API 26–27, donde no hay ImageDecoder (tarea 3.3).
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("androidx.navigation3:navigation3-runtime:1.2.0")
     implementation("androidx.navigation3:navigation3-ui:1.2.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Tests locales en la JVM: JUnit 4, el que ejecuta AGP para testDebugUnitTest.
     testImplementation(kotlin("test-junit"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 
     // Tests de Compose en el móvil (connectedDebugAndroidTest).
     androidTestImplementation(platform("androidx.compose:compose-bom:2026.09.00"))

@@ -74,9 +74,10 @@ androidComponents {
 }
 
 dependencies {
-    implementation(project(":vision-core"))
+    // api: la app usa directamente BoardReader, Cell y Mat (tarea 3.3).
+    api(project(":vision-core"))
     // Misma versión que Bytedeco en vision-core (D-16): la API org.opencv.* que vision-core usa como compileOnly.
-    implementation("org.opencv:opencv:4.14.0")
+    api("org.opencv:opencv:4.14.0")
     // Modelo incluido en el APK, sin descarga por Play Services (D-03, D-08).
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
