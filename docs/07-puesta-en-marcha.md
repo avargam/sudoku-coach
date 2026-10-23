@@ -18,12 +18,12 @@ En una terminal de WSL (o en VS Code con la extensión WSL, abriendo la carpeta 
 ```bash
 cd ~/sudoku-coach
 git status                      # rama actual y cambios pendientes
-./gradlew :solver:test :vision-core:test
+./gradlew :solver:test :vision-core:test :app:testDebugUnitTest
 ```
 
-Con esto basta para trabajar en el `solver` o en `vision-core`. Ninguno de los dos necesita el móvil.
+Con esto basta para trabajar en el `solver`, en `vision-core` o en la lógica de la app. Nada de eso necesita el móvil.
 
-### 1.2 Conectar el móvil (solo para `vision` y, más adelante, `app`)
+### 1.2 Conectar el móvil (para `vision` y `app`)
 
 1. **Móvil:** desbloqueado y conectado por cable. En la notificación "USB para…", elegir
    **Transferir archivos**.
@@ -53,9 +53,26 @@ Con esto basta para trabajar en el `solver` o en `vision-core`. Ninguno de los d
 
 Los resultados de los tests quedan en `vision/build/reports/androidTests/connected/debug/index.html`.
 
+La app:
+
+```bash
+./gradlew :app:deployDebug                        # compila e instala (≈ 15 s)
+adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.MainActivity            # abrir la app
+adb shell am start -n dev.sudokucoach/dev.sudokucoach.app.debug.BoardCatalogActivity  # catálogo del tablero
+./gradlew :app:connectedDebugAndroidTest          # tests de Compose en el móvil
+```
+
+**No usar `installDebug`:** con el A57 se queda colgado sin instalar. `deployDebug` usa `adb install`
+directamente. Si una copia por USB va muy lenta (a ratos baja de 50 MB/s a menos de 1 MB/s),
+desconectar y volver a conectar el cable suele bastar.
+
+Para ver la app en modo oscuro o claro sin tocar los ajustes: `adb shell cmd uimode night yes|no`
+(y dejarlo después como estaba).
+
 ### 1.4 Al terminar
 
-- **Commits:** los hace el usuario. Claude propone cuándo hacerlos y con qué mensaje.
+- **Commits:** los hace el usuario. Claude propone cuándo hacerlos y con qué mensaje, salvo al pasar al
+  siguiente paso del plan: entonces Claude hace el commit del paso anterior si falta.
 - **Móvil:** se puede desconectar sin más. Si se quiere liberar de WSL antes:
   `usbipd detach --busid <BUSID>` en PowerShell.
 

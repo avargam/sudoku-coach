@@ -39,10 +39,10 @@ android {
     defaultConfig {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // El AAR de OpenCV trae nativos para 4 arquitecturas (123 MB). Basta con la del A57 (arm64-v8a)
-        // y la de un posible emulador (x86_64).
+        // El AAR de OpenCV trae nativos para 4 arquitecturas (123 MB). Basta con la del A57 (arm64-v8a);
+        // si se usa el emulador, añadir "x86_64" (ver app/build.gradle.kts).
         ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
+            abiFilters += listOf("arm64-v8a")
         }
     }
 
@@ -74,9 +74,10 @@ androidComponents {
 }
 
 dependencies {
-    implementation(project(":vision-core"))
+    // api: la app usa directamente BoardReader, Cell y Mat (tarea 3.3).
+    api(project(":vision-core"))
     // Misma versión que Bytedeco en vision-core (D-16): la API org.opencv.* que vision-core usa como compileOnly.
-    implementation("org.opencv:opencv:4.14.0")
+    api("org.opencv:opencv:4.14.0")
     // Modelo incluido en el APK, sin descarga por Play Services (D-03, D-08).
     implementation("com.google.mlkit:text-recognition:16.0.1")
 

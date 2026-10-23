@@ -30,4 +30,4 @@ dependencyResolutionManagement {
 include(":solver")
 include(":vision-core")
 include(":vision")
-// Pendiente: include(":app") (Fase 3)
+include(":app")

@@ -23,6 +23,8 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-15 | Entorno: todo en WSL (JDK 21, Gradle wrapper, Android SDK por línea de comandos); app en el móvil por USB con usbipd-win | Aceptada |
 | D-16 | `vision` separado en `vision-core` (JVM) y `vision` (Android); OpenCV 4.14; `minSdk` 26 | Aceptada |
 | D-17 | Fotos de prueba reducidas y versionadas, con dígitos y origen por celda | Aceptada |
+| D-18 | App: una `Activity`, Compose, `ViewModel` con máquina de estados y Navigation 3 | Aceptada |
+| D-19 | Validación antes de las pistas: repetidos, errores del usuario y unicidad | Aceptada |
 
 ---
 
@@ -125,6 +127,12 @@ El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (c
 - 30–50 fotos propias. Los originales quedan en `testdata/vision/raw/` (ignorado por git); se versiona una copia **reescalada (lado mayor 1600 px), en JPEG y sin EXIF**, porque el repositorio será público en la Fase 7 y el EXIF puede llevar la ubicación.
 - Cada foto tiene una etiqueta de texto con **los 81 dígitos y el origen de cada celda** (impreso, manuscrito o vacía) y una línea de metadatos (luz, ángulo, papel) para desglosar las métricas. El origen hace falta para medir por separado los manuscritos y para la Fase 5 (D-12).
 - Etiquetado **asistido por el pipeline**: una herramienta de `vision-core` rectifica la foto y prerrellena las celdas vacías; cuando haya reconocedor, también propone los dígitos. Un test valida cada etiqueta con el `solver` (sin repetidos y con solución).
+
+## D-18 · Arquitectura de la app
+Aceptada al planificar la Fase 3; detalle en `08-plan-fase-3.md`: una sola `Activity` con Compose y un `CoachViewModel` con `StateFlow`; Navigation 3 con la pila de pantallas en el `ViewModel`; sin inyección de dependencias; IBM Plex Sans empaquetada (D-03).
+
+## D-19 · Validación antes de las pistas
+Aceptada al planificar la Fase 3; detalle en `08-plan-fase-3.md`: los repetidos bloquean la pista; si el tablero no tiene solución pero los impresos sí, los manuscritos que no coinciden con ella se marcan como posibles errores del usuario; con varias soluciones se avisa y se sigue.
 
 ---
 
