@@ -37,9 +37,27 @@
     </plurals>
     <string name="validation_unsolvable">El tablero no tiene solución: revisa la lectura</string>
     <string name="show_hint">Ver pista</string>
-    <!-- Pantalla de pista provisional (hasta la tarea 3.7). -->
+    <!-- Pantalla de pista (tarea 3.7). -->
     <string name="hint_title">Pista</string>
-    <string name="hint_none">Este tablero necesita técnicas que aún no conozco</string>
+    <string name="hint_back">Volver a la revisión</string>
+    <string name="hint_stage_technique">1 · Técnica</string>
+    <string name="hint_stage_where">2 · Dónde</string>
+    <string name="hint_stage_what">3 · Qué</string>
+    <string name="hint_show_where">Mostrar dónde</string>
+    <string name="hint_show_what">Mostrar qué</string>
+    <string name="hint_apply">Aplicar paso</string>
+    <string name="hint_next">Siguiente</string>
+    <string name="hint_applied_placement">Paso aplicado: el %1$d va en %2$s.</string>
+    <plurals name="hint_applied_eliminations">
+        <item quantity="one">Paso aplicado: %d candidato descartado.</item>
+        <item quantity="other">Paso aplicado: %d candidatos descartados.</item>
+    </plurals>
+    <string name="hint_solved_title">Tablero resuelto</string>
+    <string name="hint_solved">No quedan celdas libres. Vuelve a la revisión para elegir otra foto.</string>
+    <string name="hint_none_title">Sin pista por ahora</string>
+    <string name="hint_none">Este tablero necesita técnicas que aún no conozco.</string>
+    <string name="hint_reveal_digit">Revelar un dígito</string>
+    <string name="hint_revealed">El %1$d va en %2$s, según la solución.</string>
 
     <!-- Accesibilidad del tablero (SudokuBoard): una descripción por celda. -->
     <string name="cell_empty">Fila %1$d, columna %2$d: vacía</string>
@@ -78,56 +96,86 @@
     <string name="level_uniqueness">UNICIDAD</string>
     <string name="level_chains">CADENAS</string>
 
-    <!-- Técnicas: nombre, nombre en inglés (subtítulo, para buscarla) y plantilla. -->
+    <!--
+    Técnicas: nombre, nombre en inglés (subtítulo, para buscarla) y un texto por nivel del revelado
+    (tarea 3.7): intro (1 · técnica, sin argumentos), where (2 · dónde, algunos argumentos de la
+    explicación) y explain (3 · qué, todos).
+    -->
     <string name="technique_full_house">Última celda libre</string>
     <string name="technique_full_house_en" translatable="false">Full House</string>
     <string name="explain_full_house">%1$s es la única celda libre de %2$s, así que lleva el dígito que falta: el %3$d.</string>
+    <string name="intro_full_house">Hay una fila, columna o caja con una sola celda libre. ¿La encuentras?</string>
+    <string name="where_full_house">Fíjate en %2$s: solo le queda una celda libre.</string>
 
     <string name="technique_naked_single">Candidato único</string>
     <string name="technique_naked_single_en" translatable="false">Naked Single</string>
     <string name="explain_naked_single">En %1$s solo cabe el %2$d: los demás dígitos ya están en su fila, su columna o su caja.</string>
+    <string name="intro_naked_single">Hay una celda en la que solo cabe un dígito. ¿La encuentras?</string>
+    <string name="where_naked_single">Fíjate en %1$s: mira qué dígitos ya están en su fila, su columna y su caja.</string>
 
     <string name="technique_hidden_single">Posición única</string>
     <string name="technique_hidden_single_en" translatable="false">Hidden Single</string>
     <string name="explain_hidden_single">En %1$s, el %2$d solo puede ir en %3$s: en las demás celdas libres ya hay un %2$d en su fila, su columna o su caja.</string>
+    <string name="intro_hidden_single">Hay un dígito que, en una fila, columna o caja, solo puede ir en una celda. ¿Lo encuentras?</string>
+    <string name="where_hidden_single">Fíjate en %1$s y en dónde puede ir el %2$d.</string>
 
     <string name="technique_locked_pair">Par bloqueado</string>
     <string name="technique_locked_pair_en" translatable="false">Locked Pair</string>
     <string name="explain_locked_pair">Las celdas %1$s comparten %2$s y %3$s, y entre las dos solo admiten los dígitos %4$s. Esos dígitos tienen que ir en ellas, así que %5$s.</string>
+    <string name="intro_locked_pair">Hay dos celdas que comparten caja y fila o columna, y que entre las dos solo admiten dos dígitos. ¿Las encuentras?</string>
+    <string name="where_locked_pair">Fíjate en %1$s: están a la vez en %2$s y en %3$s.</string>
 
     <string name="technique_locked_triple">Trío bloqueado</string>
     <string name="technique_locked_triple_en" translatable="false">Locked Triple</string>
     <string name="explain_locked_triple">Las celdas %1$s comparten %2$s y %3$s, y entre las tres solo admiten los dígitos %4$s. Esos dígitos tienen que ir en ellas, así que %5$s.</string>
+    <string name="intro_locked_triple">Hay tres celdas que comparten caja y fila o columna, y que entre las tres solo admiten tres dígitos. ¿Las encuentras?</string>
+    <string name="where_locked_triple">Fíjate en %1$s: están a la vez en %2$s y en %3$s.</string>
 
     <string name="technique_pointing">Bloqueo caja → línea</string>
     <string name="technique_pointing_en" translatable="false">Locked Candidates (Pointing)</string>
     <string name="explain_pointing">En %1$s, el %2$d solo puede ir en %3$s, que están en %4$s. Así que el %2$d de %4$s tiene que estar dentro de %1$s, y %5$s.</string>
+    <string name="intro_pointing">En una caja, un dígito solo puede ir en una misma fila o columna. ¿Lo encuentras?</string>
+    <string name="where_pointing">Fíjate en dónde puede ir el %2$d dentro de %1$s.</string>
 
     <string name="technique_claiming">Bloqueo línea → caja</string>
     <string name="technique_claiming_en" translatable="false">Locked Candidates (Claiming)</string>
     <string name="explain_claiming">En %1$s, el %2$d solo puede ir en %3$s, que están en %4$s. Así que el %2$d de %4$s tiene que estar dentro de %1$s, y %5$s.</string>
+    <string name="intro_claiming">En una fila o columna, un dígito solo puede ir dentro de una misma caja. ¿Lo encuentras?</string>
+    <string name="where_claiming">Fíjate en dónde puede ir el %2$d en %1$s.</string>
 
     <string name="technique_naked_pair">Par desnudo</string>
     <string name="technique_naked_pair_en" translatable="false">Naked Pair</string>
     <string name="explain_naked_pair">En %1$s, las celdas %2$s solo admiten entre las dos los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+    <string name="intro_naked_pair">Hay dos celdas de una misma fila, columna o caja que entre las dos solo admiten dos dígitos. ¿Las encuentras?</string>
+    <string name="where_naked_pair">Fíjate en %1$s y en los candidatos de %2$s.</string>
 
     <string name="technique_naked_triple">Trío desnudo</string>
     <string name="technique_naked_triple_en" translatable="false">Naked Triple</string>
     <string name="explain_naked_triple">En %1$s, las celdas %2$s solo admiten entre las tres los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+    <string name="intro_naked_triple">Hay tres celdas de una misma fila, columna o caja que entre las tres solo admiten tres dígitos. ¿Las encuentras?</string>
+    <string name="where_naked_triple">Fíjate en %1$s y en los candidatos de %2$s.</string>
 
     <string name="technique_naked_quad">Cuarteto desnudo</string>
     <string name="technique_naked_quad_en" translatable="false">Naked Quad</string>
     <string name="explain_naked_quad">En %1$s, las celdas %2$s solo admiten entre las cuatro los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+    <string name="intro_naked_quad">Hay cuatro celdas de una misma fila, columna o caja que entre las cuatro solo admiten cuatro dígitos. ¿Las encuentras?</string>
+    <string name="where_naked_quad">Fíjate en %1$s y en los candidatos de %2$s.</string>
 
     <string name="technique_hidden_pair">Par oculto</string>
     <string name="technique_hidden_pair_en" translatable="false">Hidden Pair</string>
     <string name="explain_hidden_pair">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas dos celdas quedan para ellos, así que %4$s.</string>
+    <string name="intro_hidden_pair">En una fila, columna o caja hay dos dígitos que solo pueden ir en las mismas dos celdas. ¿Los encuentras?</string>
+    <string name="where_hidden_pair">Fíjate en dónde pueden ir los dígitos %2$s en %1$s.</string>
 
     <string name="technique_hidden_triple">Trío oculto</string>
     <string name="technique_hidden_triple_en" translatable="false">Hidden Triple</string>
     <string name="explain_hidden_triple">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas tres celdas quedan para ellos, así que %4$s.</string>
+    <string name="intro_hidden_triple">En una fila, columna o caja hay tres dígitos que solo pueden ir en las mismas tres celdas. ¿Los encuentras?</string>
+    <string name="where_hidden_triple">Fíjate en dónde pueden ir los dígitos %2$s en %1$s.</string>
 
     <string name="technique_hidden_quad">Cuarteto oculto</string>
     <string name="technique_hidden_quad_en" translatable="false">Hidden Quad</string>
     <string name="explain_hidden_quad">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas cuatro celdas quedan para ellos, así que %4$s.</string>
+    <string name="intro_hidden_quad">En una fila, columna o caja hay cuatro dígitos que solo pueden ir en las mismas cuatro celdas. ¿Los encuentras?</string>
+    <string name="where_hidden_quad">Fíjate en dónde pueden ir los dígitos %2$s en %1$s.</string>
 </resources>

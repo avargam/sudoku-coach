@@ -187,6 +187,14 @@ El usuario prefirió nombres descriptivos en el nivel 1 y los de los bloqueos, q
 - "Aplicar paso" → `grid.apply(step)` y la siguiente pista empieza en el nivel 1. Tablero resuelto → mensaje final.
 - **Sin paso disponible** (hacen falta técnicas de la Fase 6): mensaje "Este tablero necesita técnicas que aún no conozco" y opción "Revelar un dígito" con la solución del `Backtracker`.
 
+**Resultado:** `HintScreen` sigue la maqueta: flecha de volver (a la revisión, con las correcciones), tablero y, debajo, un panel con las tres etapas ("1 · Técnica", "2 · Dónde", "3 · Qué"), el nivel, el nombre, el subtítulo en inglés, el texto de la etapa y los botones. **Es un panel fijo y no un `BottomSheetScaffold`** arrastrable: así el tablero nunca queda tapado y no hay que gestionar alturas. Si el texto no cabe, solo se desplaza el texto; el aviso de paso aplicado y los botones quedan fijos. Comprobada en el A57 en las tres etapas y tras aplicar.
+
+- **Estado (`hint/HintState`, Kotlin puro):** el `Grid` con candidatos, el paso, el nivel, si está aplicado y el último dígito revelado. Transiciones inmutables: `revealMore`, `apply` (el tablero cambia y se sigue en el nivel 3), `next` (aplica el paso si no se había hecho y empieza la siguiente pista en el nivel 1) y `revealDigit`. `CoachViewModel.hint` es un `StateFlow<HintState?>`. Cada "Ver pista" empieza desde el tablero revisado: los pasos aplicados no vuelven a la revisión.
+- **Un texto por etapa:** 1 presenta la técnica sin decir dónde ("Hay dos celdas de una misma fila, columna o caja que entre las dos solo admiten dos dígitos. ¿Las encuentras?"); 2 orienta con algunos argumentos de la explicación ("Fíjate en la columna 5 y en los candidatos de F5C5 y F9C5"); 3 es la explicación de 3.6. Las plantillas `intro_*` y `where_*` están en `strings.xml`, junto a `explain_*`.
+- **Tablero por etapa:** en la 1 no cambia; en la 2 se rellena el patrón y, si el paso elimina, aparecen sus candidatos (en los pasos que colocan no se muestran, porque darían la respuesta); en la 3, la colocación con contorno y los descartes tachados, que desaparecen al aplicar.
+- **Sin paso:** "Tablero resuelto", o "Este tablero necesita técnicas que aún no conozco" con "Revelar un dígito". Se revela la celda vacía con menos candidatos, la más fácil de comprobar a mano, con la solución del `Backtracker`, y se busca la siguiente pista.
+- **Tests (JVM, 9 de `HintStateTest`):** etapas, aplicar (solo cambian los candidatos en un paso de eliminación; aplicar dos veces no hace nada), "Siguiente" con y sin aplicar antes, resolver 9 puzzles del banco solo con "Siguiente" hasta la solución del `Backtracker`, revelar un dígito (en el tablero vacío, donde ninguna técnica da paso) eligiendo la celda con menos candidatos, tablero resuelto y lo que dibuja el tablero en cada etapa. `ReviewFlowTest` recorre en el A57 las tres etapas, aplica el paso y pasa a la siguiente pista. `ExplanationTextTest` comprueba que los textos de etapa 1 no tienen marcadores y que los de etapa 2 solo usan argumentos que existen y con el tipo correcto.
+
 ## 3.8 Estado y navegación (D-18)
 - `CoachState`: `Picking`, `Reading`, `Reviewing(board, validation)`, `ShowingHint(grid, step, revealLevel)` y `Failed(motivo)`.
 - `SavedStateHandle` guarda el tablero como texto (valores, origen y candidatos) para sobrevivir al cierre del proceso. La foto no se guarda.
@@ -194,10 +202,49 @@ El usuario prefirió nombres descriptivos en el nivel 1 y los de los bloqueos, q
 
 **Tests (JVM):** transiciones del `ViewModel` con un `PhotoScanner` falso y `kotlinx-coroutines-test`: lectura correcta, lectura fallida, edición, validación bloqueante, aplicar paso hasta resolver un tablero del banco.
 
+**Resultado:** **no hay un `CoachState` único**. La máquina de estados es la pila de pantallas de Navigation 3 (`backStack`) más el estado de cada una (`scanState`, `review`, `hint`), que ya se había ido formando en 3.3–3.7. Con Navigation 3 la pila es la fuente de verdad de la pantalla, y un `CoachState` aparte la duplicaría.
+
+- **Cierre del proceso:** `CoachViewModel(scanner, SavedStateHandle)` guarda en cada cambio, de forma síncrona, la pila (con nombres explícitos, `picking,reviewing,hint`, porque R8 cambia los de las clases), el tablero revisado, la celda seleccionada y la pista. Al crearse, restaura: la app vuelve a la misma pantalla con el mismo estado. Se pierden una lectura en curso (se vuelve a elegir foto) y la foto. Si lo guardado no se entiende, se descartan esa pantalla y las de encima.
+- **Formato (`state/StateCodec`, Kotlin puro):** texto con campos separados por `|`. Revisión: valores, origen (G/U/?), confianza en centésimas y tinta. Pista: valores, candidatos (81 máscaras hexadecimales de 3 cifras, porque las eliminaciones acumuladas no se deducen de los valores), etapa, aplicado y dígito revelado. **El paso no se guarda**: `HintState.grid` es ahora el tablero *sin* aplicar y lo que se dibuja es `current`, así que el paso se recalcula con el motor, que es determinista.
+- **Prueba en el A57** (usuario): con la app en una pista, `adb shell am kill dev.sudokucoach` y reabrirla desde recientes vuelve a la misma pista y etapa, y atrás lleva a la revisión con las correcciones.
+- **Pilas de vuelta** (sin cambios, ya cubiertas): de la pista a la revisión, que conserva las correcciones; de la revisión a elegir foto. Cada "Ver pista" empieza desde el tablero revisado.
+- **Tests (JVM, 7 nuevos):** ida y vuelta del códec (revisión con ediciones; pista en cada etapa, aplicada, con eliminaciones acumuladas, con dígito revelado y resuelta; texto mal formado); un `ViewModel` nuevo con el mismo `SavedStateHandle` continúa en la pista con la misma revisión, selección y etapa, y "atrás" vuelve a la revisión con la corrección; un estado ilegible empieza eligiendo foto; "Siguiente" resuelve un puzzle del banco desde el `ViewModel`. Para este último se usa un puzzle del banco porque el tablero de "media solución" de los otros tests tiene varias soluciones (un rectángulo de 6/8) y ninguna técnica lo termina, como corresponde.
+
 ## 3.9 Prueba de extremo a extremo y cierre
 - Test instrumentado con una foto del conjunto como asset: `PhotoScanner` real → `ReviewBoard` igual a la etiqueta salvo las sospechosas → primera pista igual a `HintEngine.nextStep` sobre la etiqueta.
 - **Recorrido manual** en el A57 con las 30 fotos (copiadas a la galería): anotar por foto las celdas corregidas, si se llega a la pista y el tiempo de lectura. Es la medida del criterio de la fase.
 - Actualizar `03-diseno.md` §5 con lo implementado, las casillas de `04-plan-implementacion.md` y D-18 y D-19 en `02-decisiones.md`.
+
+**Resultado:** `EndToEndTest` (instrumentado) recorre la cadena completa sin la interfaz: lector real → `ReviewBoard` → se corrigen **solo las celdas sospechosas** con el dígito de la etiqueta → validación (D-19) → primera pista. Usa las fotos 001 y 016 de los assets y los 30 originales de la cámara copiados al móvil (como `PhotoScanTest`), y exige que ninguna lectura errónea quede sin marcar y que la pista coincida con `HintEngine.nextStep` sobre la etiqueta. `ReviewFlowTest` (3.5) cubre lo mismo con la interfaz para la foto 016.
+
+| Medida (30 originales + 2 del conjunto, A57) | Resultado |
+|---|---|
+| Lecturas erróneas sin marcar | **0** |
+| Primera pista correcta tras corregir las sospechosas | **32/32** (9 tableros con huecos; los 21 completos no tienen pista y quedan resueltos) |
+| Celdas sospechosas | 639 (≈ 20 por foto) |
+| — de ellas, lecturas erróneas que hay que corregir | 88 (≈ 3 por foto); el resto se confirma pulsando el mismo dígito |
+| Tiempo de lectura | mediana 487 ms, máximo 606 ms |
+
+**El criterio de la fase se cumple**, pero solo **1 de cada 7 sospechosas** está mal. Revisar unas 20 celdas por foto es lo que más estorba al usar la app; mejorar la confianza de los manuscritos (el reconocedor propio) es lo que más lo reduciría.
+
+**Recorrido manual con las 30 fotos desde la galería: aplazado** por decisión del usuario. La prueba anterior lo sustituye salvo en el paso por el selector de fotos, que el usuario ya probó a mano con varias fotos (3.3), igual que el cierre del proceso (3.8).
+
+## Cierre de la fase
+
+**Hecho:** la app se usa de principio a fin con fotos de galería en el A57: elegir foto (0,3–0,6 s de lectura), revisar con las sospechosas marcadas y la validación de D-19, y pistas con revelado en tres etapas hasta resolver el tablero, con el estado guardado ante el cierre del proceso. 46 tests en la JVM y 12 instrumentados.
+
+**Cambios respecto al plan:**
+- `GridSegmenter.minDigitHeight` baja de 0,35 a 0,26 (3.3): con los originales de la cámara se perdían lápices tenues.
+- La pista usa un panel fijo y no un `BottomSheetScaffold` arrastrable (3.7).
+- No hay un `CoachState` único: la máquina de estados es la pila de Navigation 3 más el estado de cada pantalla (3.8).
+- Los impresos también se pueden editar en la revisión (3.5).
+
+**Pendiente para fases siguientes:**
+- Recorrido manual con las 30 fotos desde la galería (aplazado).
+- Demasiadas sospechosas por foto (≈ 20, de las que ≈ 3 están mal): confianza de los manuscritos.
+- Límite medido de D-19 (3.4): un impreso mal leído puede culpar a manuscritos correctos en un 3 % de los casos sin repetidos.
+- En algunos tableros completos queda una celda en blanco (prueba a mano, 3.3); no se ajusta porque no es el caso de uso.
+- Los pasos aplicados en una pista no vuelven a la revisión: cada "Ver pista" empieza desde el tablero revisado.
 
 ---
 

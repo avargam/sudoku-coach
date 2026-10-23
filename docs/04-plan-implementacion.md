@@ -66,9 +66,11 @@ Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-p
 - [x] 3.4 Tablero de revisión, celdas sospechosas y validación con el `solver`
 - [x] 3.5 Pantalla de revisión editable: selección de celda, teclado numérico fijo, celdas sospechosas con contador
 - [x] 3.6 Textos de explicación en español por `TechniqueId`, como recursos de Android (D-14)
-- [ ] 3.7 Pantalla de pista: tablero + bottom sheet con revelado gradual (técnica → celdas → resultado) y "aplicar paso"
-- [ ] 3.8 Estado y navegación, con el tablero guardado ante el cierre del proceso
-- [ ] 3.9 Prueba de extremo a extremo y recorrido con las 30 fotos
+- [x] 3.7 Pantalla de pista: tablero + bottom sheet con revelado gradual (técnica → celdas → resultado) y "aplicar paso"
+- [x] 3.8 Estado y navegación, con el tablero guardado ante el cierre del proceso
+- [x] 3.9 Prueba de extremo a extremo (el recorrido manual con las 30 fotos queda aplazado)
+
+**Cerrada:** la app se usa de principio a fin con fotos de galería en el A57. Con los 30 originales de la cámara, ninguna lectura errónea queda sin marcar y, corrigiendo solo las celdas sospechosas, se llega a la primera pista correcta en todas; lectura en 0,5 s de mediana. Pendiente: hay ≈ 20 sospechosas por foto, de las que solo ≈ 3 están mal, y el recorrido manual con las 30 fotos.
 
 **Hecho cuando:** se puede usar la app con fotos de galería de principio a fin.
 
