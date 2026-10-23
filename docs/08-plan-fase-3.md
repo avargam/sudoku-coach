@@ -155,6 +155,29 @@ Solo para el A57 serían unos 40 MB, por debajo del umbral de 60 MB, así que no
 
 **Tests (JVM):** cada técnica de `HintEngine.IMPLEMENTED` tiene plantilla, y para un paso real de cada técnica, sacado del banco del oráculo, los argumentos son correctos. Un test instrumentado resuelve todas las plantillas con sus argumentos, para detectar marcadores que no coinciden.
 
+**Resultado:** en `explain/`, `StepExplainer` (Kotlin puro) da `Explanation(técnica, argumentos)` con argumentos **estructurados**: celda, celdas, unidad, dígito, dígitos y eliminaciones agrupadas por dígito. `ExplanationText` (Android) los pasa a texto con `strings.xml`. Así, todo lo que lee el usuario, incluidos "la fila 3", "y" o "se descarta/n", está en los recursos (D-14), y lo que se prueba en la JVM es el contenido, no la redacción. El `when` de `ExplanationText.texts` es exhaustivo: una técnica nueva no compila sin sus textos.
+
+**Nombres, revisados con el usuario** (con el nombre inglés como subtítulo, para poder buscar la técnica):
+
+| Nivel | Técnica | Nombre | Subtítulo |
+|---|---|---|---|
+| 1 · ÚNICOS | `FULL_HOUSE` | Última celda libre | Full House |
+| | `NAKED_SINGLE` | Candidato único | Naked Single |
+| | `HIDDEN_SINGLE` | Posición única | Hidden Single |
+| 2 · INTERSECCIONES | `LOCKED_PAIR`, `LOCKED_TRIPLE` | Par / Trío bloqueado | Locked Pair / Triple |
+| | `LOCKED_CANDIDATES_POINTING` | Bloqueo caja → línea | Locked Candidates (Pointing) |
+| | `LOCKED_CANDIDATES_CLAIMING` | Bloqueo línea → caja | Locked Candidates (Claiming) |
+| 3 · SUBCONJUNTOS | `NAKED_PAIR` … `NAKED_QUAD` | Par / Trío / Cuarteto desnudo | Naked Pair / Triple / Quad |
+| | `HIDDEN_PAIR` … `HIDDEN_QUAD` | Par / Trío / Cuarteto oculto | Hidden Pair / Triple / Quad |
+
+El usuario prefirió nombres descriptivos en el nivel 1 y los de los bloqueos, que dicen hacia dónde se elimina, a los literales (Único desnudo/oculto, Apuntando/Reclamando). Los niveles 4–7 ya tienen etiqueta (PECES, ALAS, UNICIDAD, CADENAS).
+
+- **Redacción:** las celdas son "F3C5" y las listas, "1 y 3" o "1, 3 y 7". Las eliminaciones van agrupadas por dígito: "se descarta el 4 en F6C5", "se descartan el 3 en F4C1 y F8C1, y el 5 en F5C1" (la coma antes del último "y" separa grupos que ya llevan el suyo). El singular o plural se decide con `plurals` según el número de grupos. Ejemplo real con la foto 016: "En la columna 5, las celdas F5C5 y F9C5 solo admiten entre las dos los dígitos 1 y 4. Esos dígitos tienen que ir en ellas, así que se descarta el 4 en F6C5."
+- **Tests (JVM, 10):** un paso real de cada técnica, el primero que aparece al resolver los puzzles del banco del oráculo (cuya ruta se pasa a los tests de `app`). Ningún puzzle del banco usa un cuarteto oculto, así que ese sale del tablero sintético de `HiddenSubsetsTest`. Se comprueba que las unidades contienen las celdas, que el bloqueo caja → línea tiene el patrón en una caja y el de línea → caja en una línea, que las eliminaciones son exactamente las del paso y que quedan dentro o fuera del patrón según la técnica.
+- **Instrumentado (`ExplanationTextTest`):** cada plantilla usa exactamente los marcadores `%1$`…`%n$` de sus argumentos, con `%d` solo en los dígitos (un argumento de más se ignoraría sin aviso), no queda ningún `%` en el texto, y cuatro textos de ejemplo salen exactos.
+- La pantalla de pista provisional muestra ya el nivel, el nombre, el subtítulo y la explicación, todo a la vez. El revelado gradual es la 3.7.
+- Lint avisa de `PluralsCandidate` en las plantillas con `el %d solo…`: son falsos positivos, porque ahí el número nombra un dígito y no es una cantidad.
+
 ## 3.7 Pantalla de pista
 - Tablero a todo el ancho y `BottomSheetScaffold` (no modal, para que el tablero se vea) con el revelado gradual de §5.3:
   1. Técnica y nivel.

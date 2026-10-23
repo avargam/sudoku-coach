@@ -76,12 +76,16 @@ androidComponents {
     }
 }
 
-// Los tests de la revisión (tarea 3.4) usan las etiquetas de las fotos (D-17) como tableros reales.
-// Se declaran como entrada para que Gradle vuelva a ejecutar los tests al cambiar una etiqueta.
+// Los tests de la revisión (tarea 3.4) usan las etiquetas de las fotos (D-17) como tableros reales, y
+// los de las explicaciones (3.6), pasos reales del banco del oráculo del solver. Se declaran como
+// entrada para que Gradle vuelva a ejecutar los tests al cambiar una etiqueta o el banco.
 tasks.withType<Test>().configureEach {
     val labels = rootProject.file("testdata/vision/labels")
+    val bank = rootProject.file("solver/src/test/resources/bank")
     systemProperty("sudokucoach.labels", labels.absolutePath)
+    systemProperty("sudokucoach.bank", bank.absolutePath)
     inputs.dir(labels).withPropertyName("labels")
+    inputs.dir(bank).withPropertyName("bank")
 }
 
 dependencies {
