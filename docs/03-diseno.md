@@ -134,9 +134,9 @@ Las interfaces están en `vision-core` y usan `org.opencv.core.Mat`; `BoardReade
 
 ### 5.1 Pantallas
 
-1. **Escáner**: cámara a pantalla completa; el contorno del tablero detectado se dibuja en el acento y la captura es automática cuando la lectura se estabiliza (votación multi-frame). Botones secundarios: cerrar, flash, elegir de galería; disparador manual como respaldo.
-2. **Revisión**: tablero reconocido y editable. Tocar una celda la selecciona; debajo hay un teclado numérico fijo (1–9 + borrar). Las celdas sospechosas llevan borde punteado de acento y un aviso "N celdas por revisar" salta entre ellas. Botón "Ver pista".
-3. **Pista**: tablero a todo el ancho y un *bottom sheet* con la técnica, la explicación y los botones. El revelado es gradual (ver §5.3). Botones "Aplicar paso" y "Siguiente".
+1. **Escáner**: cámara a pantalla completa; el contorno del tablero detectado se dibuja en el acento y la captura es automática cuando la lectura se estabiliza (votación multi-frame). Botones secundarios: cerrar, flash, elegir de galería; disparador manual como respaldo. *(Fase 4. En la Fase 3 la entrada es **Elegir foto**: el selector de fotos del sistema, sin permisos, y la foto con un indicador de progreso mientras se lee.)*
+2. **Revisión**: tablero reconocido y editable. Tocar una celda la selecciona; debajo hay un teclado numérico fijo (1–9 + borrar). Las celdas sospechosas (tinta sin lectura, confianza < 0,5 o dígito repetido) llevan borde punteado de acento y un aviso "N celdas por revisar" salta entre ellas con ◀ ▶. Una línea bajo el tablero dice por qué se marca la celda seleccionada o cuál es su origen. Los impresos también se pueden editar, porque pueden estar mal leídos. El motivo de la validación (D-19) y "Ver pista" quedan fijos abajo; la pista solo se activa si la validación lo permite.
+3. **Pista**: tablero a todo el ancho y debajo un panel fijo (no un *bottom sheet* arrastrable, para que el tablero nunca quede tapado) con las tres etapas, la técnica, el texto de la etapa y los botones. El revelado es gradual (ver §5.3). En la etapa 3, "Aplicar paso" (el tablero cambia y se sigue en la misma pista) y "Siguiente" (aplica si hace falta y pasa a la siguiente pista en la etapa 1). Sin técnica disponible: "Revelar un dígito" de la solución, en la celda vacía con menos candidatos.
 4. *(Posterior)* **Overlay en vivo** dibujado sobre la cámara mediante la homografía inversa.
 
 ### 5.2 Estado
@@ -144,6 +144,8 @@ Las interfaces están en `vision-core` y usan `org.opencv.core.Mat`; `BoardReade
 Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board) → ShowingHint(board, step, revealLevel)`.
 
 `board` incluye, además de los valores, el origen de cada dígito (`GIVEN` impreso / `USER` manuscrito / `UNKNOWN`) y las celdas sospechosas. `revealLevel` va de 1 a 3.
+
+Implementado en la Fase 3 (D-18): la pila de pantallas de Navigation 3 (`Picking → Reviewing → Hint`) más un `StateFlow` por pantalla: `ScanState` (leyendo o fallo), `ReviewState` (`ReviewBoard` con valores, origen, confianza y tinta; celda seleccionada; validación) y `HintState` (`Grid` con candidatos antes del paso, el paso, la etapa, si está aplicado y el dígito revelado). Todo salvo la lectura en curso se guarda como texto en un `SavedStateHandle` y sobrevive al cierre del proceso.
 
 ### 5.3 Diseño visual (D-12)
 
@@ -177,9 +179,9 @@ Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board)
 
 **Revelado gradual** (los niveles salen directamente de los campos de `Step`):
 
-1. **Técnica**: solo el nombre (`technique`) y su nivel; el tablero no cambia.
-2. **Dónde**: se rellenan las celdas de `highlight` y aparecen sus candidatos.
-3. **Qué**: se muestran `placement` y `eliminations`, y se despliega la explicación que la app compone a partir del `Step` (D-14).
+1. **Técnica**: solo el nombre (`technique`) y su nivel, con el nombre en inglés de subtítulo y una frase que invita a buscarla; el tablero no cambia.
+2. **Dónde**: se rellenan las celdas de `highlight` y aparecen sus candidatos (salvo en los pasos que colocan, donde darían la respuesta), con una frase que dice dónde mirar.
+3. **Qué**: se muestran `placement` y `eliminations`, y se despliega la explicación que la app compone a partir del `Step` (D-14): `StepExplainer` da argumentos estructurados y las plantillas (`intro_*`, `where_*`, `explain_*`) están en `strings.xml`.
 
 El *bottom sheet* tiene un botón "Mostrar más" que sube de nivel; en el nivel 3 aparecen "Aplicar paso" y "Siguiente".
 

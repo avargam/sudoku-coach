@@ -215,6 +215,37 @@ El usuario prefirió nombres descriptivos en el nivel 1 y los de los bloqueos, q
 - **Recorrido manual** en el A57 con las 30 fotos (copiadas a la galería): anotar por foto las celdas corregidas, si se llega a la pista y el tiempo de lectura. Es la medida del criterio de la fase.
 - Actualizar `03-diseno.md` §5 con lo implementado, las casillas de `04-plan-implementacion.md` y D-18 y D-19 en `02-decisiones.md`.
 
+**Resultado:** `EndToEndTest` (instrumentado) recorre la cadena completa sin la interfaz: lector real → `ReviewBoard` → se corrigen **solo las celdas sospechosas** con el dígito de la etiqueta → validación (D-19) → primera pista. Usa las fotos 001 y 016 de los assets y los 30 originales de la cámara copiados al móvil (como `PhotoScanTest`), y exige que ninguna lectura errónea quede sin marcar y que la pista coincida con `HintEngine.nextStep` sobre la etiqueta. `ReviewFlowTest` (3.5) cubre lo mismo con la interfaz para la foto 016.
+
+| Medida (30 originales + 2 del conjunto, A57) | Resultado |
+|---|---|
+| Lecturas erróneas sin marcar | **0** |
+| Primera pista correcta tras corregir las sospechosas | **32/32** (9 tableros con huecos; los 21 completos no tienen pista y quedan resueltos) |
+| Celdas sospechosas | 639 (≈ 20 por foto) |
+| — de ellas, lecturas erróneas que hay que corregir | 88 (≈ 3 por foto); el resto se confirma pulsando el mismo dígito |
+| Tiempo de lectura | mediana 487 ms, máximo 606 ms |
+
+**El criterio de la fase se cumple**, pero solo **1 de cada 7 sospechosas** está mal. Revisar unas 20 celdas por foto es lo que más estorba al usar la app; mejorar la confianza de los manuscritos (el reconocedor propio) es lo que más lo reduciría.
+
+**Recorrido manual con las 30 fotos desde la galería: aplazado** por decisión del usuario. La prueba anterior lo sustituye salvo en el paso por el selector de fotos, que el usuario ya probó a mano con varias fotos (3.3), igual que el cierre del proceso (3.8).
+
+## Cierre de la fase
+
+**Hecho:** la app se usa de principio a fin con fotos de galería en el A57: elegir foto (0,3–0,6 s de lectura), revisar con las sospechosas marcadas y la validación de D-19, y pistas con revelado en tres etapas hasta resolver el tablero, con el estado guardado ante el cierre del proceso. 46 tests en la JVM y 12 instrumentados.
+
+**Cambios respecto al plan:**
+- `GridSegmenter.minDigitHeight` baja de 0,35 a 0,26 (3.3): con los originales de la cámara se perdían lápices tenues.
+- La pista usa un panel fijo y no un `BottomSheetScaffold` arrastrable (3.7).
+- No hay un `CoachState` único: la máquina de estados es la pila de Navigation 3 más el estado de cada pantalla (3.8).
+- Los impresos también se pueden editar en la revisión (3.5).
+
+**Pendiente para fases siguientes:**
+- Recorrido manual con las 30 fotos desde la galería (aplazado).
+- Demasiadas sospechosas por foto (≈ 20, de las que ≈ 3 están mal): confianza de los manuscritos.
+- Límite medido de D-19 (3.4): un impreso mal leído puede culpar a manuscritos correctos en un 3 % de los casos sin repetidos.
+- En algunos tableros completos queda una celda en blanco (prueba a mano, 3.3); no se ajusta porque no es el caso de uso.
+- Los pasos aplicados en una pista no vuelven a la revisión: cada "Ver pista" empieza desde el tablero revisado.
+
 ---
 
 ## Orden de trabajo

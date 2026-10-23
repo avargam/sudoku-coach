@@ -131,8 +131,12 @@ El `solver` no genera frases. Un `Step` lleva el identificador de la técnica (c
 ## D-18 · Arquitectura de la app
 Aceptada al planificar la Fase 3; detalle en `08-plan-fase-3.md`: una sola `Activity` con Compose y un `CoachViewModel` con `StateFlow`; Navigation 3 con la pila de pantallas en el `ViewModel`; sin inyección de dependencias; IBM Plex Sans empaquetada (D-03).
 
+Al implementarla (Fase 3): la máquina de estados es la pila de Navigation 3 más un `StateFlow` por pantalla (lectura, revisión, pista), sin un `CoachState` único que duplique la pila. La lógica que no dibuja (revisión, validación, explicaciones, pista, códec del estado) es Kotlin puro con tests en la JVM. El estado se guarda en un `SavedStateHandle` como texto en cada cambio y sobrevive al cierre del proceso; el paso de la pista no se guarda, se recalcula con el motor. La fuente es la variable de Google Fonts (las cifras ya son tabulares).
+
 ## D-19 · Validación antes de las pistas
 Aceptada al planificar la Fase 3; detalle en `08-plan-fase-3.md`: los repetidos bloquean la pista; si el tablero no tiene solución pero los impresos sí, los manuscritos que no coinciden con ella se marcan como posibles errores del usuario; con varias soluciones se avisa y se sigue.
+
+Al implementarla (Fase 3): los posibles errores del usuario también bloquean la pista, porque el motor supone un tablero correcto; los dígitos de origen desconocido cuentan como impresos. **Límite medido:** de 176 impresos cambiados por un dígito que no crea repetidos, 112 piden revisar la lectura, 58 no se pueden detectar (el tablero sigue teniendo solución) y 6 (3 %) culpan a manuscritos correctos; por eso el aviso dice "podría". La primera defensa es la confianza de la lectura: ninguna lectura segura de un impreso falló en las pruebas.
 
 ---
 
