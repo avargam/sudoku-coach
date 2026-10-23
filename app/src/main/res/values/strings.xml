@@ -6,8 +6,41 @@
     <string name="scan_reading">Leyendo el tablero…</string>
     <string name="scan_no_board">No encuentro el tablero en la foto. Prueba con otra en la que se vea entero y sin sombras fuertes.</string>
     <string name="scan_unreadable">No se pudo abrir la foto. Prueba con otra.</string>
-    <string name="review_title">Tablero leído</string>
-    <string name="review_summary">%1$d dígitos leídos en %2$s s</string>
+    <string name="review_title">Revisar tablero</string>
+    <string name="review_close">Elegir otra foto</string>
+    <plurals name="review_flags">
+        <item quantity="one">%d celda por revisar</item>
+        <item quantity="other">%d celdas por revisar</item>
+    </plurals>
+    <string name="review_no_flags">Nada por revisar</string>
+    <string name="review_previous_flag">Celda anterior por revisar</string>
+    <string name="review_next_flag">Siguiente celda por revisar</string>
+    <string name="review_no_selection">Toca una celda para corregirla</string>
+    <!-- Línea bajo el tablero: celda seleccionada (F3C5) y lo que se sabe de ella. -->
+    <string name="review_cell_empty">%1$s · vacía</string>
+    <string name="review_cell_given">%1$s · impreso</string>
+    <string name="review_cell_user">%1$s · escrito a mano</string>
+    <string name="review_cell_unknown">%1$s · añadido al revisar</string>
+    <string name="review_cell_unread">%1$s · no se pudo leer: escribe el dígito</string>
+    <string name="review_cell_low_confidence">%1$s · lectura poco segura: confírmala</string>
+    <string name="review_cell_repeated">%1$s · el %2$d se repite</string>
+    <string name="review_cell_user_error">%1$s · este %2$d podría no encajar</string>
+    <string name="key_digit">Escribir %1$d</string>
+    <string name="key_erase">Borrar</string>
+    <!-- Validación (D-19): motivo en una línea junto a "Ver pista". -->
+    <string name="validation_ok">Tablero válido</string>
+    <string name="validation_multiple">El tablero tiene varias soluciones; las pistas siguen sirviendo</string>
+    <string name="validation_repeated">Hay dígitos repetidos: corrígelos para ver la pista</string>
+    <plurals name="validation_user_errors">
+        <item quantity="one">Un dígito escrito a mano podría estar mal: revísalo en el papel</item>
+        <item quantity="other">%d dígitos escritos a mano podrían estar mal: revísalos en el papel</item>
+    </plurals>
+    <string name="validation_unsolvable">El tablero no tiene solución: revisa la lectura</string>
+    <string name="show_hint">Ver pista</string>
+    <!-- Pantalla de pista provisional (hasta la tarea 3.7). -->
+    <string name="hint_title">Pista</string>
+    <string name="hint_technique">Técnica: %1$s</string>
+    <string name="hint_none">Este tablero necesita técnicas que aún no conozco</string>
 
     <!-- Accesibilidad del tablero (SudokuBoard): una descripción por celda. -->
     <string name="cell_empty">Fila %1$d, columna %2$d: vacía</string>
