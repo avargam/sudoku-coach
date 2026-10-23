@@ -20,7 +20,19 @@ import kotlin.math.min
  * @property inkContrast oscuridad de la tinta respecto al papel de la celda, entre 0 y 1. El impreso es
  *   casi negro y el lápiz gris claro, así que sirve para estimar el origen (D-12, D-17).
  */
-class Cell(val index: Int, val empty: Boolean, val bounds: Rect?, val digit: Mat?, val inkContrast: Double)
+class Cell(val index: Int, val empty: Boolean, val bounds: Rect?, val digit: Mat?, val inkContrast: Double) {
+    /** Si el dígito parece impreso y no escrito a lápiz; `false` en las celdas vacías. */
+    val printed: Boolean get() = !empty && inkContrast >= PRINTED_CONTRAST
+
+    companion object {
+        /**
+         * Contraste a partir del cual la tinta se considera impresa. El contraste es bimodal (lápiz
+         * 10–30 %, impreso 50–65 %); con este umbral el origen acierta en el 99,9 % de los dígitos
+         * de las fotos de prueba (tarea 2.4).
+         */
+        const val PRINTED_CONTRAST = 0.4
+    }
+}
 
 /**
  * Divide el tablero rectificado en 81 celdas y decide cuáles están vacías (tarea 2.4).
@@ -32,8 +44,13 @@ class Cell(val index: Int, val empty: Boolean, val bounds: Rect?, val digit: Mat
  * pegadas al borde; una mota aislada no llega a la altura ni a la tinta mínimas.
  */
 class GridSegmenter(
-    /** Altura mínima del dígito (unión de manchas) respecto al lado de la celda. */
-    private val minDigitHeight: Double = 0.35,
+    /**
+     * Altura mínima del dígito (unión de manchas) respecto al lado de la celda. Con 0,35 se perdían los
+     * lápices más tenues, que se binarizan a trozos: 4 en las fotos del conjunto y 6 en los originales
+     * de la cámara reducidos en el móvil (tarea 3.3). Con 0,26 no se pierde ninguno y no aparece tinta
+     * falsa hasta 0,24.
+     */
+    private val minDigitHeight: Double = 0.26,
     /** Tinta mínima del dígito, en píxeles del recorte de la celda. */
     private val minDigitInk: Int = 35,
     /** Las manchas deben tener su centro dentro de esta franja (fracción del recorte por cada lado). */

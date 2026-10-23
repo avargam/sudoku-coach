@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Solo para la ventana antes de que Compose pinte; los colores de la app están en el tema de Compose (D-12).
+         El fondo es el token background, para que al abrir no haya un destello de otro color. -->
+    <style name="Theme.SudokuCoach" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

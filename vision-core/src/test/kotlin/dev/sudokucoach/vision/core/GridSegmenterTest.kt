@@ -7,6 +7,7 @@ import org.opencv.core.Scalar
 import org.opencv.imgproc.Imgproc
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -57,9 +58,8 @@ class GridSegmenterTest {
             digit(b, 10, "6", ink = 30.0, thickness = 3)
             digit(b, 20, "6", ink = 160.0, thickness = 1)
         })
-        val printed = cells[10].inkContrast
-        val pencil = cells[20].inkContrast
-        assertTrue(printed >= 0.4 && pencil < 0.4, "impreso %.2f, lápiz %.2f".format(printed, pencil))
+        assertTrue(cells[10].printed && !cells[20].printed, "impreso %.2f, lápiz %.2f".format(cells[10].inkContrast, cells[20].inkContrast))
+        assertFalse(cells[0].printed) // vacía
     }
 
     @Test

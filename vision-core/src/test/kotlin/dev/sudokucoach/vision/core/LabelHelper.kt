@@ -44,9 +44,6 @@ fun main(args: Array<String>) {
     println("Imágenes de revisión en ${review.absolutePath}")
 }
 
-/** Contraste a partir del cual se propone que la tinta es impresa (ver el histograma en 06-plan-fase-2.md). */
-private const val PRINTED_CONTRAST = 0.4
-
 private fun template(cells: List<Cell>): String = buildString {
     appendLine("# luz=? angulo=? papel=libro notas=")
     for (row in 0 until 9) appendLine(cells.subList(row * 9, row * 9 + 9).joinToString("") { if (it.empty) "." else "?" })
@@ -55,7 +52,7 @@ private fun template(cells: List<Cell>): String = buildString {
 
 private fun origin(cell: Cell): Char = when {
     cell.empty -> Origin.EMPTY.code
-    cell.inkContrast >= PRINTED_CONTRAST -> Origin.PRINTED.code
+    cell.printed -> Origin.PRINTED.code
     else -> Origin.HANDWRITTEN.code
 }
 

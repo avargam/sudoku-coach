@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sudoku Coach</string>
+    <string name="picking_title">Elige la foto de un sudoku</string>
+    <string name="pick_photo">Elegir foto</string>
+    <string name="scan_reading">Leyendo el tablero…</string>
+    <string name="scan_no_board">No encuentro el tablero en la foto. Prueba con otra en la que se vea entero y sin sombras fuertes.</string>
+    <string name="scan_unreadable">No se pudo abrir la foto. Prueba con otra.</string>
+    <string name="review_title">Revisar tablero</string>
+    <string name="review_close">Elegir otra foto</string>
+    <plurals name="review_flags">
+        <item quantity="one">%d celda por revisar</item>
+        <item quantity="other">%d celdas por revisar</item>
+    </plurals>
+    <string name="review_no_flags">Nada por revisar</string>
+    <string name="review_previous_flag">Celda anterior por revisar</string>
+    <string name="review_next_flag">Siguiente celda por revisar</string>
+    <string name="review_no_selection">Toca una celda para corregirla</string>
+    <!-- Línea bajo el tablero: celda seleccionada (F3C5) y lo que se sabe de ella. -->
+    <string name="review_cell_empty">%1$s · vacía</string>
+    <string name="review_cell_given">%1$s · impreso</string>
+    <string name="review_cell_user">%1$s · escrito a mano</string>
+    <string name="review_cell_unknown">%1$s · añadido al revisar</string>
+    <string name="review_cell_unread">%1$s · no se pudo leer: escribe el dígito</string>
+    <string name="review_cell_low_confidence">%1$s · lectura poco segura: confírmala</string>
+    <string name="review_cell_repeated">%1$s · el %2$d se repite</string>
+    <string name="review_cell_user_error">%1$s · este %2$d podría no encajar</string>
+    <string name="key_digit">Escribir %1$d</string>
+    <string name="key_erase">Borrar</string>
+    <!-- Validación (D-19): motivo en una línea junto a "Ver pista". -->
+    <string name="validation_ok">Tablero válido</string>
+    <string name="validation_multiple">El tablero tiene varias soluciones; las pistas siguen sirviendo</string>
+    <string name="validation_repeated">Hay dígitos repetidos: corrígelos para ver la pista</string>
+    <plurals name="validation_user_errors">
+        <item quantity="one">Un dígito escrito a mano podría estar mal: revísalo en el papel</item>
+        <item quantity="other">%d dígitos escritos a mano podrían estar mal: revísalos en el papel</item>
+    </plurals>
+    <string name="validation_unsolvable">El tablero no tiene solución: revisa la lectura</string>
+    <string name="show_hint">Ver pista</string>
+    <!-- Pantalla de pista provisional (hasta la tarea 3.7). -->
+    <string name="hint_title">Pista</string>
+    <string name="hint_none">Este tablero necesita técnicas que aún no conozco</string>
+
+    <!-- Accesibilidad del tablero (SudokuBoard): una descripción por celda. -->
+    <string name="cell_empty">Fila %1$d, columna %2$d: vacía</string>
+    <string name="cell_digit">Fila %1$d, columna %2$d: %3$d</string>
+    <string name="cell_digit_origin">Fila %1$d, columna %2$d: %3$d, %4$s</string>
+    <string name="cell_placement">Fila %1$d, columna %2$d: aquí va un %3$d</string>
+    <string name="cell_origin_given">impreso</string>
+    <string name="cell_origin_user">manuscrito</string>
+    <string name="cell_suspicious">por revisar</string>
+    <string name="cell_error">no encaja con la solución</string>
+    <string name="cell_pattern">parte de la pista</string>
+    <string name="cell_candidates">candidatos %1$s</string>
+    <string name="cell_eliminated">se descarta %1$s</string>
+
+    <!-- Explicaciones de las pistas (tarea 3.6, D-14). Los marcadores siguen el orden de StepExplainer. -->
+    <string name="explain_cell">F%1$dC%2$d</string>
+    <string name="explain_row">la fila %1$d</string>
+    <string name="explain_column">la columna %1$d</string>
+    <string name="explain_box">la caja %1$d</string>
+    <!-- Último separador de una lista: "1, 3 y 7". -->
+    <string name="explain_list_and">" y "</string>
+    <!-- Una eliminación: "el 3 en F4C1 y F7C1". -->
+    <string name="explain_digit_in">el %1$d en %2$s</string>
+    <plurals name="explain_eliminations">
+        <item quantity="one">se descarta %1$s</item>
+        <item quantity="other">se descartan %1$s</item>
+    </plurals>
+
+    <!-- Niveles (Category): "NIVEL 3 · SUBCONJUNTOS". -->
+    <string name="level_format">NIVEL %1$d · %2$s</string>
+    <string name="level_singles">ÚNICOS</string>
+    <string name="level_intersections">INTERSECCIONES</string>
+    <string name="level_subsets">SUBCONJUNTOS</string>
+    <string name="level_fish">PECES</string>
+    <string name="level_wings">ALAS</string>
+    <string name="level_uniqueness">UNICIDAD</string>
+    <string name="level_chains">CADENAS</string>
+
+    <!-- Técnicas: nombre, nombre en inglés (subtítulo, para buscarla) y plantilla. -->
+    <string name="technique_full_house">Última celda libre</string>
+    <string name="technique_full_house_en" translatable="false">Full House</string>
+    <string name="explain_full_house">%1$s es la única celda libre de %2$s, así que lleva el dígito que falta: el %3$d.</string>
+
+    <string name="technique_naked_single">Candidato único</string>
+    <string name="technique_naked_single_en" translatable="false">Naked Single</string>
+    <string name="explain_naked_single">En %1$s solo cabe el %2$d: los demás dígitos ya están en su fila, su columna o su caja.</string>
+
+    <string name="technique_hidden_single">Posición única</string>
+    <string name="technique_hidden_single_en" translatable="false">Hidden Single</string>
+    <string name="explain_hidden_single">En %1$s, el %2$d solo puede ir en %3$s: en las demás celdas libres ya hay un %2$d en su fila, su columna o su caja.</string>
+
+    <string name="technique_locked_pair">Par bloqueado</string>
+    <string name="technique_locked_pair_en" translatable="false">Locked Pair</string>
+    <string name="explain_locked_pair">Las celdas %1$s comparten %2$s y %3$s, y entre las dos solo admiten los dígitos %4$s. Esos dígitos tienen que ir en ellas, así que %5$s.</string>
+
+    <string name="technique_locked_triple">Trío bloqueado</string>
+    <string name="technique_locked_triple_en" translatable="false">Locked Triple</string>
+    <string name="explain_locked_triple">Las celdas %1$s comparten %2$s y %3$s, y entre las tres solo admiten los dígitos %4$s. Esos dígitos tienen que ir en ellas, así que %5$s.</string>
+
+    <string name="technique_pointing">Bloqueo caja → línea</string>
+    <string name="technique_pointing_en" translatable="false">Locked Candidates (Pointing)</string>
+    <string name="explain_pointing">En %1$s, el %2$d solo puede ir en %3$s, que están en %4$s. Así que el %2$d de %4$s tiene que estar dentro de %1$s, y %5$s.</string>
+
+    <string name="technique_claiming">Bloqueo línea → caja</string>
+    <string name="technique_claiming_en" translatable="false">Locked Candidates (Claiming)</string>
+    <string name="explain_claiming">En %1$s, el %2$d solo puede ir en %3$s, que están en %4$s. Así que el %2$d de %4$s tiene que estar dentro de %1$s, y %5$s.</string>
+
+    <string name="technique_naked_pair">Par desnudo</string>
+    <string name="technique_naked_pair_en" translatable="false">Naked Pair</string>
+    <string name="explain_naked_pair">En %1$s, las celdas %2$s solo admiten entre las dos los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+
+    <string name="technique_naked_triple">Trío desnudo</string>
+    <string name="technique_naked_triple_en" translatable="false">Naked Triple</string>
+    <string name="explain_naked_triple">En %1$s, las celdas %2$s solo admiten entre las tres los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+
+    <string name="technique_naked_quad">Cuarteto desnudo</string>
+    <string name="technique_naked_quad_en" translatable="false">Naked Quad</string>
+    <string name="explain_naked_quad">En %1$s, las celdas %2$s solo admiten entre las cuatro los dígitos %3$s. Esos dígitos tienen que ir en ellas, así que %4$s.</string>
+
+    <string name="technique_hidden_pair">Par oculto</string>
+    <string name="technique_hidden_pair_en" translatable="false">Hidden Pair</string>
+    <string name="explain_hidden_pair">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas dos celdas quedan para ellos, así que %4$s.</string>
+
+    <string name="technique_hidden_triple">Trío oculto</string>
+    <string name="technique_hidden_triple_en" translatable="false">Hidden Triple</string>
+    <string name="explain_hidden_triple">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas tres celdas quedan para ellos, así que %4$s.</string>
+
+    <string name="technique_hidden_quad">Cuarteto oculto</string>
+    <string name="technique_hidden_quad_en" translatable="false">Hidden Quad</string>
+    <string name="explain_hidden_quad">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas cuatro celdas quedan para ellos, así que %4$s.</string>
+</resources>
