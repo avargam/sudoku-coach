@@ -9,6 +9,7 @@ import dev.sudokucoach.app.hint.HintState
 import dev.sudokucoach.app.review.ReviewBoard
 import dev.sudokucoach.app.review.Validation
 import dev.sudokucoach.app.scan.PhotoScanner
+import dev.sudokucoach.app.scan.ScannedBoard
 import dev.sudokucoach.app.scan.ScanResult
 import dev.sudokucoach.app.state.StateCodec
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -102,14 +103,28 @@ class CoachViewModel(
         viewModelScope.launch {
             when (val result = scanner.scan(photo)) {
                 is ScanResult.Read -> {
-                    setReview(ReviewState.of(ReviewBoard.from(result.board)))
                     _scanState.value = ScanState.Idle
-                    push(Route.Reviewing)
+                    startReview(result.board)
                 }
                 ScanResult.NoBoard -> _scanState.value = ScanState.Failed(ScanFailure.NO_BOARD)
                 is ScanResult.Failed -> _scanState.value = ScanState.Failed(ScanFailure.UNREADABLE)
             }
         }
+    }
+
+    /**
+     * Tablero leído en vivo con la cámara (tarea 4.3). Se ignora si ya se está leyendo una foto o
+     * si el escáner ya no es la pantalla visible, porque la captura llega desde el hilo del análisis.
+     */
+    fun onBoardScanned(board: ScannedBoard) {
+        if (_scanState.value is ScanState.Reading || backStack.last() != Route.Scanning) return
+        _scanState.value = ScanState.Idle
+        startReview(board)
+    }
+
+    private fun startReview(board: ScannedBoard) {
+        setReview(ReviewState.of(ReviewBoard.from(board)))
+        push(Route.Reviewing)
     }
 
     fun selectCell(cell: Int) {

@@ -24,8 +24,10 @@ class BoardReader(
     private val segmenter: GridSegmenter = GridSegmenter(),
 ) {
     /** Devuelve la lectura, o `null` si no se encuentra el tablero. */
-    fun read(image: Mat): BoardReading? {
-        val scan = detector.detect(image) ?: return null
+    fun read(image: Mat): BoardReading? = detector.detect(image)?.let(::read)
+
+    /** Lee un tablero ya detectado; en vivo, el del fotograma (tarea 4.3). */
+    fun read(scan: BoardScan): BoardReading {
         val cells = segmenter.segment(scan.rectified)
         return BoardReading(scan, cells, recognizer.recognize(scan.rectified, cells))
     }

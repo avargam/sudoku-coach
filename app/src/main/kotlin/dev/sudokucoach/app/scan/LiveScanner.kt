@@ -1,8 +1,15 @@
 package dev.sudokucoach.app.scan
 
 import dev.sudokucoach.app.camera.BufferPoint
+import dev.sudokucoach.vision.core.live.CellReading
+import dev.sudokucoach.vision.core.live.CellVoter
+import dev.sudokucoach.vision.core.live.Corner
+import dev.sudokucoach.vision.core.live.StabilityTracker
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.abs
 
@@ -14,8 +21,11 @@ enum class LiveStatus {
     /** Hay tablero, pero ocupa poco del fotograma para leerlo bien. */
     TOO_FAR,
 
-    /** Tablero a buena distancia: falta que se quede quieto (tarea 4.3). */
+    /** Tablero a buena distancia: falta que se quede quieto. */
     HOLD_STILL,
+
+    /** Tablero quieto: se leen fotogramas y se vota (tarea 4.3). */
+    READING,
 }
 
 /**
@@ -29,14 +39,29 @@ data class LiveFrame(val outline: List<BufferPoint>?, val status: LiveStatus) {
 }
 
 /**
- * Escáner en vivo (D-21): recibe la detección de cada fotograma y decide qué se muestra. Kotlin puro,
- * sin Android, para probarlo en la JVM; en 4.3 se suman la estabilidad y la votación.
+ * Tablero detectado en un fotograma: [corners] en píxeles de la imagen, para la estabilidad, y
+ * [outline] en coordenadas del búfer, para dibujarlo.
+ */
+class Detection(val corners: List<Corner>, val outline: List<BufferPoint>)
+
+/**
+ * Escáner en vivo (D-21): recibe la detección de cada fotograma y decide qué se muestra y cuándo
+ * leer. Kotlin puro, sin Android, para probarlo en la JVM.
+ *
+ * 1. Cada fotograma da el contorno y alimenta la estabilidad ([StabilityTracker]).
+ * 2. Con el tablero quieto y a buena distancia, [onFrame] pide leer el fotograma; cada lectura
+ *    pasa a [onReading] y se vota ([CellVoter]). Si el tablero se mueve o se pierde, la votación
+ *    empieza de cero.
+ * 3. Cuando la votación está completa, el tablero votado sale una sola vez por [captures], con el
+ *    tiempo desde que el tablero se quedó quieto.
  *
  * La detección falla en fotogramas sueltos (un reflejo, un desenfoque), así que el último contorno
  * se mantiene durante [graceFrames] fotogramas sin tablero antes de darlo por perdido; si no, el
  * contorno parpadearía y TalkBack anunciaría cada cambio.
  */
 class LiveScanner(
+    private val stability: StabilityTracker = StabilityTracker(),
+    private val voter: CellVoter = CellVoter(),
     private val graceFrames: Int = 5,
     /** Fracción del fotograma por debajo de la cual se pide acercarse. */
     private val minAreaFraction: Double = 0.25,
@@ -44,23 +69,64 @@ class LiveScanner(
     private val _state = MutableStateFlow(LiveFrame.Searching)
     val state: StateFlow<LiveFrame> = _state.asStateFlow()
 
-    private var missed = 0
+    private val _captures = MutableSharedFlow<ScannedBoard>(extraBufferCapacity = 1)
+    val captures: SharedFlow<ScannedBoard> = _captures.asSharedFlow()
 
-    /** Detección de un fotograma: las 4 esquinas en el búfer, o `null` si no hay tablero. */
-    fun onFrame(corners: List<BufferPoint>?) {
-        if (corners == null) {
+    private var missed = 0
+    private var captured = false
+
+    /**
+     * Detección de un fotograma ([detection] `null` si no hay tablero). Devuelve si hay que leer
+     * este fotograma y pasar la lectura a [onReading].
+     */
+    fun onFrame(detection: Detection?, timeMillis: Long): Boolean {
+        if (captured) return false
+        if (detection == null) {
+            if (!stability.update(null, timeMillis)) voter.reset()
             if (++missed > graceFrames) _state.value = LiveFrame.Searching
-            return
+            return false
         }
-        require(corners.size == 4) { "Un tablero tiene 4 esquinas" }
+        require(detection.outline.size == 4) { "Un tablero tiene 4 esquinas" }
         missed = 0
-        val status = if (area(corners) < minAreaFraction) LiveStatus.TOO_FAR else LiveStatus.HOLD_STILL
-        _state.value = LiveFrame(corners, status)
+        val near = area(detection.outline) >= minAreaFraction
+        val still = if (near) {
+            stability.update(detection.corners, timeMillis)
+        } else {
+            stability.reset()
+            false
+        }
+        if (!still) voter.reset()
+        val status = when {
+            !near -> LiveStatus.TOO_FAR
+            still -> LiveStatus.READING
+            else -> LiveStatus.HOLD_STILL
+        }
+        _state.value = LiveFrame(detection.outline, status)
+        return still
     }
 
-    /** La cámara se ha soltado: no queda ningún tablero a la vista. */
+    /**
+     * Lectura del fotograma que pidió [onFrame]. Al completar la votación, el tablero sale por
+     * [captures] y se devuelve; si no, `null`.
+     */
+    fun onReading(cells: List<CellReading>, timeMillis: Long): ScannedBoard? {
+        if (captured) return null
+        voter.add(cells)
+        if (!voter.complete) return null
+        captured = true
+        val millis = timeMillis - (stability.stillSince ?: timeMillis)
+        return voter.result().toScannedBoard(millis).also { _captures.tryEmit(it) }
+    }
+
+    /** Lecturas votadas hasta ahora (para el registro de debug). */
+    val reads: Int get() = voter.count
+
+    /** La cámara se ha soltado: no queda ningún tablero a la vista y se puede volver a capturar. */
     fun reset() {
         missed = 0
+        captured = false
+        stability.reset()
+        voter.reset()
         _state.value = LiveFrame.Searching
     }
 }

@@ -72,6 +72,7 @@ import dev.sudokucoach.app.scan.FrameAnalyzer
 import dev.sudokucoach.app.scan.LiveScanner
 import dev.sudokucoach.app.scan.LiveStatus
 import dev.sudokucoach.app.scan.PhotoDecoder
+import dev.sudokucoach.app.scan.ScannedBoard
 import dev.sudokucoach.app.ui.theme.SudokuTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -108,7 +109,7 @@ fun ScanningScreen(viewModel: CoachViewModel) {
     }
 
     if (granted) {
-        CameraScanning(state, pickPhoto)
+        CameraScanning(state, pickPhoto, onScanned = viewModel::onBoardScanned)
     } else {
         GalleryOnly(state, pickPhoto, onAllowCamera = { permission.launch(Manifest.permission.CAMERA) })
     }
@@ -117,11 +118,13 @@ fun ScanningScreen(viewModel: CoachViewModel) {
 /**
  * Visor a pantalla completa, bajo las barras del sistema, con el contorno del tablero en el acento
  * (D-12, tarea 4.2) y los controles encima. La línea de estado se anuncia en TalkBack al cambiar.
+ * Con el tablero quieto se lee y se vota, y el tablero votado pasa a [onScanned] (tarea 4.3).
  */
 @Composable
-private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit) {
+private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned: (ScannedBoard) -> Unit) {
     val scanner = remember { LiveScanner() }
     val live by scanner.state.collectAsStateWithLifecycle()
+    LaunchedEffect(scanner) { scanner.captures.collect(onScanned) }
     // Medidas de la tarea 4.1, solo en debug: tiempos siempre y, al abrir la app con
     // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las lecturas.
     val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
@@ -184,6 +187,7 @@ private fun statusMessage(status: LiveStatus) = when (status) {
     LiveStatus.SEARCHING -> R.string.live_searching
     LiveStatus.TOO_FAR -> R.string.live_too_far
     LiveStatus.HOLD_STILL -> R.string.live_hold_still
+    LiveStatus.READING -> R.string.live_reading
 }
 
 /** Sin permiso de la cámara: la entrada de la Fase 3, con el motivo y la opción de concederlo. */

@@ -3,10 +3,10 @@ package dev.sudokucoach.app.scan
 import android.content.ContentResolver
 import android.net.Uri
 import android.os.SystemClock
-import dev.sudokucoach.app.board.DigitOrigin
 import dev.sudokucoach.vision.MlKitGridReader
 import dev.sudokucoach.vision.core.BoardReader
 import dev.sudokucoach.vision.core.BoardReading
+import dev.sudokucoach.vision.core.live.toCellReadings
 import dev.sudokucoach.vision.toGrayMat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -43,19 +43,7 @@ class VisionPhotoScanner(private val resolver: ContentResolver) : PhotoScanner, 
 
 /** Pasa la lectura a tipos de Kotlin y libera las imágenes de OpenCV, que viven fuera del montón de Java. */
 private fun BoardReading.toScannedBoard(millis: Long): ScannedBoard {
-    val board = ScannedBoard(
-        values = digits,
-        origins = cells.map { cell ->
-            when {
-                cell.empty -> DigitOrigin.UNKNOWN
-                cell.printed -> DigitOrigin.GIVEN
-                else -> DigitOrigin.USER
-            }
-        },
-        confidences = FloatArray(81) { predictions[it].confidence },
-        inked = BooleanArray(81) { !cells[it].empty },
-        millis = millis,
-    )
+    val board = toCellReadings().toScannedBoard(millis)
     scan.rectified.release()
     cells.forEach { it.digit?.release() }
     return board
