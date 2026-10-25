@@ -17,14 +17,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.Closeable
 
-/** Pantallas de la app (D-18). Cada tarea de la Fase 3 añade la suya. */
+/** Pantallas de la app (D-18). */
 sealed interface Route {
     /** Nombre con el que se guarda la pila; explícito, porque R8 cambia los nombres de las clases. */
     val name: String
 
-    /** Elegir la foto de la galería (tarea 3.3). */
-    data object Picking : Route {
-        override val name = "picking"
+    /** Escáner con la cámara (tarea 4.0) y, como alternativa, la foto de la galería (tarea 3.3). */
+    data object Scanning : Route {
+        override val name = "scanning"
     }
 
     /** Revisar y corregir el tablero leído (tarea 3.5). */
@@ -38,7 +38,7 @@ sealed interface Route {
     }
 }
 
-/** Estado de la lectura de una foto, que se muestra en la pantalla de elegir foto. */
+/** Estado de la lectura de una foto, que se muestra en el escáner. */
 sealed interface ScanState {
     data object Idle : ScanState
 
@@ -74,13 +74,13 @@ data class ReviewState(val board: ReviewBoard, val selected: Int?, val validatio
  * La máquina de estados son la pila ([backStack]) y el estado de cada pantalla ([scanState],
  * [review], [hint]). Todo menos la lectura en curso se guarda en [saved] en cada cambio, para
  * sobrevivir al cierre del proceso (tarea 3.8): al volver, la app sigue en la misma pantalla. Una
- * lectura interrumpida se pierde y se vuelve a elegir foto.
+ * lectura interrumpida se pierde y se vuelve al escáner.
  */
 class CoachViewModel(
     private val scanner: PhotoScanner,
     private val saved: SavedStateHandle,
 ) : ViewModel() {
-    val backStack: SnapshotStateList<Route> = mutableStateListOf(Route.Picking)
+    val backStack: SnapshotStateList<Route> = mutableStateListOf(Route.Scanning)
 
     private val _scanState = MutableStateFlow<ScanState>(ScanState.Idle)
     val scanState: StateFlow<ScanState> = _scanState.asStateFlow()
@@ -196,7 +196,7 @@ class CoachViewModel(
         val routes = saved.get<String>(KEY_ROUTES)?.split(",")?.mapNotNull { name -> ROUTES.firstOrNull { it.name == name } }.orEmpty()
         for (route in routes.drop(1)) {
             val restorable = when (route) {
-                Route.Picking -> false
+                Route.Scanning -> false
                 Route.Reviewing -> _review.value != null
                 Route.Hint -> _hint.value != null
             }
@@ -210,7 +210,7 @@ class CoachViewModel(
         const val KEY_REVIEW = "review"
         const val KEY_SELECTED = "review_selected"
         const val KEY_HINT = "hint"
-        val ROUTES = listOf(Route.Picking, Route.Reviewing, Route.Hint)
+        val ROUTES = listOf(Route.Scanning, Route.Reviewing, Route.Hint)
     }
 
     override fun onCleared() {

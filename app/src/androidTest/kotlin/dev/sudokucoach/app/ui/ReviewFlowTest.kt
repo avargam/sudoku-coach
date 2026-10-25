@@ -52,7 +52,7 @@ class ReviewFlowTest {
                 when (viewModel.backStack.last()) {
                     Route.Reviewing -> ReviewingScreen(viewModel, onClose = {})
                     Route.Hint -> HintScreen(viewModel, onBack = {})
-                    Route.Picking -> Unit
+                    Route.Scanning -> Unit
                 }
             }
         }

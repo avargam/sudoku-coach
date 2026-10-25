@@ -79,7 +79,7 @@ Objetivo: elegir una foto → revisar → ver la primera pista. Detalle en [08-p
 Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una foto, con menos celdas por revisar. Detalle en [09-plan-fase-4.md](09-plan-fase-4.md).
 
 - [x] Decidir la cámara (D-20), la lectura en vivo con votación (D-21) y las secuencias grabadas como datos de prueba (D-22)
-- [ ] 4.0 CameraX, permiso de la cámara y esqueleto del escáner como primera pantalla
+- [x] 4.0 CameraX, permiso de la cámara y esqueleto del escáner como primera pantalla
 - [ ] 4.1 Fotogramas → `Mat`, detección por fotograma y medida de la votación frente a una foto
 - [ ] 4.2 Contorno del tablero en vivo, en el acento
 - [ ] 4.3 Estabilidad y votación por celda en `vision-core`

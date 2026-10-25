@@ -145,7 +145,7 @@ Flujo unidireccional (`ViewModel` + `StateFlow`): `Scanning → Reviewing(board)
 
 `board` incluye, además de los valores, el origen de cada dígito (`GIVEN` impreso / `USER` manuscrito / `UNKNOWN`) y las celdas sospechosas. `revealLevel` va de 1 a 3.
 
-Implementado en la Fase 3 (D-18): la pila de pantallas de Navigation 3 (`Picking → Reviewing → Hint`) más un `StateFlow` por pantalla: `ScanState` (leyendo o fallo), `ReviewState` (`ReviewBoard` con valores, origen, confianza y tinta; celda seleccionada; validación) y `HintState` (`Grid` con candidatos antes del paso, el paso, la etapa, si está aplicado y el dígito revelado). Todo salvo la lectura en curso se guarda como texto en un `SavedStateHandle` y sobrevive al cierre del proceso.
+Implementado en la Fase 3 (D-18): la pila de pantallas de Navigation 3 (`Scanning → Reviewing → Hint`; en la Fase 3 la primera era `Picking`) más un `StateFlow` por pantalla: `ScanState` (leyendo o fallo), `ReviewState` (`ReviewBoard` con valores, origen, confianza y tinta; celda seleccionada; validación) y `HintState` (`Grid` con candidatos antes del paso, el paso, la etapa, si está aplicado y el dígito revelado). Todo salvo la lectura en curso se guarda como texto en un `SavedStateHandle` y sobrevive al cierre del proceso.
 
 ### 5.3 Diseño visual (D-12)
 

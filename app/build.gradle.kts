@@ -102,6 +102,10 @@ dependencies {
     implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("androidx.navigation3:navigation3-runtime:1.2.0")
     implementation("androidx.navigation3:navigation3-ui:1.2.0")
+    // Cámara en vivo (Fase 4, D-20): visor de Compose (camera-compose) y, en 4.1, ImageAnalysis.
+    implementation("androidx.camera:camera-camera2:1.6.2")
+    implementation("androidx.camera:camera-lifecycle:1.6.2")
+    implementation("androidx.camera:camera-compose:1.6.2")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Tests locales en la JVM: JUnit 4, el que ejecuta AGP para testDebugUnitTest.

@@ -62,6 +62,8 @@ Los umbrales (estabilidad, mayoría, confianza combinada, número de lecturas) s
 
 **Hecho cuando:** la app abre la cámara en el A57, el visor se ve fluido y la galería sigue llegando a la revisión.
 
+**Resultado:** CameraX 1.6.2 (`camera-camera2`, `camera-lifecycle`, `camera-compose`), la última estable, compatible con la BOM de Compose 2026.09.00 y `minSdk` 26. El visor es `CameraXViewfinder` de Compose, sin `PreviewView` (`camera/CameraViewfinder.kt`); la cámara se enlaza al ciclo de vida de la pantalla y se suelta al salir o ir a segundo plano. `Route.Picking` pasa a `Route.Scanning` y `PickingScreen` a `ScanningScreen`: con permiso, visor a pantalla completa con "Apunta al sudoku" y el botón de galería; sin él, la entrada de la Fase 3 con el motivo y "Permitir la cámara", y el permiso se vuelve a comprobar al volver a la app. Comprobado en el A57: el visor se ve fluido y la galería sigue llegando a la revisión. `deployDebug` se quedó colgado una vez; `adb install` del APK tardó 4 s.
+
 ## 4.1 Fotogramas, detección por fotograma y medida de la votación
 - `ImageProxy` → `Mat` en gris desde el plano Y, respetando `rowStride`, con la rotación aplicada y reducido a 1600 px de lado mayor si hace falta, como las fotos.
 - Medir en el A57: tiempo de la detección por fotograma (presupuesto inicial ≤ 50 ms, para analizar ≥ 15 fotogramas/s), tiempo de una lectura completa, y fotogramas por segundo efectivos.
@@ -101,6 +103,7 @@ Los umbrales (estabilidad, mayoría, confianza combinada, número de lecturas) s
 ## 4.6 Pantalla del escáner completa
 - Flash (linterna), galería, cerrar y disparador manual como respaldo, con el estilo de la maqueta (iconos de trazo de `StrokeIcons`).
 - Captura automática → vibración breve → revisión. El tablero leído entra en la revisión como el de la galería.
+- Iconos de la barra de estado sobre el visor: en 4.0 no se vieron una vez (solo el punto verde de la cámara) y luego sí; comprobar que se fuerzan claros sobre la cámara.
 - La cámara se suelta al salir de la pantalla y al ir a segundo plano. El estado guardado (3.8) no incluye la cámara: al volver se empieza a escanear de nuevo.
 - Añadir la pantalla del escáner a la maqueta de diseño antes de implementarla, para revisarla.
 
