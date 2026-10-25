@@ -80,7 +80,7 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 
 - [x] Decidir la cámara (D-20), la lectura en vivo con votación (D-21) y las secuencias grabadas como datos de prueba (D-22)
 - [x] 4.0 CameraX, permiso de la cámara y esqueleto del escáner como primera pantalla
-- [ ] 4.1 Fotogramas → `Mat`, detección por fotograma y medida de la votación frente a una foto
+- [x] 4.1 Fotogramas → `Mat`, detección por fotograma y medida de la votación frente a una foto
 - [ ] 4.2 Contorno del tablero en vivo, en el acento
 - [ ] 4.3 Estabilidad y votación por celda en `vision-core`
 - [ ] 4.4 Grabación de secuencias (debug) y etiquetado

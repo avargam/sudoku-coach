@@ -71,6 +71,34 @@ Los umbrales (estabilidad, mayoría, confianza combinada, número de lecturas) s
 
 **Hecho cuando:** hay cifras de tiempos y una primera respuesta a "¿la votación reduce las sospechosas?". Si los fotogramas leen claramente peor que una foto, se reconsidera D-21 (por ejemplo, una foto fija al estabilizarse) antes de seguir.
 
+**Resultado:** `toGrayMat` (plano Y → `Mat` girado) y `FrameAnalyzer` (detección en cada fotograma) en un `ImageAnalysis` de 16:9 a 1920 × 1080, con el visor también en 16:9. En debug, `FrameAnalyzer` escribe los tiempos en logcat y, abriendo la app con `--ez measure true`, cada lectura completa; `tools/vision/live_measure.py` las compara con la etiqueta y con la lectura de la foto (`results/`).
+
+Tiempos en el A57:
+
+| | Mediana | Máximo |
+|---|---|---|
+| Plano Y → `Mat` girado, sin reducir | 0,7 ms | 2 ms |
+| Ídem, reducido a 1600 px | 4–7 ms | 27 ms |
+| Detección sin tablero | 18–22 ms | 29 ms |
+| Detección con tablero (rectificación y rejilla incluidas) | ≈ 35 ms | 59 ms |
+| Lectura completa de un fotograma | ≈ 205 ms | |
+
+Sin tablero, el análisis va a ≈ 25 fotogramas/s (16,6 reduciendo a 1600 px). Reducir no mejora la lectura (030: 31,5 sospechosas por fotograma reduciendo, 30,8 sin reducir), así que los fotogramas se usan a 1080 × 1920. La detección con tablero cabe en los 50 ms con poco margen; se revisa en 4.7.
+
+Lectura (sospechosas por tablero, con el umbral 0,5) en tres páginas que no han cambiado desde su foto; la votación es una mayoría simple de 5 lecturas seguidas, solo para esta primera respuesta:
+
+| Tablero | Foto (Fase 2) | Un fotograma | Votación de 5 | Errores sin marcar al votar |
+|---|---|---|---|---|
+| 030 | 22 | 30,8 | 20,9 | 0 |
+| 025 | 18 | 24,2 | 14,3 | 0 |
+| 022 | 14 | 18,5 | 9,5 | 0 |
+| **Media** | **18** | **24,5** | **14,9** | **0** |
+
+- **Un fotograma lee peor que la foto** (≈ +35 % de sospechosas y más errores), pero **votando 5 queda por debajo** (−17 %). No es "claramente peor": D-21 se mantiene.
+- **La votación sola no llega a la meta** (≤ 8): los errores son sistemáticos y se repiten en casi todos los fotogramas, 1 manuscritos leídos como 4 y 7 manuscritos sin leer (la foto los lee, pero con confianza baja, así que también salen como sospechosas). Queda para 4.5 (umbral con datos) y la Fase 5.
+- Sueltos, algún fotograma movido da una lectura muy distinta (en un caso, 42 celdas mal sin marcar): la estabilidad de 4.3 debe impedir que voten.
+- Al medir, la página 019 tenía ≈ 15 dígitos más que en su foto: las secuencias de 4.4 se etiquetan sobre su propio fotograma, no con la etiqueta de la foto.
+
 ## 4.2 Contorno en vivo
 - Dibujar el cuadrilátero detectado sobre el visor, en el acento (D-12), traduciendo coordenadas del análisis al visor con las utilidades de CameraX, no a mano.
 - Estado en una línea: "Busca un sudoku", "Acércate", "Mantén el móvil quieto", "Leyendo…".
