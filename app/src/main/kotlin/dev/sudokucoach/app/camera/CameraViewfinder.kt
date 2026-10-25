@@ -13,6 +13,10 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
+import androidx.camera.viewfinder.compose.CoordinateTransformer
+import androidx.camera.viewfinder.compose.MutableCoordinateTransformer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.awaitCancellation
@@ -35,13 +41,21 @@ import java.util.concurrent.Executors
  * analizador se crea al abrir la cámara y, si es [Closeable], se cierra en ese mismo hilo al
  * soltarla, después del último fotograma.
  *
+ * [overlay] se dibuja encima del visor, del mismo tamaño, con un [ViewfinderMapping] para llevar
+ * puntos del búfer a la pantalla (el contorno del tablero, tarea 4.2).
+ *
  * Si no hay cámara trasera o no se puede abrir, no se dibuja nada y queda la galería.
  */
 @Composable
-fun CameraViewfinder(modifier: Modifier = Modifier, analyzer: (() -> ImageAnalysis.Analyzer)? = null) {
+fun CameraViewfinder(
+    modifier: Modifier = Modifier,
+    analyzer: (() -> ImageAnalysis.Analyzer)? = null,
+    overlay: @Composable (ViewfinderMapping) -> Unit = {},
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
+    val transformer = remember { MutableCoordinateTransformer() }
     LaunchedEffect(lifecycleOwner) {
         val provider = ProcessCameraProvider.awaitInstance(context)
         // Visor y análisis con la misma relación de aspecto, para que vean lo mismo (el contorno de 4.2).
@@ -68,7 +82,25 @@ fun CameraViewfinder(modifier: Modifier = Modifier, analyzer: (() -> ImageAnalys
             executor.shutdown()
         }
     }
-    surfaceRequest?.let { CameraXViewfinder(surfaceRequest = it, modifier = modifier) }
+    surfaceRequest?.let { request ->
+        Box(modifier) {
+            CameraXViewfinder(surfaceRequest = request, modifier = Modifier.fillMaxSize(), coordinateTransformer = transformer)
+            overlay(ViewfinderMapping(request.resolution, transformer))
+        }
+    }
+}
+
+/**
+ * Del búfer de la cámara a la pantalla. CameraX da la transformación de la pantalla al búfer del
+ * visor (giro, recorte y escala del visor); aquí se invierte. El análisis tiene la misma relación
+ * de aspecto que el visor, así que un punto normalizado es el mismo en los dos búferes.
+ */
+class ViewfinderMapping(private val resolution: Size, private val transformer: CoordinateTransformer) {
+    /** Los puntos en coordenadas del visor; leerlo dentro del dibujo lo repite si cambia la transformación. */
+    fun toLocal(points: List<BufferPoint>): List<Offset> {
+        val inverse = Matrix(transformer.transformMatrix.values.copyOf()).apply { invert() }
+        return points.map { inverse.map(Offset(it.u * resolution.width, it.v * resolution.height)) }
+    }
 }
 
 /** 16:9 y ≈ 1920 × 1080 (D-20). */

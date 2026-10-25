@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,10 +46,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -59,7 +66,11 @@ import dev.sudokucoach.app.R
 import dev.sudokucoach.app.ScanFailure
 import dev.sudokucoach.app.ScanState
 import dev.sudokucoach.app.camera.CameraViewfinder
+import dev.sudokucoach.app.camera.BufferPoint
+import dev.sudokucoach.app.camera.ViewfinderMapping
 import dev.sudokucoach.app.scan.FrameAnalyzer
+import dev.sudokucoach.app.scan.LiveScanner
+import dev.sudokucoach.app.scan.LiveStatus
 import dev.sudokucoach.app.scan.PhotoDecoder
 import dev.sudokucoach.app.ui.theme.SudokuTheme
 import kotlinx.coroutines.Dispatchers
@@ -103,22 +114,30 @@ fun ScanningScreen(viewModel: CoachViewModel) {
     }
 }
 
-/** Visor a pantalla completa, bajo las barras del sistema, con los controles encima. */
+/**
+ * Visor a pantalla completa, bajo las barras del sistema, con el contorno del tablero en el acento
+ * (D-12, tarea 4.2) y los controles encima. La línea de estado se anuncia en TalkBack al cambiar.
+ */
 @Composable
 private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit) {
+    val scanner = remember { LiveScanner() }
+    val live by scanner.state.collectAsStateWithLifecycle()
     // Medidas de la tarea 4.1, solo en debug: tiempos siempre y, al abrir la app con
     // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las lecturas.
     val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     val measure = debuggable && LocalActivity.current?.intent?.getBooleanExtra(EXTRA_MEASURE, false) == true
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        CameraViewfinder(Modifier.fillMaxSize(), analyzer = { FrameAnalyzer(logStats = debuggable, measure = measure) })
+        CameraViewfinder(Modifier.fillMaxSize(), analyzer = { FrameAnalyzer(scanner, logStats = debuggable, measure = measure) }) { mapping ->
+            live.outline?.let { BoardOutline(it, mapping) }
+        }
         Column(
             Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                stringResource(R.string.scan_title),
-                Modifier.background(Scrim, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp),
+                stringResource(statusMessage(live.status)),
+                Modifier.background(Scrim, RoundedCornerShape(50)).padding(horizontal = 16.dp, vertical = 8.dp)
+                    .semantics { liveRegion = LiveRegionMode.Polite },
                 color = Color.White,
                 style = MaterialTheme.typography.titleMedium,
             )
@@ -144,6 +163,27 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit) {
             }
         }
     }
+}
+
+/** Contorno del tablero detectado, sobre el visor. */
+@Composable
+private fun BoardOutline(corners: List<BufferPoint>, mapping: ViewfinderMapping) {
+    val accent = SudokuTheme.colors.accent
+    Canvas(Modifier.fillMaxSize()) {
+        val points = mapping.toLocal(corners)
+        val path = Path().apply {
+            moveTo(points[0].x, points[0].y)
+            points.drop(1).forEach { lineTo(it.x, it.y) }
+            close()
+        }
+        drawPath(path, accent, style = Stroke(width = 3.dp.toPx(), join = StrokeJoin.Round))
+    }
+}
+
+private fun statusMessage(status: LiveStatus) = when (status) {
+    LiveStatus.SEARCHING -> R.string.live_searching
+    LiveStatus.TOO_FAR -> R.string.live_too_far
+    LiveStatus.HOLD_STILL -> R.string.live_hold_still
 }
 
 /** Sin permiso de la cámara: la entrada de la Fase 3, con el motivo y la opción de concederlo. */

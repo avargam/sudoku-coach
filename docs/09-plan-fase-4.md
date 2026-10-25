@@ -106,6 +106,8 @@ Lectura (sospechosas por tablero, con el umbral 0,5) en tres páginas que no han
 
 **Hecho cuando:** el contorno sigue al tablero en el A57 sin retraso visible y se ajusta a sus bordes al girar el móvil.
 
+**Resultado:** `FrameAnalyzer` pasa las esquinas a coordenadas normalizadas del búfer (`unrotate`, que deshace el giro de `toGrayMat`) y `LiveScanner` (Kotlin puro, tests en la JVM) da el contorno y el estado. El contorno se dibuja con un `Canvas` sobre el visor: del búfer a la pantalla, con la inversa del `MutableCoordinateTransformer` de `CameraXViewfinder`. El paso del búfer del análisis al del visor supone que ven lo mismo, porque los dos son 16:9; la transformación sensor → búfer de `SurfaceRequest` no se puede usar porque `CameraXViewfinder` ocupa su único listener. "Acércate" por debajo del 25 % del fotograma (provisional, se ajusta con las secuencias) y el contorno se mantiene 5 fotogramas sin detección para que no parpadee. Estados de esta tarea: "Busca un sudoku", "Acércate" y "Mantén el móvil quieto"; "Leyendo…" llega con la lectura (4.3). Comprobado en el A57 por el usuario: el contorno sigue al tablero y se ajusta a sus bordes.
+
 ## 4.3 Estabilidad y votación (`vision-core`, D-21)
 - `StabilityTracker`: decide si el tablero está quieto a partir de las esquinas de los últimos fotogramas.
 - `CellVoter`: acumula lecturas (dígito, confianza, tinta y origen por celda) y da el valor por mayoría, la confianza combinada, el origen y si la lectura está completa.

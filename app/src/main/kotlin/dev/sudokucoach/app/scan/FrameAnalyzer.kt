@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import dev.sudokucoach.app.camera.toGrayMat
+import dev.sudokucoach.app.camera.unrotate
 import dev.sudokucoach.vision.MlKitGridReader
 import dev.sudokucoach.vision.core.BoardDetector
 import dev.sudokucoach.vision.core.BoardReader
@@ -13,15 +14,19 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * Análisis de cada fotograma de la cámara (D-21, tarea 4.1): solo detección del tablero, que en
- * 4.2 dará el contorno y en 4.3 la estabilidad. Se ejecuta en un solo hilo de fondo.
+ * Análisis de cada fotograma de la cámara (D-21, tarea 4.1): solo detección del tablero, cuyas
+ * esquinas pasan a [scanner] en coordenadas del búfer (tarea 4.2). Se ejecuta en un solo hilo de fondo.
  *
  * Con [logStats] (solo en debug) escribe en logcat cada [STATS_FRAMES] fotogramas los tiempos de
  * conversión y detección y los fotogramas por segundo. Con [measure] lee además el tablero
  * completo en cada fotograma en que se detecta y escribe la lectura, para comparar fotogramas
  * entre sí y con la etiqueta de la foto (`tools/live_measure.py`).
  */
-class FrameAnalyzer(private val logStats: Boolean, private val measure: Boolean) : ImageAnalysis.Analyzer, Closeable {
+class FrameAnalyzer(
+    private val scanner: LiveScanner,
+    private val logStats: Boolean,
+    private val measure: Boolean,
+) : ImageAnalysis.Analyzer, Closeable {
     private val detector = BoardDetector()
     private val recognizer by lazy { MlKitGridReader() }
     private val reader by lazy { BoardReader(recognizer, detector) }
@@ -40,6 +45,8 @@ class FrameAnalyzer(private val logStats: Boolean, private val measure: Boolean)
             val scan = detector.detect(gray)
             val done = System.nanoTime()
             scan?.rectified?.release()
+            val rotation = frame.imageInfo.rotationDegrees
+            scanner.onFrame(scan?.corners?.map { unrotate(it.x, it.y, gray.cols(), gray.rows(), rotation) })
             if (scan != null) detected++
             convertMillis += (converted - start) / 1e6
             detectMillis += (done - converted) / 1e6
@@ -70,6 +77,7 @@ class FrameAnalyzer(private val logStats: Boolean, private val measure: Boolean)
 
     /** Se llama en el hilo del análisis, después del último fotograma. */
     override fun close() {
+        scanner.reset()
         if (measure) recognizer.close()
     }
 }

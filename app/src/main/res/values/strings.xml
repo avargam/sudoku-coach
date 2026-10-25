@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sudoku Coach</string>
-    <string name="scan_title">Apunta al sudoku</string>
+    <!-- Línea de estado del escáner (tarea 4.2). -->
+    <string name="live_searching">Busca un sudoku</string>
+    <string name="live_too_far">Acércate</string>
+    <string name="live_hold_still">Mantén el móvil quieto</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
     <string name="camera_denied">Sin permiso para usar la cámara, puedes elegir una foto de la galería.</string>
     <string name="camera_allow">Permitir la cámara</string>
