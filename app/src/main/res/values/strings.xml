@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Sudoku Coach</string>
+    <string name="scan_title">Apunta al sudoku</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
+    <string name="camera_denied">Sin permiso para usar la cámara, puedes elegir una foto de la galería.</string>
+    <string name="camera_allow">Permitir la cámara</string>
     <string name="pick_photo">Elegir foto</string>
     <string name="scan_reading">Leyendo el tablero…</string>
     <string name="scan_no_board">No encuentro el tablero en la foto. Prueba con otra en la que se vea entero y sin sombras fuertes.</string>
     <string name="scan_unreadable">No se pudo abrir la foto. Prueba con otra.</string>
     <string name="review_title">Revisar tablero</string>
-    <string name="review_close">Elegir otra foto</string>
+    <string name="review_close">Escanear otro sudoku</string>
     <plurals name="review_flags">
         <item quantity="one">%d celda por revisar</item>
         <item quantity="other">%d celdas por revisar</item>
@@ -53,7 +56,7 @@
         <item quantity="other">Paso aplicado: %d candidatos descartados.</item>
     </plurals>
     <string name="hint_solved_title">Tablero resuelto</string>
-    <string name="hint_solved">No quedan celdas libres. Vuelve a la revisión para elegir otra foto.</string>
+    <string name="hint_solved">No quedan celdas libres. Vuelve a la revisión para escanear otro.</string>
     <string name="hint_none_title">Sin pista por ahora</string>
     <string name="hint_none">Este tablero necesita técnicas que aún no conozco.</string>
     <string name="hint_reveal_digit">Revelar un dígito</string>
