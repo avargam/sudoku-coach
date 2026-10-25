@@ -2,8 +2,10 @@ package dev.sudokucoach.app.ui
 
 import android.Manifest
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
@@ -57,6 +59,7 @@ import dev.sudokucoach.app.R
 import dev.sudokucoach.app.ScanFailure
 import dev.sudokucoach.app.ScanState
 import dev.sudokucoach.app.camera.CameraViewfinder
+import dev.sudokucoach.app.scan.FrameAnalyzer
 import dev.sudokucoach.app.scan.PhotoDecoder
 import dev.sudokucoach.app.ui.theme.SudokuTheme
 import kotlinx.coroutines.Dispatchers
@@ -103,8 +106,12 @@ fun ScanningScreen(viewModel: CoachViewModel) {
 /** Visor a pantalla completa, bajo las barras del sistema, con los controles encima. */
 @Composable
 private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit) {
+    // Medidas de la tarea 4.1, solo en debug: tiempos siempre y, al abrir la app con
+    // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las lecturas.
+    val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+    val measure = debuggable && LocalActivity.current?.intent?.getBooleanExtra(EXTRA_MEASURE, false) == true
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        CameraViewfinder(Modifier.fillMaxSize())
+        CameraViewfinder(Modifier.fillMaxSize(), analyzer = { FrameAnalyzer(logStats = debuggable, measure = measure) })
         Column(
             Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -199,6 +206,8 @@ private fun PhotoPreview(photo: String, modifier: Modifier) {
 }
 
 private const val PREVIEW_SIDE = 800
+
+private const val EXTRA_MEASURE = "measure"
 
 /** Fondo de los textos sobre la imagen de la cámara, legible con cualquier escena y tema. */
 private val Scrim = Color.Black.copy(alpha = 0.6f)
