@@ -5,6 +5,7 @@
     <string name="live_searching">Busca un sudoku</string>
     <string name="live_too_far">Acércate</string>
     <string name="live_hold_still">Mantén el móvil quieto</string>
+    <string name="live_reading">Leyendo…</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
     <string name="camera_denied">Sin permiso para usar la cámara, puedes elegir una foto de la galería.</string>
     <string name="camera_allow">Permitir la cámara</string>

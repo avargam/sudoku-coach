@@ -115,6 +115,12 @@ Lectura (sospechosas por tablero, con el umbral 0,5) en tres páginas que no han
 
 **Tests (JVM):** esquinas quietas y en movimiento; votación unánime, dividida, con celdas que aparecen y desaparecen, y con un error que se repite en todos los fotogramas (no debe ganar confianza); reinicio al moverse.
 
+**Resultado:** `StabilityTracker`, `CellVoter` y `CellReading` en `vision-core/live`, con 14 tests en la JVM.
+- **Estabilidad:** ninguna esquina se aleja más del 2 % del lado medio durante 0,3 s, comparando con el primer fotograma del periodo quieto (una deriva lenta también lo reinicia); huecos de hasta 0,2 s sin detección no lo interrumpen.
+- **Votación:** tinta y origen por mayoría; dígito, el más leído entre las lecturas con dígito; confianza combinada = mejor confianza de las lecturas que coinciden × fracción de lecturas con tinta que coinciden, así que un error repetido con poca confianza no la gana y las lecturas sin dígito la bajan. Completa con 3 lecturas si todas las celdas con tinta tienen un valor con ≥ 60 %, o con 5.
+- **En la app:** `LiveScanner` solo lee con el tablero quieto y a buena distancia ("Leyendo…"), empieza de cero si se mueve y entrega el tablero votado una sola vez; `CoachViewModel.onBoardScanned` abre la revisión. Se adelanta de 4.6 el paso a la revisión, para probarlo; la vibración, el flash y el disparador quedan allí. `BoardReader.read(scan)` lee el tablero ya detectado en el fotograma, sin detectarlo dos veces, y la galería y la cámara comparten la conversión a `ScannedBoard`.
+- Primera prueba en el A57: dos capturas en 0,69 s y 0,87 s desde que el tablero quedó quieto (4 y 3 lecturas), con 9 celdas poco seguras cada una. Mientras se lee un fotograma (≈ 0,2 s) el contorno no se mueve, porque la lectura va en el hilo del análisis; se revisa en 4.7. Los umbrales son provisionales hasta 4.5.
+
 ## 4.4 Grabación de secuencias (D-22)
 - En debug, un interruptor en el escáner graba la sesión: fotogramas en gris reducidos, con su marca de tiempo.
 - Guión de grabación: ≥ 10 páginas del libro, con 3–5 s quieto y algo de movimiento al principio. Si se puede, las mismas páginas que alguna foto del conjunto, para comparar.

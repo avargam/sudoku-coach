@@ -63,6 +63,17 @@ class CoachViewModelTest {
     }
 
     @Test
+    fun `un tablero escaneado en vivo lleva a la revision una sola vez`() {
+        val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
+        viewModel.onBoardScanned(board)
+        assertContentEquals(board.values, viewModel.review.value?.board?.values)
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
+        // Una captura que llega tarde, con la revisión ya abierta, se ignora.
+        viewModel.onBoardScanned(board)
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
+    }
+
+    @Test
     fun `una lectura correcta lleva a la revision`() = test {
         val viewModel = CoachViewModel(PhotoScanner { ScanResult.Read(board) }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
