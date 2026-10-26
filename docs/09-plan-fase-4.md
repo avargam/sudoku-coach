@@ -184,7 +184,7 @@ En las 12 secuencias, con los valores por defecto ya cambiados (`SequenceReplayT
 - **Arriba**, la linterna (solo si la cámara tiene, con `Camera.cameraControl.enableTorch`); en debug, además, el botón de grabar secuencias. **Abajo**, la galería y el disparador manual. En medio, una tarjeta con el estado (buscando, acércate, quieto, leyendo con "N de 4" y barra de progreso), que TalkBack anuncia al cambiar.
 - **Disparador manual:** se activa con un tablero detectado. Al pulsarlo vibra, el círculo se encoge y la tarjeta dice "Capturando…": si ya hay lecturas votadas captura con ellas; si no, con la siguiente lectura (`LiveScanner.captureNow`).
 - **Al capturar:** vibración (la automática; la manual ya vibró al pulsar) y un **barrido de las celdas** en el acento, en diagonal y con la perspectiva del papel (`squareToQuad`), ≈ 0,44 s; luego se abre la revisión con el tablero como el de la galería. Se prototiparon en la maqueta un destello (descartado por molesto) y 5 alternativas; se eligió el barrido.
-- **Barra de estado:** con el tema claro del sistema, `enableEdgeToEdge` ponía los iconos oscuros, invisibles sobre la cámara (lo que se vio en 4.0); el escáner los fuerza claros y los devuelve al salir.
+- **Barra de estado:** con el tema claro del sistema, `enableEdgeToEdge` ponía los iconos oscuros, invisibles sobre la cámara (lo que se vio en 4.0); el escáner los fuerza claros y los devuelve al salir. Con la navegación de tres botones, la barra inferior también salía blanca: se fuerza oscura igual (comprobado en tema claro en 4.7).
 - La cámara se suelta al salir y en segundo plano (va con el ciclo de vida); al volver de la revisión se escanea de nuevo, y "Cerrar" en la revisión pasa a "Escanear otro sudoku".
 
 ## 4.7 Rendimiento
@@ -192,6 +192,23 @@ En las 12 secuencias, con los valores por defecto ya cambiados (`SequenceReplayT
 - Comprobar que el análisis no se acumula (se descartan fotogramas, no se encolan), el calor y la batería en una sesión de 5 minutos, y que la interfaz no se entrecorta.
 
 **Hecho cuando:** las cifras están anotadas y se cumple el criterio de tiempo.
+
+**Resultado:** sesión en vivo en el A57 el 2026-10-25 (`tools/vision/perf_session.sh`, líneas `LiveMeasure` de debug): 30 capturas de varias páginas del libro, con la cámara activa ≈ 1,6 min de los 4,5 min en primer plano (el resto, en la revisión).
+
+| | Mediana | Máximo |
+|---|---|---|
+| Conversión a `Mat` gris | 0,7 ms | 4,5 ms |
+| Detección del tablero, por fotograma | 18,9 ms | 51 ms |
+| Lectura completa (ML Kit), cuando se pide | 118 ms | 261 ms |
+| Retraso del fotograma desde el sensor | 108 ms | 155 ms |
+| Fotogramas analizados por segundo | 22,4 | mín. 16,6 |
+| De quieto a la captura | 0,80 s | 1,21 s |
+| **De quieto a la revisión** (captura + barrido de 0,44 s) | **1,26 s** | **1,66 s** |
+
+- **Criterio de tiempo cumplido:** las 30 capturas abren la revisión en menos de 2 s. Las lecturas en vivo (0,12 s) son más rápidas que las del test con las secuencias (0,26–0,34 s), así que el máximo de 2,4 s de 4.5 era pesimista, como se esperaba.
+- **El análisis no se acumula:** el retraso desde el sensor es estable (≈ 0,1 s, sin crecer en la sesión) también en las ventanas con lecturas; con `STRATEGY_KEEP_ONLY_LATEST` se descartan los fotogramas que llegan mientras se lee.
+- **Interfaz:** 6,5 % de fotogramas entrecortados (mediana 7 ms, p90 18 ms, p99 81 ms) en toda la sesión, revisión incluida. No se midió dónde caen; lo más probable son las transiciones entre el escáner y la revisión, en las que se crea y se suelta la cámara. En uso, el visor con el contorno no se notó entrecortado.
+- **Calor y batería:** la temperatura de la batería no cambió (25,5 °C) y el estado térmico siguió en 0. Consumo estimado de la app (`batterystats`): 32 mAh en 4,5 min en primer plano, ≈ 0,4 A, unos 9 % de batería por hora de escaneo continuo en los 5000 mAh del A57. La sesión tuvo menos de 5 minutos seguidos de cámara; el uso real (un escaneo de unos segundos por sudoku) queda muy por debajo.
 
 ## 4.8 Prueba de extremo a extremo y cierre
 - Test instrumentado con las secuencias: lector real + votación → `ScannedBoard` → corregir solo las sospechosas → primera pista igual a la del motor sobre la etiqueta (como `EndToEndTest`).

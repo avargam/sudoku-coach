@@ -86,7 +86,7 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 - [x] 4.4 Grabación de secuencias (debug) y etiquetado
 - [x] 4.5 Ajuste con datos: menos sospechosas sin errores sin marcar
 - [x] 4.6 Pantalla del escáner completa: flash, galería, disparador manual y captura automática
-- [ ] 4.7 Rendimiento: presupuesto por fotograma y < 2 s hasta la revisión
+- [x] 4.7 Rendimiento: presupuesto por fotograma y < 2 s hasta la revisión
 - [ ] 4.8 Prueba de extremo a extremo y cierre
 
 **Hecho cuando:** escaneando en vivo en el A57 se llega a la revisión en < 2 s desde que el tablero está quieto, con ≤ 8 celdas sospechosas por tablero de media y ninguna lectura errónea sin marcar.

@@ -1,5 +1,6 @@
 package dev.sudokucoach.app.scan
 
+import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -23,7 +24,8 @@ import kotlin.math.roundToInt
  * hilo de fondo, así que mientras se lee (≈ 0,2 s) se descartan los fotogramas que llegan.
  *
  * Con [logStats] (solo en debug) escribe en logcat cada [STATS_FRAMES] fotogramas los tiempos de
- * conversión y detección y los fotogramas por segundo, y cada captura. Con [measure], en vez de
+ * conversión, detección y lectura, el retraso desde el sensor y los fotogramas por segundo, y cada
+ * captura (tarea 4.7, `tools/vision/perf_session.sh`). Con [measure], en vez de
  * votar, lee el tablero completo en cada fotograma en que se detecta y escribe la lectura, para
  * comparar fotogramas entre sí y con la etiqueta de la foto (`tools/vision/live_measure.py`).
  * Mientras [recorder] graba (tarea 4.4), solo se detecta y se guarda cada fotograma: no se lee
@@ -41,6 +43,8 @@ class FrameAnalyzer(
 
     private val convertMillis = mutableListOf<Double>()
     private val detectMillis = mutableListOf<Double>()
+    private val readMillis = mutableListOf<Double>()
+    private val latencyMillis = mutableListOf<Double>()
     private var detected = 0
     private var windowStart = 0L
 
@@ -48,6 +52,8 @@ class FrameAnalyzer(
         image.use { frame ->
             val start = System.nanoTime()
             if (windowStart == 0L) windowStart = start
+            // Del sensor al análisis: si los fotogramas se encolaran, crecería (tarea 4.7).
+            latencyMillis += (SystemClock.elapsedRealtimeNanos() - frame.imageInfo.timestamp) / 1e6
             val gray = frame.toGrayMat()
             val converted = System.nanoTime()
             val scan = detector.detect(gray)
@@ -75,6 +81,7 @@ class FrameAnalyzer(
                 }
                 read -> {
                     val reading = reader.read(scan)
+                    readMillis += (System.nanoTime() - done) / 1e6
                     val board = scanner.onReading(reading.toCellReadings(), (System.nanoTime() / 1e6).toLong())
                     reading.release()
                     if (logStats && board != null) {
@@ -89,10 +96,14 @@ class FrameAnalyzer(
                     TAG,
                     "frames size=${frame.width}x${frame.height} gray=${gray.cols()}x${gray.rows()} " +
                         "fps=${"%.1f".format(Locale.ROOT, STATS_FRAMES / seconds)} detected=$detected/$STATS_FRAMES " +
-                        "convert=${convertMillis.summary()} detect=${detectMillis.summary()}",
+                        "convert=${convertMillis.summary()} detect=${detectMillis.summary()} " +
+                        "latency=${latencyMillis.summary()} reads=${readMillis.size}" +
+                        (if (readMillis.isEmpty()) "" else " read=${readMillis.summary()}"),
                 )
                 convertMillis.clear()
                 detectMillis.clear()
+                readMillis.clear()
+                latencyMillis.clear()
                 detected = 0
                 windowStart = System.nanoTime()
             }

@@ -47,3 +47,12 @@ fallar en los 1 manuscritos (leídos como 4) y no ve los dígitos que el segment
 
 `prepare_photos.py` aplica la orientación del EXIF **antes** de quitarlo: el móvil guarda la foto girada
 y solo la endereza al mostrarla, así que sin ese paso las fotos quedarían de lado.
+
+Rendimiento en vivo (tarea 4.7), con la app de debug en el escáner: tiempos por fotograma, retraso
+desde el sensor, de quieto a la revisión, fotogramas entrecortados, temperatura y consumo estimado.
+
+```bash
+tools/vision/perf_session.sh start    # marca el inicio; el móvil pasa a "desenchufado" para batterystats
+# ... escanear varias páginas, volviendo de la revisión con "Escanear otro sudoku" ...
+tools/vision/perf_session.sh stop     # resumen y log; devuelve el estado de la batería
+```

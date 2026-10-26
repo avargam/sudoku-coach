@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -160,11 +161,15 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
     // Barrido: el contorno en el momento de la captura y los milisegundos transcurridos.
     var sweepOutline by remember { mutableStateOf<List<BufferPoint>?>(null) }
     val sweep = remember { Animatable(0f) }
+    val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     LaunchedEffect(scanner) {
         scanner.captures.collect { board ->
+            val captured = System.nanoTime()
             if (!capturing) haptics.performHapticFeedback(HapticFeedbackType.Confirm) // la manual vibró al pulsar
             sweepOutline = scanner.state.value.outline
             if (sweepOutline != null) sweep.animateTo(SWEEP_MILLIS.toFloat(), tween(SWEEP_MILLIS, easing = LinearEasing))
+            // Desde que el tablero quedó quieto hasta abrir la revisión (tarea 4.7).
+            if (debuggable) Log.i("LiveMeasure", "review ms=${board.millis + (System.nanoTime() - captured) / 1_000_000}")
             onScanned(board)
         }
     }
@@ -174,10 +179,9 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
     // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las
     // lecturas; y el botón de grabar secuencias (4.4).
     val context = LocalContext.current
-    val debuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     val measure = debuggable && LocalActivity.current?.intent?.getBooleanExtra(EXTRA_MEASURE, false) == true
     val recorder = remember { if (debuggable) FrameRecorder(File(context.filesDir, "sequences")) else null }
-    LightStatusIcons()
+    DarkSystemBars()
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         CameraViewfinder(
             Modifier.fillMaxSize(),
@@ -227,19 +231,24 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
 }
 
 /**
- * Iconos claros en la barra de estado mientras se ve la cámara: con el tema claro,
- * `enableEdgeToEdge` los pone oscuros y sobre el visor no se ven (tarea 4.6). Al salir se
- * devuelven como estaban.
+ * Barras del sistema oscuras mientras se ve la cámara: con el tema claro, `enableEdgeToEdge` pone
+ * los iconos de estado oscuros, que sobre el visor no se ven, y con la navegación de tres botones
+ * un fondo blanco (tarea 4.6). Al salir se devuelven como estaban.
  */
 @Composable
-private fun LightStatusIcons() {
+private fun DarkSystemBars() {
     val window = LocalActivity.current?.window ?: return
     val view = LocalView.current
     DisposableEffect(window, view) {
         val controller = WindowCompat.getInsetsController(window, view)
-        val before = controller.isAppearanceLightStatusBars
+        val status = controller.isAppearanceLightStatusBars
+        val navigation = controller.isAppearanceLightNavigationBars
         controller.isAppearanceLightStatusBars = false
-        onDispose { controller.isAppearanceLightStatusBars = before }
+        controller.isAppearanceLightNavigationBars = false
+        onDispose {
+            controller.isAppearanceLightStatusBars = status
+            controller.isAppearanceLightNavigationBars = navigation
+        }
     }
 }
 
