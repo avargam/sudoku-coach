@@ -2,6 +2,10 @@
 
 What changes for people using the app, one section per published version. The release workflow uses the section that matches the tag as the release notes.
 
+## [0.5.1]
+
+- The About screen links to the repository under its new name, `avargam/sudoku-coach`.
+
 ## [0.5.0]
 
 First public release.
