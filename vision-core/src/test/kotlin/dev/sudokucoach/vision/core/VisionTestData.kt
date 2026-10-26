@@ -60,9 +60,31 @@ data class TestPhoto(val id: String, val file: File, val labelFile: File, val la
     }
 }
 
-/** Acceso al conjunto de fotos de `testdata/vision/` (D-17). */
+/**
+ * Una secuencia de fotogramas grabada en vivo (D-22, tarea 4.4): carpeta `testdata/vision/sequences/<id>`
+ * con `NNNNNN.jpg` (ms desde el primero) y, una vez etiquetada, `label.txt` con el formato de las fotos.
+ */
+data class TestSequence(val id: String, val dir: File, val frames: List<File>, val label: PhotoLabel?) {
+    val labelFile: File get() = File(dir, LABEL)
+
+    companion object {
+        const val LABEL = "label.txt"
+    }
+}
+
+/** Acceso al conjunto de fotos de `testdata/vision/` (D-17) y a las secuencias grabadas (D-22). */
 object VisionTestData {
     val root: File = File(System.getProperty("sudokucoach.testdata") ?: "testdata/vision")
+
+    /** Secuencias copiadas del móvil con `tools/vision/pull_sequences.sh`; no se versionan. */
+    fun sequences(): List<TestSequence> =
+        File(root, "sequences").listFiles { f -> f.isDirectory }.orEmpty().sortedBy { it.name }.map { dir ->
+            val frames = dir.listFiles { f -> f.extension == "jpg" }.orEmpty().sortedBy { it.name }
+            val text = File(dir, TestSequence.LABEL).takeIf { it.exists() }?.readText()
+            val label = text?.takeIf { lines -> lines.lines().none { !it.startsWith("#") && PhotoLabel.PENDING in it } }
+                ?.let { PhotoLabel.parse(it) }
+            TestSequence(dir.name, dir, frames, label)
+        }
 
     fun photos(): List<TestPhoto> =
         File(root, "photos").listFiles { f -> f.extension.lowercase() == "jpg" }.orEmpty().sortedBy { it.name }.map { file ->

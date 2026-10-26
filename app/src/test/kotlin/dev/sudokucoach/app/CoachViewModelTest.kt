@@ -49,9 +49,9 @@ class CoachViewModelTest {
     private fun test(block: suspend TestScope.() -> Unit) = runTest(dispatcher) { block() }
 
     @Test
-    fun `empieza eligiendo la foto`() {
+    fun `empieza en el escaner`() {
         val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
-        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertEquals(listOf<Route>(Route.Scanning), viewModel.backStack.toList())
         assertEquals(ScanState.Idle, viewModel.scanState.value)
     }
 
@@ -59,7 +59,18 @@ class CoachViewModelTest {
     fun `atras en la primera pantalla cierra la app`() {
         val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
         assertFalse(viewModel.back())
-        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertEquals(listOf<Route>(Route.Scanning), viewModel.backStack.toList())
+    }
+
+    @Test
+    fun `un tablero escaneado en vivo lleva a la revision una sola vez`() {
+        val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
+        viewModel.onBoardScanned(board)
+        assertContentEquals(board.values, viewModel.review.value?.board?.values)
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
+        // Una captura que llega tarde, con la revisión ya abierta, se ignora.
+        viewModel.onBoardScanned(board)
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
     }
 
     @Test
@@ -70,20 +81,20 @@ class CoachViewModelTest {
         advanceUntilIdle()
         assertEquals(ScanState.Idle, viewModel.scanState.value)
         assertContentEquals(board.values, viewModel.review.value?.board?.values)
-        assertEquals(listOf(Route.Picking, Route.Reviewing), viewModel.backStack.toList())
-        // Atrás vuelve a elegir foto.
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
+        // Atrás vuelve al escáner.
         viewModel.back()
-        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertEquals(listOf<Route>(Route.Scanning), viewModel.backStack.toList())
     }
 
     @Test
-    fun `sin tablero se queda eligiendo foto con el motivo`() = test {
+    fun `sin tablero se queda en el escaner con el motivo`() = test {
         val viewModel = CoachViewModel(PhotoScanner { ScanResult.NoBoard }, SavedStateHandle())
         viewModel.onPhotoPicked("content://foto")
         advanceUntilIdle()
         assertEquals(ScanState.Failed(ScanFailure.NO_BOARD), viewModel.scanState.value)
         assertNull(viewModel.review.value)
-        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertEquals(listOf<Route>(Route.Scanning), viewModel.backStack.toList())
     }
 
     @Test
@@ -105,7 +116,7 @@ class CoachViewModelTest {
         pending.complete(ScanResult.Read(board))
         advanceUntilIdle()
         assertEquals(listOf("content://primera"), photos)
-        assertEquals(listOf(Route.Picking, Route.Reviewing), viewModel.backStack.toList())
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
     }
 
     @Test
@@ -117,7 +128,7 @@ class CoachViewModelTest {
         result = ScanResult.Read(board)
         viewModel.onPhotoPicked("content://buena")
         advanceUntilIdle()
-        assertEquals(listOf(Route.Picking, Route.Reviewing), viewModel.backStack.toList())
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
     }
 
     /** Revisión de un tablero válido con dos celdas sospechosas: F1C3 sin leer y F2C1 poco segura. */
@@ -172,7 +183,7 @@ class CoachViewModelTest {
         viewModel.enterDigit(5) // F1C1 ya es 5
         assertTrue(viewModel.review.value!!.validation is Validation.Repeated)
         viewModel.showHint()
-        assertEquals(listOf(Route.Picking, Route.Reviewing), viewModel.backStack.toList())
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), viewModel.backStack.toList())
     }
 
     @Test
@@ -189,7 +200,7 @@ class CoachViewModelTest {
         )
         val viewModel = reviewing(half)
         viewModel.showHint()
-        assertEquals(listOf(Route.Picking, Route.Reviewing, Route.Hint), viewModel.backStack.toList())
+        assertEquals(listOf(Route.Scanning, Route.Reviewing, Route.Hint), viewModel.backStack.toList())
         assertEquals(HintEngine().nextStep(Grid.fromValues(values)), viewModel.hint.value?.step)
         viewModel.revealMore()
         viewModel.applyStep()
@@ -235,15 +246,15 @@ class CoachViewModelTest {
 
         // Atrás desde la pista restaurada vuelve a la revisión, con la corrección.
         restored.back()
-        assertEquals(listOf(Route.Picking, Route.Reviewing), restored.backStack.toList())
+        assertEquals(listOf(Route.Scanning, Route.Reviewing), restored.backStack.toList())
         assertEquals(3, CoachViewModel(PhotoScanner { error("") }, saved).review.value!!.board.values[1])
     }
 
     @Test
-    fun `sin estado guardado o con uno ilegible empieza eligiendo foto`() {
+    fun `sin estado guardado o con uno ilegible empieza en el escaner`() {
         val saved = SavedStateHandle(mapOf("routes" to "picking,reviewing,hint", "review" to "basura"))
         val viewModel = CoachViewModel(PhotoScanner { error("") }, saved)
-        assertEquals(listOf<Route>(Route.Picking), viewModel.backStack.toList())
+        assertEquals(listOf<Route>(Route.Scanning), viewModel.backStack.toList())
         assertNull(viewModel.review.value)
     }
 

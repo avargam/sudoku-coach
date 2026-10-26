@@ -1,6 +1,7 @@
 package dev.sudokucoach.app.scan
 
 import dev.sudokucoach.app.board.DigitOrigin
+import dev.sudokucoach.vision.core.live.CellReading
 
 /**
  * Tablero leído de una foto (tarea 3.3). Solo tipos de Kotlin, sin OpenCV, para que la lógica de la
@@ -25,6 +26,24 @@ class ScannedBoard(
         }
     }
 }
+
+/**
+ * Tablero a partir de las 81 celdas leídas, de una foto o votadas en vivo (tarea 4.3); [millis] es
+ * el tiempo de la lectura.
+ */
+fun List<CellReading>.toScannedBoard(millis: Long) = ScannedBoard(
+    values = IntArray(81) { this[it].digit },
+    origins = map { cell ->
+        when {
+            !cell.inked -> DigitOrigin.UNKNOWN
+            cell.printed -> DigitOrigin.GIVEN
+            else -> DigitOrigin.USER
+        }
+    },
+    confidences = FloatArray(81) { this[it].confidence },
+    inked = BooleanArray(81) { this[it].inked },
+    millis = millis,
+)
 
 sealed interface ScanResult {
     data class Read(val board: ScannedBoard) : ScanResult

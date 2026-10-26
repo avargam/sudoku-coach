@@ -14,8 +14,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import dev.sudokucoach.app.scan.VisionPhotoScanner
 import dev.sudokucoach.app.ui.HintScreen
-import dev.sudokucoach.app.ui.PickingScreen
 import dev.sudokucoach.app.ui.ReviewingScreen
+import dev.sudokucoach.app.ui.ScanningScreen
 import dev.sudokucoach.app.ui.theme.SudokuCoachTheme
 
 /** Única `Activity` de la app (D-18): todo lo demás son pantallas de Compose. */
@@ -42,7 +42,7 @@ fun CoachApp(onExit: () -> Unit) {
         backStack = viewModel.backStack,
         onBack = { if (!viewModel.back()) onExit() },
         entryProvider = entryProvider {
-            entry<Route.Picking> { PickingScreen(viewModel) }
+            entry<Route.Scanning> { ScanningScreen(viewModel) }
             entry<Route.Reviewing> { ReviewingScreen(viewModel, onClose = { viewModel.back() }) }
             entry<Route.Hint> { HintScreen(viewModel, onBack = { viewModel.back() }) }
         },

@@ -22,6 +22,12 @@ object StrokeIcons {
         moveTo(21f, 5f); lineTo(9f, 5f); lineTo(3f, 12f); lineTo(9f, 19f); lineTo(21f, 19f); close()
         moveTo(17f, 9f); lineTo(12f, 15f); moveTo(12f, 9f); lineTo(17f, 15f)
     }
+    val Torch = icon { moveTo(13f, 2f); lineTo(4f, 14f); lineTo(11f, 14f); lineTo(10f, 22f); lineTo(19f, 10f); lineTo(12f, 10f); close() }
+    val Gallery = icon {
+        moveTo(4f, 4f); lineTo(20f, 4f); lineTo(20f, 20f); lineTo(4f, 20f); close()
+        moveTo(4f, 16f); lineTo(9f, 11f); lineTo(15f, 17f); moveTo(13f, 15f); lineTo(16f, 12f); lineTo(20f, 16f)
+        moveTo(14f, 8.5f); arcToRelative(1.5f, 1.5f, 0f, true, true, 3f, 0f); arcToRelative(1.5f, 1.5f, 0f, true, true, -3f, 0f)
+    }
 
     private fun icon(pathBuilder: PathBuilder.() -> Unit): ImageVector =
         ImageVector.Builder(defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
