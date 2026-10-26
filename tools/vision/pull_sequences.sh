@@ -7,7 +7,9 @@
 #                                            # las lee de ahí: borrarlas solo al terminar de medir)
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
-adb="${ADB:-$(grep sdk.dir "$root/local.properties" | cut -d= -f2)/platform-tools/adb}"
+# adb: $ADB, el del PATH o el del SDK (ANDROID_HOME, o sdk.dir de local.properties si existe).
+sdk="${ANDROID_HOME:-$(grep -s sdk.dir "$root/local.properties" | cut -d= -f2 || true)}"
+adb="${ADB:-$(command -v adb || echo "$sdk/platform-tools/adb")}"
 dest="$root/testdata/vision/sequences"
 mkdir -p "$dest"
 

@@ -94,6 +94,17 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** en un clon limpio, `./gradlew :solver:test :vision-core:test :app:testDebugUnitTest :app:assembleDebug` pasa siguiendo solo el README.
 
+**Resultado:** clon nuevo de `feat/fase-4-5` desde GitHub (8 MB):
+
+- **Sin SDK de Android** (sin `ANDROID_HOME` ni `local.properties`): los tests del `solver` pasan; el resto falla con el mensaje de AGP "SDK location not found", que dice qué hacer. El README tiene que pedir `ANDROID_HOME`, con los paquetes `platforms;android-37.0` y `build-tools;37.0.0`.
+- **Con el SDK**, el comando completo pasa: 168 tests (`solver` 59, `vision-core` 40, `app` 69) y la APK de debug. Se saltan 3, que necesitan las secuencias grabadas, que no se versionan (`SequenceReplayTest` ×2 y `LiveTuningTest`). La release, sin la clave, sale sin firmar (P.2).
+- **Arreglado:** `tools/vision/push_labels.sh` y `pull_sequences.sh` sacaban `adb` de `local.properties`; ahora usan `$ADB`, el `adb` del PATH o el de `ANDROID_HOME`.
+- **Para el README (P.5):**
+  - requisitos: JDK 21, el SDK con esos paquetes y `ANDROID_HOME`, y GTK2 para los tests de `vision-core`;
+  - qué necesita el móvil: los tests instrumentados y `deployDebug`;
+  - qué necesita datos que no están en el repo: los originales de la cámara (`PhotoScanTest` y `EndToEndTest` los usan si están) y las secuencias;
+  - el oráculo de HoDoKu solo hace falta para regenerar el banco del `solver`.
+
 ## P.5 README
 - **`README.md` en inglés:**
   - qué hace la app en dos frases, con una demo: un GIF o un vídeo corto del escáner llegando a la pista;
