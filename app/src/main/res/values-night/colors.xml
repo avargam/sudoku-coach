@@ -2,4 +2,9 @@
 <resources>
     <!-- Token background de SudokuColors.Dark. -->
     <color name="window_background">#FF0F0F10</color>
+    <!-- Icono de la app: tokens background, ink y accent de D-12; candidatos en gris. -->
+    <color name="launcher_background">#FF0F0F10</color>
+    <color name="launcher_ink">#FFEDEDED</color>
+    <color name="launcher_muted">#FF8A8A92</color>
+    <color name="launcher_accent">#FF6EA0FF</color>
 </resources>
