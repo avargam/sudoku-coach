@@ -3,6 +3,7 @@ package dev.sudokucoach.app.camera
 import android.util.Log
 import android.util.Size
 import androidx.camera.compose.CameraXViewfinder
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -44,18 +45,26 @@ import java.util.concurrent.Executors
  * [overlay] se dibuja encima del visor, del mismo tamaño, con un [ViewfinderMapping] para llevar
  * puntos del búfer a la pantalla (el contorno del tablero, tarea 4.2).
  *
+ * [torch] enciende la linterna (tarea 4.6); [onTorchAvailable] dice, al abrir la cámara, si la hay.
+ *
  * Si no hay cámara trasera o no se puede abrir, no se dibuja nada y queda la galería.
  */
 @Composable
 fun CameraViewfinder(
     modifier: Modifier = Modifier,
     analyzer: (() -> ImageAnalysis.Analyzer)? = null,
+    torch: Boolean = false,
+    onTorchAvailable: (Boolean) -> Unit = {},
     overlay: @Composable (ViewfinderMapping) -> Unit = {},
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var surfaceRequest by remember { mutableStateOf<SurfaceRequest?>(null) }
     val transformer = remember { MutableCoordinateTransformer() }
+    var camera by remember { mutableStateOf<Camera?>(null) }
+    LaunchedEffect(camera, torch) {
+        camera?.takeIf { it.cameraInfo.hasFlashUnit() }?.cameraControl?.enableTorch(torch)
+    }
     LaunchedEffect(lifecycleOwner) {
         val provider = ProcessCameraProvider.awaitInstance(context)
         // Visor y análisis con la misma relación de aspecto, para que vean lo mismo (el contorno de 4.2).
@@ -71,11 +80,13 @@ fun CameraViewfinder(
         }
         val useCases = listOfNotNull<UseCase>(preview, analysis)
         try {
-            provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, *useCases.toTypedArray())
+            camera = provider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, *useCases.toTypedArray())
+                .also { onTorchAvailable(it.cameraInfo.hasFlashUnit()) }
             awaitCancellation()
         } catch (e: IllegalArgumentException) {
             Log.w(TAG, "Sin cámara trasera", e)
         } finally {
+            camera = null
             provider.unbind(*useCases.toTypedArray())
             analysis?.clearAnalyzer()
             (frames as? Closeable)?.let { executor.execute { it.close() } }

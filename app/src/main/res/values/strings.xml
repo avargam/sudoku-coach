@@ -6,6 +6,18 @@
     <string name="live_too_far">Acércate</string>
     <string name="live_hold_still">Mantén el móvil quieto</string>
     <string name="live_reading">Leyendo…</string>
+    <string name="live_searching_hint">Encuadra el tablero entero, con sus cuatro esquinas.</string>
+    <string name="live_too_far_hint">El tablero se ve pequeño para leerlo bien.</string>
+    <string name="live_hold_still_hint">Se capturará solo cuando la lectura sea estable.</string>
+    <string name="live_reading_hint">Mantén el móvil quieto un momento más.</string>
+    <!-- Lecturas votadas: "2 de 4". -->
+    <string name="live_reads">%1$d de %2$d</string>
+    <string name="live_capturing">Capturando…</string>
+    <string name="live_captured">Tablero leído</string>
+    <string name="live_captured_hint">Abriendo la revisión…</string>
+    <string name="capture_now">Capturar ahora</string>
+    <string name="torch">Linterna</string>
+    <string name="gallery_pick">Elegir foto de la galería</string>
     <string name="picking_title">Elige la foto de un sudoku</string>
     <string name="camera_denied">Sin permiso para usar la cámara, puedes elegir una foto de la galería.</string>
     <string name="camera_allow">Permitir la cámara</string>
