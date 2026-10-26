@@ -15,14 +15,21 @@ import java.io.File
  * - guarda en `vision-core/build/labeling/NNN.png` el tablero rectificado con filas y columnas
  *   numeradas y las cajas de los dígitos (verde = impreso, azul = manuscrito propuesto).
  *
+ * Con `--sequences`, lo mismo para las secuencias grabadas (tarea 4.4), ver [labelSequences].
+ *
  * No sobrescribe etiquetas existentes salvo con `--force`. Uso:
  *   ./gradlew :vision-core:labelHelper [--args="003 004 --force"]
+ *   ./gradlew :vision-core:labelHelper --args="--sequences [S20261025-201411]"
  */
 fun main(args: Array<String>) {
     OpenCvTestSupport.ensureLoaded()
     val force = "--force" in args
     val only = args.filter { !it.startsWith("--") }.toSet()
     val review = File("build/labeling").apply { mkdirs() }
+    if ("--sequences" in args) {
+        labelSequences(only, force, review)
+        return
+    }
     File(VisionTestData.root, "labels").mkdirs()
 
     for (photo in VisionTestData.photos().filter { only.isEmpty() || it.id in only }) {
@@ -44,10 +51,59 @@ fun main(args: Array<String>) {
     println("Imágenes de revisión en ${review.absolutePath}")
 }
 
-private fun template(cells: List<Cell>): String = buildString {
-    appendLine("# luz=? angulo=? papel=libro notas=")
-    for (row in 0 until 9) appendLine(cells.subList(row * 9, row * 9 + 9).joinToString("") { if (it.empty) "." else "?" })
+private fun template(cells: List<Cell>, header: String = "# luz=? angulo=? papel=libro notas=", known: IntArray? = null): String = buildString {
+    appendLine(header)
+    for (row in 0 until 9) {
+        appendLine(cells.subList(row * 9, row * 9 + 9).joinToString("") { cell ->
+            when {
+                cell.empty -> "."
+                known != null && known[cell.index] != 0 -> known[cell.index].toString()
+                else -> "?"
+            }
+        })
+    }
     for (row in 0 until 9) appendLine(cells.subList(row * 9, row * 9 + 9).joinToString("") { origin(it).toString() })
+}
+
+/**
+ * Plantillas de las secuencias (tarea 4.4). La etiqueta se hace sobre un fotograma de la propia
+ * secuencia, no se copia de la foto, porque la página puede haber cambiado desde entonces: el
+ * primer fotograma con tablero a partir del 70 % de la secuencia (ya quieto, según el guion de
+ * grabación). Si las celdas con tinta y las impresas coinciden en un 90 % con las de la etiqueta de
+ * una foto, se rellenan con ella las que tienen tinta en los dos; el resto queda con `?`. Los
+ * impresos son las pistas del sudoku y lo identifican; la tinta sola no, porque todos los
+ * tableros llenos tienen la misma. La cabecera
+ * anota el fotograma y la foto usada, para revisarlos.
+ */
+private fun labelSequences(only: Set<String>, force: Boolean, review: File) {
+    val photos = VisionTestData.photos().mapNotNull { p -> p.label?.let { p.id to it } }
+    for (sequence in VisionTestData.sequences().filter { only.isEmpty() || it.id in only }) {
+        val start = (sequence.frames.size * 0.7).toInt()
+        val (frame, scan) = sequence.frames.drop(start).firstNotNullOfOrNull { file ->
+            BoardDetector().detect(Imgcodecs.imread(file.path))?.let { file to it }
+        } ?: run {
+            println("${sequence.id}: ningún fotograma con tablero desde el 70 %")
+            continue
+        }
+        val cells = GridSegmenter().segment(scan.rectified)
+        Imgcodecs.imwrite(File(review, "${sequence.id}.png").path, reviewImage(scan.rectified, cells))
+        if (sequence.labelFile.exists() && !force) {
+            println("${sequence.id}: ya tiene etiqueta (usa --force para regenerarla); imagen de revisión actualizada")
+            continue
+        }
+        val inked = cells.filter { !it.empty }.map { it.index }.toSet()
+        val printed = cells.filter { it.printed }.map { it.index }.toSet()
+        val match = photos.map { (id, label) ->
+            val digits = (0 until 81).filter { label.digits[it] != 0 }.toSet()
+            val givens = (0 until 81).filter { label.origins[it] == Origin.PRINTED }.toSet()
+            Triple(id, label, minOf(jaccard(inked, digits), jaccard(printed, givens)))
+        }.maxByOrNull { it.third }?.takeIf { it.third >= 0.9 }
+        val header = "# frame=${frame.nameWithoutExtension} foto=${match?.first ?: "-"} notas="
+        sequence.labelFile.writeText(template(cells, header, match?.second?.digits))
+        val pending = cells.count { !it.empty && (match == null || match.second.digits[it.index] == 0) }
+        println("${sequence.id}: fotograma ${frame.name}, foto ${match?.first ?: "ninguna"}, $pending dígitos por transcribir")
+    }
+    println("Imágenes de revisión en ${review.absolutePath}")
 }
 
 private fun origin(cell: Cell): Char = when {
@@ -55,6 +111,8 @@ private fun origin(cell: Cell): Char = when {
     cell.printed -> Origin.PRINTED.code
     else -> Origin.HANDWRITTEN.code
 }
+
+private fun jaccard(a: Set<Int>, b: Set<Int>) = if (a.isEmpty() && b.isEmpty()) 1.0 else (a intersect b).size.toDouble() / (a union b).size
 
 /** Tablero ampliado ×2 con márgenes para numerar filas y columnas, y las cajas de los dígitos. */
 private fun reviewImage(rectified: Mat, cells: List<Cell>): Mat {

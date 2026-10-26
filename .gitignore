@@ -26,6 +26,7 @@ tools/oracle/reglib/
 
 # Datos pesados o privados
 testdata/vision/raw/
+testdata/vision/sequences/
 *.tflite.bak
 
 # SO
