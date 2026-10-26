@@ -125,9 +125,9 @@ Las interfaces están en `vision-core` y usan `org.opencv.core.Mat`; `BoardReade
 
 ### 4.4 Robustez
 
-- **Votación multi-frame**: una celda se acepta tras N lecturas iguales consecutivas.
+- **Votación multi-frame** (D-21): con el tablero quieto se leen 3–4 fotogramas y se vota por celda; la confianza votada es la media de las lecturas que coinciden por la fracción que coincide. Una celda con tinta en parte de las lecturas (≥ 20 %), pero no en la mayoría, queda dudosa: así se marcan los dígitos a lápiz muy tenues que el segmentador solo ve a veces.
 - **Validación de reglas**: duplicados en fila/columna/caja marcan celdas sospechosas.
-- **Confianza por celda**: por debajo de 0,5 se pide confirmación (con ML Kit, ninguna lectura por encima fue errónea en la Fase 2); las celdas con tinta sin lectura también.
+- **Confianza por celda**: por debajo de 0,35 se pide confirmación, y por debajo de 0,6 en los 4 manuscritos, que suelen ser 1 mal leídos (D-08, tarea 4.5); las celdas con tinta sin lectura también.
 - **Unicidad**: backtracking rápido para verificar solución única antes de usar técnicas que la asumen.
 
 ## 5. Módulo `app`
@@ -135,7 +135,7 @@ Las interfaces están en `vision-core` y usan `org.opencv.core.Mat`; `BoardReade
 ### 5.1 Pantallas
 
 1. **Escáner**: cámara a pantalla completa; el contorno del tablero detectado se dibuja en el acento y la captura es automática cuando la lectura se estabiliza (votación multi-frame). Botones secundarios: cerrar, flash, elegir de galería; disparador manual como respaldo. *(Fase 4. En la Fase 3 la entrada es **Elegir foto**: el selector de fotos del sistema, sin permisos, y la foto con un indicador de progreso mientras se lee.)*
-2. **Revisión**: tablero reconocido y editable. Tocar una celda la selecciona; debajo hay un teclado numérico fijo (1–9 + borrar). Las celdas sospechosas (tinta sin lectura, confianza < 0,5 o dígito repetido) llevan borde punteado de acento y un aviso "N celdas por revisar" salta entre ellas con ◀ ▶. Una línea bajo el tablero dice por qué se marca la celda seleccionada o cuál es su origen. Los impresos también se pueden editar, porque pueden estar mal leídos. El motivo de la validación (D-19) y "Ver pista" quedan fijos abajo; la pista solo se activa si la validación lo permite.
+2. **Revisión**: tablero reconocido y editable. Tocar una celda la selecciona; debajo hay un teclado numérico fijo (1–9 + borrar). Las celdas sospechosas (tinta sin lectura, confianza baja según D-08 o dígito repetido) llevan borde punteado de acento y un aviso "N celdas por revisar" salta entre ellas con ◀ ▶. Una línea bajo el tablero dice por qué se marca la celda seleccionada o cuál es su origen. Los impresos también se pueden editar, porque pueden estar mal leídos. El motivo de la validación (D-19) y "Ver pista" quedan fijos abajo; la pista solo se activa si la validación lo permite.
 3. **Pista**: tablero a todo el ancho y debajo un panel fijo (no un *bottom sheet* arrastrable, para que el tablero nunca quede tapado) con las tres etapas, la técnica, el texto de la etapa y los botones. El revelado es gradual (ver §5.3). En la etapa 3, "Aplicar paso" (el tablero cambia y se sigue en la misma pista) y "Siguiente" (aplica si hace falta y pasa a la siguiente pista en la etapa 1). Sin técnica disponible: "Revelar un dígito" de la solución, en la celda vacía con menos candidatos.
 4. *(Posterior)* **Overlay en vivo** dibujado sobre la cámara mediante la homografía inversa.
 

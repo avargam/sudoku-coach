@@ -5,6 +5,7 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import dev.sudokucoach.app.camera.toGrayMat
 import dev.sudokucoach.app.camera.unrotate
+import dev.sudokucoach.app.review.ReviewBoard
 import dev.sudokucoach.vision.MlKitGridReader
 import dev.sudokucoach.vision.core.BoardDetector
 import dev.sudokucoach.vision.core.BoardReader
@@ -77,8 +78,7 @@ class FrameAnalyzer(
                     val board = scanner.onReading(reading.toCellReadings(), (System.nanoTime() / 1e6).toLong())
                     reading.release()
                     if (logStats && board != null) {
-                        val unsure = (0 until 81).count { board.inked[it] && board.confidences[it] < 0.5f }
-                        Log.i(TAG, "capture reads=${scanner.reads} ms=${board.millis} unsure=$unsure")
+                        Log.i(TAG, "capture reads=${scanner.reads} ms=${board.millis} suspicious=${ReviewBoard.from(board).suspicious.size}")
                     }
                 }
                 else -> scan.rectified.release()

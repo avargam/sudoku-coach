@@ -154,6 +154,22 @@ Con los umbrales de 4.3:
 
 **Hecho cuando:** los umbrales están fijados y el informe da la media de sospechosas por tablero en las secuencias de comprobación.
 
+**Resultado:** umbrales fijados con `LiveTuningTest` (JVM, `frames.txt` de las 12 secuencias): 7 secuencias de ajuste y 5 de comprobación (páginas distintas), 1440 combinaciones × 11 umbrales de confianza.
+
+- **Umbral de confianza con los datos que ya había:** en las fotos de la Fase 2, el 0,5 era exacto: el peor error tenía 0,46. Pero **en los fotogramas no es seguro**: 166 de 101 019 lecturas erróneas superan 0,5 y alguna llega a 0,94, sobre todo en fotogramas movidos (0,7 por fotograma movido frente a 0,05 quieto). Y casi todos los errores seguros son **"4" en celdas manuscritas**: en las fotos, 45 de los 203 4 manuscritos están mal (son 1) con confianza de hasta 0,46, mientras que los demás errores no pasan de 0,29. De ahí dos umbrales (D-08): **0,6 para los 4 manuscritos y 0,35 para el resto**. Aplicados a las fotos, las sospechosas bajan de 19,8 a 13,2 por foto sin ningún error más sin marcar (hay 5 sin marcar con las dos reglas: dígitos tenues que el segmentador no ve en las fotos reducidas).
+- **Votación:** la confianza votada pasa de la mejor a la **media** de las lecturas que coinciden. Con la mejor, una lectura suelta de 0,57 de un 1 leído como 4 en todos los fotogramas superaba el umbral, y solo la marcaba la regla de repetidos; con la media, el peor error votado queda en 0,44 (4 manuscrito) y 0,23 (resto), con margen frente a 0,6 y 0,35. 4 lecturas como máximo, completa desde 3 si todas las celdas tienen ≥ 80 % de acuerdo.
+- **Celdas dudosas:** una celda con tinta en ≥ 20 % de las lecturas, pero no en la mayoría, queda con tinta y sin confianza, y se marca. Sin esto, los dígitos a lápiz muy tenues (4.4) quedaban como vacíos: el mejor ajuste sin celdas dudosas deja 2 errores sin marcar.
+- **Estabilidad y distancia:** movimiento de hasta el **8 %** del lado (el 2 % se reiniciaba por la deriva de la mano) durante 0,3 s, y "Acércate" por debajo del **15 %** del fotograma (antes 25 %; los resultados son iguales entre 10 % y 20 %).
+
+| | Capturan | Sospechosas | Sin marcar | Tiempo (mediana / máx.) |
+|---|---|---|---|---|
+| Umbrales de 4.3, ajuste | 2/7 | 8,5 | 0 | 1,8 / 1,8 s |
+| Umbrales de 4.3, comprobación | 3/5 | 20,7 | 0 | 1,2 / 1,3 s |
+| **Elegidos, ajuste** | **7/7** | **13,1** | **0** | 1,7 / 2,4 s |
+| **Elegidos, comprobación** | **5/5** | **15,0** | **0** | 1,6 / 1,7 s |
+
+En las 12 secuencias, con los valores por defecto ya cambiados (`SequenceReplayTest`): todas capturan con 4 lecturas, **13,9 sospechosas de media** (4–25) y ningún error sin marcar. **La meta de ≤ 8 no se alcanza** sin arriesgar errores sin marcar: lo que queda son sobre todo 1 manuscritos, que ML Kit lee como 4 con la misma confianza que los 4 de verdad, y manuscritos con confianza baja. Hay configuraciones con 8,6–11 sospechosas, pero con algún error por encima del umbral que solo marca la regla de repetidos; se descartan. El resto queda para la CNN propia (Fase 5), que puede aprender la letra del usuario. Los tiempos usan las lecturas del test (0,26–0,34 s, frente a ≈ 0,2 s en vivo), así que el máximo de 2,4 s es pesimista; se mide en vivo en 4.7.
+
 ## 4.6 Pantalla del escáner completa
 - Flash (linterna), galería, cerrar y disparador manual como respaldo, con el estilo de la maqueta (iconos de trazo de `StrokeIcons`).
 - Captura automática → vibración breve → revisión. El tablero leído entra en la revisión como el de la galería.

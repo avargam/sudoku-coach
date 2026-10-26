@@ -63,8 +63,11 @@ class LiveScanner(
     private val stability: StabilityTracker = StabilityTracker(),
     private val voter: CellVoter = CellVoter(),
     private val graceFrames: Int = 5,
-    /** Fracción del fotograma por debajo de la cual se pide acercarse. */
-    private val minAreaFraction: Double = 0.25,
+    /**
+     * Fracción del fotograma por debajo de la cual se pide acercarse: 15 % (tarea 4.5); con el 25 %
+     * inicial, tal como se sostiene el móvil (el tablero ocupa el 23–30 %), muchas veces no se leía.
+     */
+    private val minAreaFraction: Double = 0.15,
 ) {
     private val _state = MutableStateFlow(LiveFrame.Searching)
     val state: StateFlow<LiveFrame> = _state.asStateFlow()

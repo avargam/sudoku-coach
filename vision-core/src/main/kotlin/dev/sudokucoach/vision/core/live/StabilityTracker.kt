@@ -17,7 +17,8 @@ data class Corner(val x: Double, val y: Double)
  * [maxGapMillis] no interrumpe el periodo.
  */
 class StabilityTracker(
-    private val maxShift: Double = 0.02,
+    /** 8 % (tarea 4.5): con el 2 % la deriva de la mano reiniciaba el periodo antes de votar. */
+    private val maxShift: Double = 0.08,
     private val stillMillis: Long = 300,
     private val maxGapMillis: Long = 200,
 ) {

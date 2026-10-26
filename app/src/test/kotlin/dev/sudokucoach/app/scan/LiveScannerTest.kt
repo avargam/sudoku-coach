@@ -45,8 +45,8 @@ class LiveScannerTest {
     @Test
     fun `un tablero pequeno pide acercarse y no se lee`() {
         val scanner = scanner()
-        assertFalse(scanner.onFrame(square(0.4f), 0)) // 16 % del fotograma
-        assertFalse(scanner.onFrame(square(0.4f), 400))
+        assertFalse(scanner.onFrame(square(0.3f), 0)) // 9 % del fotograma
+        assertFalse(scanner.onFrame(square(0.3f), 400))
         assertEquals(LiveStatus.TOO_FAR, scanner.state.value.status)
     }
 
