@@ -2,7 +2,7 @@
 
 App Android que escanea un sudoku en papel con la cámara, reconoce el estado actual del tablero y muestra **el siguiente paso lógico** a seguir, indicando la técnica humana que lo justifica (Naked Single, X-Wing, XY-Wing, etc.) y explicándola.
 
-> Estado: **Fase 4 en curso** (cámara en vivo); la Fase 3 (app mínima de extremo a extremo) está cerrada. El `solver` implementa las 13 técnicas hasta subconjuntos y coincide con HoDoKu en los 16 753 pasos de un banco de 300 puzzles (Fase 1). `vision-core` y `vision` leen el tablero de una foto en el móvil: impresos 100 %, manuscritos 94,6 % (Fase 2). La app lee una foto de la galería en ≈ 0,5 s, marca las celdas dudosas para revisarlas y da pistas con revelado gradual y explicación en español (Fase 3).
+> Estado: **Fase 4.5 en curso** (publicación); la Fase 4 (cámara en vivo) está cerrada. El `solver` implementa las 13 técnicas hasta subconjuntos y coincide con HoDoKu en los 16 753 pasos de un banco de 300 puzzles (Fase 1). `vision-core` y `vision` leen el tablero de una foto en el móvil: impresos 100 %, manuscritos 94,6 % (Fase 2). La app lee una foto de la galería en ≈ 0,5 s, marca las celdas dudosas para revisarlas y da pistas con revelado gradual y explicación en español (Fase 3).
 
 ## Documentación
 
@@ -17,6 +17,7 @@ App Android que escanea un sudoku en papel con la cámara, reconoce el estado ac
 | [docs/07-puesta-en-marcha.md](docs/07-puesta-en-marcha.md) | Cómo retomar el entorno: WSL, móvil por USB, tests |
 | [docs/08-plan-fase-3.md](docs/08-plan-fase-3.md) | Plan detallado de la Fase 3 (app mínima de extremo a extremo) |
 | [docs/09-plan-fase-4.md](docs/09-plan-fase-4.md) | Plan detallado de la Fase 4 (cámara en vivo) |
+| [docs/10-plan-fase-4-5.md](docs/10-plan-fase-4-5.md) | Plan detallado de la Fase 4.5 (publicación) |
 
 ## Estructura del repositorio
 
