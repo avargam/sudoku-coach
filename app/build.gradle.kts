@@ -84,6 +84,10 @@ tasks.withType<Test>().configureEach {
     val bank = rootProject.file("solver/src/test/resources/bank")
     systemProperty("sudokucoach.labels", labels.absolutePath)
     systemProperty("sudokucoach.bank", bank.absolutePath)
+    // Secuencias grabadas (tarea 4.4): no se versionan, así que pueden no estar (en la CI).
+    val sequences = rootProject.file("testdata/vision/sequences")
+    systemProperty("sudokucoach.sequences", sequences.absolutePath)
+    inputs.files(fileTree(sequences) { include("*/frames.txt", "*/label.txt") }).withPropertyName("sequences")
     inputs.dir(labels).withPropertyName("labels")
     inputs.dir(bank).withPropertyName("bank")
 }

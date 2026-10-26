@@ -83,7 +83,7 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 - [x] 4.1 Fotogramas → `Mat`, detección por fotograma y medida de la votación frente a una foto
 - [x] 4.2 Contorno del tablero en vivo, en el acento
 - [x] 4.3 Estabilidad y votación por celda en `vision-core`
-- [ ] 4.4 Grabación de secuencias (debug) y etiquetado
+- [x] 4.4 Grabación de secuencias (debug) y etiquetado
 - [ ] 4.5 Ajuste con datos: menos sospechosas sin errores sin marcar
 - [ ] 4.6 Pantalla del escáner completa: flash, galería, disparador manual y captura automática
 - [ ] 4.7 Rendimiento: presupuesto por fotograma y < 2 s hasta la revisión

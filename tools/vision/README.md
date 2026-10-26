@@ -24,5 +24,26 @@ adb logcat -d -s LiveMeasure > tablero.log
 python3 live_measure.py tablero.log [030]   # sin id, busca la etiqueta más parecida
 ```
 
+Secuencias grabadas en vivo (D-22, tarea 4.4), con la app de debug: botón **Grabar** del escáner,
+una secuencia por página (algo de movimiento al principio y 3–5 s quieto; se para sola a los 8 s).
+
+```bash
+tools/vision/pull_sequences.sh                                       # móvil → testdata/vision/sequences/
+./gradlew :vision-core:labelHelper --args="--sequences"              # plantilla label.txt + vision-core/build/labeling/<id>.png
+python3 tools/vision/prefill_labels.py                               # con frames.txt: rellena los ? con lo más leído
+tools/vision/push_labels.sh                                          # etiquetas → móvil
+adb shell am instrument -w -e class dev.sudokucoach.app.scan.SequenceScanTest \
+    dev.sudokucoach.test/androidx.test.runner.AndroidJUnitRunner     # lector real; resumen en logcat (SequenceScanTest)
+tools/vision/pull_sequences.sh                                       # trae frames.txt (lectura de cada fotograma)
+./gradlew :app:testDebugUnitTest --tests "*SequenceReplayTest*"      # reproduce en la JVM con frames.txt
+```
+
+Los fotogramas se quedan en el móvil (`files/sequences` de la app), que es de donde los lee el test:
+enviar decenas de MB por usbipd se atasca. La plantilla se rellena con la etiqueta de una foto si el
+patrón de tinta y de impresos coincide. Si no, la primera pasada de SequenceScanTest (sin etiquetas)
+deja `frames.txt`, `prefill_labels.py` rellena los `?` con lo más leído por ML Kit y avisa de los
+dígitos repetidos, y cada etiqueta se revisa contra la imagen de revisión: la mayoría de ML Kit suele
+fallar en los 1 manuscritos (leídos como 4) y no ve los dígitos que el segmentador no recorta.
+
 `prepare_photos.py` aplica la orientación del EXIF **antes** de quitarlo: el móvil guarda la foto girada
 y solo la endereza al mostrarla, así que sin ese paso las fotos quedarían de lado.

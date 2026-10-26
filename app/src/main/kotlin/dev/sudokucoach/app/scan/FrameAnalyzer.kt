@@ -25,11 +25,14 @@ import kotlin.math.roundToInt
  * conversión y detección y los fotogramas por segundo, y cada captura. Con [measure], en vez de
  * votar, lee el tablero completo en cada fotograma en que se detecta y escribe la lectura, para
  * comparar fotogramas entre sí y con la etiqueta de la foto (`tools/vision/live_measure.py`).
+ * Mientras [recorder] graba (tarea 4.4), solo se detecta y se guarda cada fotograma: no se lee
+ * ni se captura, para que la secuencia tenga todos los fotogramas.
  */
 class FrameAnalyzer(
     private val scanner: LiveScanner,
     private val logStats: Boolean,
     private val measure: Boolean,
+    private val recorder: FrameRecorder? = null,
 ) : ImageAnalysis.Analyzer, Closeable {
     private val detector = BoardDetector()
     private val recognizerInit = lazy { MlKitGridReader() }
@@ -55,14 +58,16 @@ class FrameAnalyzer(
                     outline = it.corners.map { c -> unrotate(c.x, c.y, gray.cols(), gray.rows(), rotation) },
                 )
             }
-            val read = scanner.onFrame(detection, (done / 1e6).toLong())
+            val recording = recorder?.recording?.value == true
+            if (recording) recorder.save(gray, (start / 1e6).toLong(), rotation)
+            val read = scanner.onFrame(detection, (done / 1e6).toLong()) && !recording
             if (scan != null) detected++
             convertMillis += (converted - start) / 1e6
             detectMillis += (done - converted) / 1e6
 
             when {
                 scan == null -> Unit
-                measure -> {
+                measure && !recording -> {
                     val reading = reader.read(scan)
                     Log.i(TAG, "read ms=${((System.nanoTime() - done) / 1e6).roundToInt()} ${reading.describe()}")
                     reading.release()

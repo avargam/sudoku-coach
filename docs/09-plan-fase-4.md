@@ -128,6 +128,24 @@ Lectura (sospechosas por tablero, con el umbral 0,5) en tres páginas que no han
 
 **Hecho cuando:** hay ≥ 10 secuencias etiquetadas y un test instrumentado que las reproduce con el lector real y la votación, y escribe sospechosas, errores sin marcar y tiempo hasta la captura.
 
+**Resultado:** 12 secuencias de 10 páginas (dos repetidas), de 159–191 fotogramas a ≈ 23 fotogramas/s, todas etiquetadas.
+- **Grabación:** botón "Grabar" del escáner en debug (`FrameRecorder`); se para sola a los 8 s y, mientras graba, no lee ni captura. Los fotogramas se guardan **sin reducir**, al contrario de lo que decía D-22, para que reproducirlos lea lo mismo que en vivo: ≈ 60 MB por secuencia, en el almacenamiento interno de la app. `tools/vision/pull_sequences.sh` los trae a `testdata/vision/sequences/` (ignorada por git). Enviarlos de vuelta al móvil por usbipd se atasca, así que el test los lee de donde se grabaron y solo se envían las etiquetas (`push_labels.sh`).
+- **Etiquetado:** `labelHelper --sequences` hace la plantilla sobre el primer fotograma con tablero desde el 70 % de la secuencia y la rellena con la etiqueta de una foto si coinciden la tinta y los impresos (la tinta sola no basta: todos los tableros llenos son iguales). Ninguna página coincidió con las 30 fotos; `prefill_labels.py` rellenó los `?` con lo más leído por ML Kit y se revisaron todos contra la imagen. La mayoría de ML Kit fallaba en ≈ 30 celdas, casi todas 1 manuscritos leídos como 4. En 3 secuencias el segmentador no ve 4 dígitos a lápiz muy tenues (S…205600 F1C9 y F2C9, S…205621 F8C8, S…205631 F1C5): se etiquetan como manuscritos y, si se captura, serán errores sin marcar.
+- **Reproducción:** `SequenceScanTest` (móvil) pasa cada fotograma una vez por el lector real y guarda `frames.txt`; `replay` reproduce `LiveScanner` con esos tiempos, descartando los fotogramas que llegan mientras se lee, y lo usan el test del móvil y `SequenceReplayTest` (JVM, mismo resultado). Las lecturas del test tardan 0,26–0,34 s, más que en vivo (≈ 0,2 s), así que los tiempos reproducidos son algo pesimistas, y como dependen de esos tiempos, dos ejecuciones del test no capturan exactamente los mismos fotogramas; para comparar umbrales se usa siempre el mismo `frames.txt`.
+
+Con los umbrales de 4.3:
+
+| Secuencia | Captura | Lecturas | Sospechosas | Errores | Sin marcar |
+|---|---|---|---|---|---|
+| S…201411 | 1839 ms | 3 | 7 | 0 | 0 |
+| S…205443 | 707 ms | 3 | 18 | 3 | 0 |
+| S…205500 | 1439 ms | 3 | 10 | 1 | 0 |
+| S…205550 | 1205 ms | 3 | 33 | 5 | 0 |
+| S…205611 | 1303 ms | 3 | 11 | 2 | 0 |
+| otras 7 | sin captura | 0–4 | | | |
+
+**7 de 12 no capturan**, por dos causas que se ajustan en 4.5: en 3 el tablero ocupa menos del 25 % del fotograma ("Acércate") casi todo el tiempo (las medianas van del 23 % al 30 %, así que el umbral es demasiado alto para cómo se sostiene el móvil), y en las demás la estabilidad (2 % del lado respecto al inicio del periodo) se reinicia por la deriva de la mano antes de completar la votación, que con 4 lecturas aún no tiene mayoría clara en todas las celdas. Entre fotogramas seguidos, el movimiento es de ≈ 0,3 % del lado.
+
 ## 4.5 Ajuste con datos: menos sospechosas sin errores sin marcar
 - Primero, el umbral de confianza con los datos que ya hay: la confianza de las 2201 lecturas de la Fase 2 y de los 30 originales. ¿Hay un umbral por debajo de 0,5 sin ningún error por encima? Ese es el mínimo que se gana sin votar.
 - Después, los umbrales de la votación (D-21) con las secuencias: se busca la combinación que minimiza las sospechosas **con 0 errores sin marcar**.

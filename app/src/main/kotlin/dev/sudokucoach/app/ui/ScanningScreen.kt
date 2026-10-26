@@ -69,6 +69,7 @@ import dev.sudokucoach.app.camera.CameraViewfinder
 import dev.sudokucoach.app.camera.BufferPoint
 import dev.sudokucoach.app.camera.ViewfinderMapping
 import dev.sudokucoach.app.scan.FrameAnalyzer
+import dev.sudokucoach.app.scan.FrameRecorder
 import dev.sudokucoach.app.scan.LiveScanner
 import dev.sudokucoach.app.scan.LiveStatus
 import dev.sudokucoach.app.scan.PhotoDecoder
@@ -76,6 +77,7 @@ import dev.sudokucoach.app.scan.ScannedBoard
 import dev.sudokucoach.app.ui.theme.SudokuTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Primera pantalla (tarea 4.0): el visor de la cámara a pantalla completa y un botón para elegir
@@ -125,14 +127,18 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
     val scanner = remember { LiveScanner() }
     val live by scanner.state.collectAsStateWithLifecycle()
     LaunchedEffect(scanner) { scanner.captures.collect(onScanned) }
-    // Medidas de la tarea 4.1, solo en debug: tiempos siempre y, al abrir la app con
-    // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las lecturas.
-    val debuggable = LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+    // Solo en debug: tiempos en logcat (4.1); con la app abierta con
+    // `adb shell am start -n dev.sudokucoach/.app.MainActivity --ez measure true`, también las
+    // lecturas; y el botón de grabar secuencias (4.4).
+    val context = LocalContext.current
+    val debuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
     val measure = debuggable && LocalActivity.current?.intent?.getBooleanExtra(EXTRA_MEASURE, false) == true
+    val recorder = remember { if (debuggable) FrameRecorder(File(context.filesDir, "sequences")) else null }
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        CameraViewfinder(Modifier.fillMaxSize(), analyzer = { FrameAnalyzer(scanner, logStats = debuggable, measure = measure) }) { mapping ->
+        CameraViewfinder(Modifier.fillMaxSize(), analyzer = { FrameAnalyzer(scanner, debuggable, measure, recorder) }) { mapping ->
             live.outline?.let { BoardOutline(it, mapping) }
         }
+        recorder?.let { RecordButton(it, Modifier.align(Alignment.TopEnd).windowInsetsPadding(WindowInsets.safeDrawing).padding(8.dp)) }
         Column(
             Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -165,6 +171,18 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
                 Reading(state, textColor = Color.White)
             }
         }
+    }
+}
+
+/** Grabar una secuencia de fotogramas (solo debug, tarea 4.4). */
+@Composable
+private fun RecordButton(recorder: FrameRecorder, modifier: Modifier) {
+    val recording by recorder.recording.collectAsStateWithLifecycle()
+    TextButton(
+        onClick = { if (recording) recorder.stop() else recorder.start() },
+        modifier.background(if (recording) Color.Red.copy(alpha = 0.8f) else Scrim, RoundedCornerShape(50)),
+    ) {
+        Text(if (recording) "Parar" else "Grabar", color = Color.White)
     }
 }
 
