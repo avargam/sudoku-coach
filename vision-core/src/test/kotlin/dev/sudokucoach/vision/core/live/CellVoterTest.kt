@@ -6,7 +6,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
- * Votación por celda (tareas 4.3 y 4.5). Solo cambia la celda 0; el resto del tablero está vacío.
+ * Votación por celda (tareas 4.3, 4.5 y 4.8). Solo cambia la celda 0; el resto del tablero está vacío.
  * Salvo que se diga, con la mejor confianza y sin celdas dudosas, para probar cada regla por separado.
  */
 class CellVoterTest {
@@ -83,6 +83,34 @@ class CellVoterTest {
         // Por debajo de la fracción mínima, vacía.
         val few = CellVoter(faintInkShare = 0.3)
         assertEquals(CellReading.EMPTY, vote(read(7, 0.6f), read(0, 1f, inked = false), read(0, 1f, inked = false), read(0, 1f, inked = false), voter = few))
+    }
+
+    @Test
+    fun `los fotogramas solo segmentados y los trazos tenues cuentan para la celda dudosa`() {
+        // Ninguna lectura ve el 7 como dígito; un trazo tenue en una lectura y tinta en 1 de 4
+        // fotogramas solo segmentados: 2 de 8 observaciones, la celda queda dudosa y sin dígito.
+        val voter = CellVoter(faintInkShare = 0.2)
+        val empty = List(81) { false }
+        val marked = listOf(true) + List(80) { false }
+        voter.addInk(empty)
+        voter.addInk(marked)
+        voter.addInk(empty)
+        voter.addInk(empty)
+        val faint = listOf(CellReading(0, 1f, inked = false, printed = false, faint = true)) + List(80) { CellReading.EMPTY }
+        val cell = vote(faint, read(0, 1f, inked = false), read(0, 1f, inked = false), read(0, 1f, inked = false), voter = voter)
+        assertEquals(CellReading(0, 0f, inked = true, printed = false), cell)
+        // Sin los fotogramas solo segmentados, 1 de 4: también dudosa; con 1 de 8 por debajo de 0,2, vacía.
+        val few = CellVoter(faintInkShare = 0.2)
+        repeat(4) { few.addInk(empty) }
+        assertEquals(CellReading.EMPTY, vote(faint, read(0, 1f, inked = false), read(0, 1f, inked = false), read(0, 1f, inked = false), voter = few))
+    }
+
+    @Test
+    fun `al reiniciar se olvidan tambien los fotogramas solo segmentados`() {
+        val voter = CellVoter(faintInkShare = 0.2)
+        repeat(3) { voter.addInk(listOf(true) + List(80) { false }) }
+        voter.reset()
+        assertEquals(CellReading.EMPTY, vote(read(0, 1f, inked = false), read(0, 1f, inked = false), voter = voter))
     }
 
     @Test

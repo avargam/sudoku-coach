@@ -144,11 +144,17 @@ Al implementarla (Fase 3): los posibles errores del usuario también bloquean la
 ## D-20 · Cámara con CameraX
 Aceptada al planificar la Fase 4; detalle en `09-plan-fase-4.md`: `Preview` e `ImageAnalysis` (último fotograma, YUV 420, ≈ 1920 × 1080) y el plano Y como imagen en gris, sin `Bitmap`; visor en Compose si es posible; permiso en tiempo de ejecución, con la galería como alternativa si se deniega.
 
+**Resultado (Fase 4):** CameraX 1.6.2 con `CameraXViewfinder` de `camera-compose`. El análisis va a 1920 × 1080 sin reducir (reducir a 1600 px no mejoraba la lectura, tarea 4.1). El contorno se lleva del análisis a la pantalla con coordenadas normalizadas del búfer y la inversa de la transformación del visor, porque el visor ocupa el oyente de transformación del `SurfaceRequest`. Con `STRATEGY_KEEP_ONLY_LATEST` los fotogramas no se encolan: el retraso desde el sensor es estable, ≈ 0,1 s (tarea 4.7).
+
 ## D-21 · Lectura en vivo con votación por celda
 Aceptada al planificar la Fase 4, con preferencia del usuario por los fotogramas frente a una foto fija al estabilizarse: detección en cada fotograma para el contorno y la estabilidad; con el tablero quieto, lecturas completas de varios fotogramas y votación por celda (mayoría y confianza combinada); captura automática cuando la votación se estabiliza o al llegar al máximo de lecturas. Umbrales fijados con datos. Se reconsidera si en 4.1 los fotogramas leen claramente peor que una foto. Salvedad conocida: la votación no corrige errores sistemáticos como el 1 manuscrito leído como 4.
 
+**Resultado (Fase 4):** se mantiene. Una lectura de un fotograma es peor que la de la foto, pero el voto de 4 lecturas la supera (4.1). Valores fijados con las secuencias (4.5): movimiento de hasta el 8 % del lado durante 0,3 s, tablero de al menos el 15 % del fotograma, 3–4 lecturas con ≥ 80 % de acuerdo, confianza como **media** de las lecturas que coinciden, y celdas sin tinta en la mayoría de las lecturas, pero con tinta o un trazo tenue en ≥ 20 % de las observaciones (las lecturas y los fotogramas de la espera, solo segmentados), marcadas como dudosas (4.8: sin los trazos tenues, un 7 a lápiz que el segmentador ve en el 11 % de los fotogramas quedaba sin marcar según qué fotogramas se votaran). En vivo, de quieto a la revisión: mediana 1,26 s, máximo 1,66 s (4.7). Como se temía, la meta de ≤ 8 sospechosas no se alcanza (13,9 de media en las secuencias): lo que queda es sobre todo el 1/4 manuscrito, que pasa a la Fase 5.
+
 ## D-22 · Secuencias grabadas como datos de prueba
 Aceptada al planificar la Fase 4: la cámara no se automatiza en los tests, así que una herramienta de debug graba sesiones de fotogramas en gris que se etiquetan y se reproducen en la JVM y en el móvil. No se versionan, como los originales de D-17.
+
+**Resultado (Fase 4):** 12 secuencias de 12 páginas (8 s cada una, JPEG en gris en `files/sequences` del móvil). `SequenceScanTest` las lee en el móvil con ML Kit una vez y guarda la lectura de cada fotograma en `frames.txt`, que la JVM reproduce en segundos (`SequenceReplayTest`, `LiveTuningTest`). Los fotogramas no se copian al móvil ni desde él por usbipd, que se atasca con decenas de MB: solo las etiquetas y los `frames.txt` (`tools/vision/push_labels.sh`, `pull_sequences.sh`).
 
 ---
 

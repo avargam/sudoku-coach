@@ -13,7 +13,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Contorno, estado, estabilidad y votación del escáner (tareas 4.2 y 4.3). */
+/** Contorno, estado, estabilidad y votación del escáner (tareas 4.2, 4.3 y 4.8). */
 class LiveScannerTest {
     /** Cuadrado centrado que ocupa [side] × [side] del fotograma, desplazado [shift] (fracción). */
     private fun square(side: Float, shift: Float = 0f): Detection {
@@ -36,17 +36,17 @@ class LiveScannerTest {
     @Test
     fun `un tablero grande pide quedarse quieto y luego se lee`() {
         val scanner = scanner()
-        assertFalse(scanner.onFrame(square(0.8f), 0))
+        assertEquals(FrameAction.INK, scanner.onFrame(square(0.8f), 0)) // esperando, solo se segmenta
         assertEquals(LiveFrame(square(0.8f).outline, LiveStatus.HOLD_STILL), scanner.state.value)
-        assertTrue(scanner.onFrame(square(0.8f), 300))
+        assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f), 300))
         assertEquals(LiveStatus.READING, scanner.state.value.status)
     }
 
     @Test
     fun `un tablero pequeno pide acercarse y no se lee`() {
         val scanner = scanner()
-        assertFalse(scanner.onFrame(square(0.3f), 0)) // 9 % del fotograma
-        assertFalse(scanner.onFrame(square(0.3f), 400))
+        assertEquals(FrameAction.NONE, scanner.onFrame(square(0.3f), 0)) // 9 % del fotograma
+        assertEquals(FrameAction.NONE, scanner.onFrame(square(0.3f), 400))
         assertEquals(LiveStatus.TOO_FAR, scanner.state.value.status)
     }
 
@@ -65,15 +65,15 @@ class LiveScannerTest {
         val scanner = scanner()
         scanner.onFrame(square(0.8f), 0)
         for (t in listOf(300L, 500L)) {
-            assertTrue(scanner.onFrame(square(0.8f), t))
+            assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f), t))
             assertNull(scanner.onReading(reading, t + 200))
         }
-        assertTrue(scanner.onFrame(square(0.8f), 700))
+        assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f), 700))
         val board = assertNotNull(scanner.onReading(reading, 900))
         assertEquals(5, board.values[0])
         assertEquals(DigitOrigin.GIVEN, board.origins[0])
         assertEquals(900L, board.millis) // desde que el tablero se quedó quieto, en 0
-        assertFalse(scanner.onFrame(square(0.8f), 950))
+        assertEquals(FrameAction.NONE, scanner.onFrame(square(0.8f), 950))
         assertNull(scanner.onReading(reading, 1000))
     }
 
@@ -86,17 +86,17 @@ class LiveScannerTest {
         assertEquals(1, scanner.state.value.reads)
         scanner.captureNow()
         // En el siguiente fotograma, aunque se haya movido: sin leer otra vez.
-        assertFalse(scanner.onFrame(square(0.8f, shift = 0.1f), 550))
+        assertEquals(FrameAction.NONE, scanner.onFrame(square(0.8f, shift = 0.1f), 550))
         assertEquals(1, scanner.reads)
-        assertFalse(scanner.onFrame(square(0.8f), 600)) // ya capturado
+        assertEquals(FrameAction.NONE, scanner.onFrame(square(0.8f), 600)) // ya capturado
     }
 
     @Test
     fun `el disparador manual sin lecturas lee el siguiente fotograma con tablero`() {
         val scanner = scanner()
         scanner.captureNow()
-        assertFalse(scanner.onFrame(null, 0)) // sin tablero, espera
-        assertTrue(scanner.onFrame(square(0.3f), 40)) // aunque esté lejos y no quieto
+        assertEquals(FrameAction.NONE, scanner.onFrame(null, 0)) // sin tablero, espera
+        assertEquals(FrameAction.READ, scanner.onFrame(square(0.3f), 40)) // aunque esté lejos y no quieto
         val board = assertNotNull(scanner.onReading(reading, 240))
         assertEquals(5, board.values[0])
     }
@@ -108,7 +108,7 @@ class LiveScannerTest {
         scanner.onFrame(square(0.8f), 300)
         scanner.onReading(reading, 400)
         scanner.onReading(reading, 500)
-        assertFalse(scanner.onFrame(square(0.8f, shift = 0.05f), 550))
+        assertEquals(FrameAction.INK, scanner.onFrame(square(0.8f, shift = 0.05f), 550))
         assertEquals(0, scanner.reads)
         assertEquals(LiveStatus.HOLD_STILL, scanner.state.value.status)
     }
@@ -122,6 +122,46 @@ class LiveScannerTest {
         scanner.reset()
         assertEquals(LiveFrame.Searching, scanner.state.value)
         scanner.onFrame(square(0.8f), 1000)
-        assertTrue(scanner.onFrame(square(0.8f), 1300))
+        assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f), 1300))
+    }
+
+    @Test
+    fun `la tinta de la espera cuenta para las celdas dudosas y se olvida al moverse`() {
+        val marked = listOf(true) + List(80) { false }
+        val clean = List(81) { false }
+        val empty = List(81) { CellReading.EMPTY }
+
+        /** Espera con [before] fotogramas marcados, un movimiento, espera con [after] y 3 lecturas sin tinta. */
+        fun capture(before: List<List<Boolean>>, after: List<List<Boolean>>): ScannedBoard {
+            val scanner = LiveScanner(StabilityTracker(maxShift = 0.02, stillMillis = 300), CellVoter(minReads = 3, maxReads = 3, faintInkShare = 0.2))
+            var t = 0L
+            for (marks in before) {
+                assertEquals(FrameAction.INK, scanner.onFrame(square(0.8f), t))
+                scanner.onInk(marks)
+                t += 40
+            }
+            for (marks in after) {
+                assertEquals(FrameAction.INK, scanner.onFrame(square(0.8f, shift = 0.05f), t))
+                scanner.onInk(marks)
+                t += 40
+            }
+            t += 300
+            repeat(2) {
+                assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f, shift = 0.05f), t))
+                assertNull(scanner.onReading(empty, t + 200))
+                t += 220
+            }
+            assertEquals(FrameAction.READ, scanner.onFrame(square(0.8f, shift = 0.05f), t))
+            return assertNotNull(scanner.onReading(empty, t + 200))
+        }
+
+        // Tinta en 2 de 3 fotogramas de la espera y en ninguna lectura: 2 de 6, dudosa.
+        val faint = capture(before = emptyList(), after = listOf(marked, marked, clean))
+        assertTrue(faint.inked[0])
+        assertEquals(0, faint.values[0])
+        assertFalse(faint.inked[1])
+        // La tinta de antes de moverse no cuenta: 1 de 6, vacía (con ella, 4 de 9).
+        val moved = capture(before = listOf(marked, marked, marked), after = listOf(marked, clean, clean))
+        assertFalse(moved.inked[0])
     }
 }

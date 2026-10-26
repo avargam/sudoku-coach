@@ -215,6 +215,26 @@ En las 12 secuencias, con los valores por defecto ya cambiados (`SequenceReplayT
 - Prueba en vivo en el A57 con varias páginas del libro, anotando el tiempo hasta la captura y las sospechosas.
 - Actualizar `03-diseno.md` §4.4 y §5.1, las casillas de `04-plan-implementacion.md` y D-20 a D-22 en `02-decisiones.md`.
 
+**Resultado:** prueba de extremo a extremo en `SequenceScanTest` (en el A57) y en `SequenceReplayTest` (JVM, con los `frames.txt` del móvil): lector real y votación → `ScannedBoard` → se corrigen solo las sospechosas → validación (D-19) → primera pista igual a la del motor sobre la etiqueta. 7 de las 12 páginas están resueltas a lápiz en el libro, así que en ellas se comprueba que, corrigiendo las sospechosas, el tablero queda completo y válido; la pista se compara en las otras 5.
+
+- **El test encontró un error sin marcar** que la 4.5 no vio: en S20261025-205600, el 7 a lápiz de F1C9 es tan tenue que el segmentador solo lo ve en el 11 % de los fotogramas. La regla de celda dudosa (≥ 20 % de las lecturas con tinta) solo lo salvaba cuando, por casualidad, alguna de las 4 lecturas votadas lo veía. Reproduciendo cada secuencia desde 20 arranques distintos, 115 de 720 pasadas dejaban F1C9 o F8C8 sin marcar.
+- **Solución:** (1) el segmentador marca como **trazo tenue** una celda vacía cuyo trazo no llega a dígito, pero sí a 0,20 de alto y 25 px de tinta (`Cell.faint`); en los fotogramas, los 3 dígitos tenues de las secuencias pasan de verse en el 11–40 % a verse en el 58–81 %, y en las celdas vacías solo una pasa del 2 %. (2) La votación cuenta como observaciones, además de las lecturas, los fotogramas de la espera hasta que el tablero está quieto, que solo se segmentan (6–8 ms cada uno en el A57, 12 como máximo). Una celda sin dígito votado y con tinta o trazo en ≥ 20 % de las observaciones queda dudosa. Con esto, **0 de 720 pasadas** dejan un error sin marcar, con cualquier umbral entre 0,1 y 0,3, y las sospechosas pasan de 14,2 a 14,3 de media. `SequenceReplayTest` comprueba ahora esas pasadas, no solo una.
+
+| | Capturan | Sospechosas | Sin marcar | Pista o tablero completo correctos | Tiempo hasta la captura |
+|---|---|---|---|---|---|
+| Secuencias, en el A57 | 12/12 | 14,8 de media (5–26) | 0 | 12/12 | 0,87–1,31 s |
+| En vivo, 6 páginas | 6/6 | 12,3 de media (2–31) | — (sin etiqueta) | — | 0,56–0,91 s; a la revisión 1,02–1,37 s |
+
+## Cierre de la fase
+
+| Criterio | Resultado |
+|---|---|
+| Revisión en < 2 s desde que el tablero está quieto | **Cumplido:** mediana 1,26 s y máximo 1,66 s en 30 capturas en vivo (4.7), 1,02–1,37 s tras 4.8 |
+| ≤ 8 celdas sospechosas por tablero de media | **No cumplido:** 13,9–14,8 en las secuencias y 12–15 en vivo, frente a ≈ 20 por foto al empezar. Lo que queda es sobre todo el 1 manuscrito leído como 4 con confianza alta, que la votación no corrige porque se repite en todos los fotogramas; pasa a la CNN propia (Fase 5) |
+| Ninguna lectura errónea sin marcar | **Cumplido** en las 12 secuencias, en el A57 y en 720 pasadas en la JVM, y en las 32 fotos de `EndToEndTest` |
+
+Quedan para más adelante: medir con más de un libro y con fotos difíciles (aplazado por decisión del usuario), y que 7 de las 12 secuencias sean páginas ya resueltas, con pocas celdas vacías para medir la tinta falsa.
+
 ---
 
 ## Orden de trabajo

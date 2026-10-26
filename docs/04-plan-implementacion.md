@@ -87,9 +87,11 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 - [x] 4.5 Ajuste con datos: menos sospechosas sin errores sin marcar
 - [x] 4.6 Pantalla del escáner completa: flash, galería, disparador manual y captura automática
 - [x] 4.7 Rendimiento: presupuesto por fotograma y < 2 s hasta la revisión
-- [ ] 4.8 Prueba de extremo a extremo y cierre
+- [x] 4.8 Prueba de extremo a extremo y cierre
 
 **Hecho cuando:** escaneando en vivo en el A57 se llega a la revisión en < 2 s desde que el tablero está quieto, con ≤ 8 celdas sospechosas por tablero de media y ninguna lectura errónea sin marcar.
+
+**Cerrada:** revisión en 1,0–1,7 s desde que el tablero está quieto y ninguna lectura errónea sin marcar (12 secuencias en el A57, 720 pasadas en la JVM y 32 fotos). La meta de ≤ 8 sospechosas no se alcanza (≈ 14 de media, desde ≈ 20): el 1 manuscrito leído como 4 pasa a la Fase 5. Cifras en [09-plan-fase-4.md](09-plan-fase-4.md#cierre-de-la-fase).
 
 **Aplazado** (decisión del usuario): fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, curvatura) añadidas a `testdata/vision` y medidas; reabrir D-07 (Hough) si la detección baja del 90 %.
 

@@ -4,7 +4,10 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import dev.sudokucoach.app.hint.HintState
 import dev.sudokucoach.app.review.ReviewBoard
+import dev.sudokucoach.solver.Grid
+import dev.sudokucoach.solver.HintEngine
 import dev.sudokucoach.solver.Units
 import dev.sudokucoach.vision.MlKitGridReader
 import dev.sudokucoach.vision.OpenCvAndroid
@@ -25,6 +28,10 @@ import java.io.File
  * `files/replays/<id>.txt` ([FrameLog]) para reproducirlo en la JVM (tarea 4.5), y aquí se reproduce
  * con [replay] como en vivo. Escribe por secuencia las sospechosas, los errores sin marcar y el
  * tiempo hasta la captura con la etiqueta `SequenceScanTest` del log.
+ *
+ * Es también la prueba de extremo a extremo de la Fase 4 (tarea 4.8), como `EndToEndTest` con las
+ * fotos: del tablero votado se corrigen solo las sospechosas y la primera pista tiene que ser la
+ * del motor sobre la etiqueta. Toda secuencia etiquetada tiene que capturar.
  *
  * Los fotogramas se leen de donde los grabó la app (`files/sequences`), sin copiarlos; las etiquetas
  * se copian con `tools/vision/push_labels.sh` y los resultados se traen con
@@ -80,6 +87,7 @@ class SequenceScanTest {
         OpenCvAndroid.ensureLoaded()
         val out = File(appContext.filesDir, "replays").apply { mkdirs() }
         val unflagged = mutableListOf<String>()
+        val failed = mutableListOf<String>()
         MlKitGridReader().use { recognizer ->
             val detector = BoardDetector()
             val reader = BoardReader(recognizer, detector)
@@ -91,21 +99,37 @@ class SequenceScanTest {
                 val expected = label(id)
                 if (board == null) {
                     Log.i(TAG, "$id: ${frames.size} fotogramas, sin captura (${result.reads} lecturas)")
+                    if (expected != null) failed += "$id sin captura"
                     continue
                 }
-                val suspicious = ReviewBoard.from(board).suspicious
+                val review = ReviewBoard.from(board)
+                val suspicious = review.suspicious
                 val wrong = expected?.let { e -> (0 until 81).filter { board.values[it] != e[it] } }
                 val missed = wrong?.let { it - suspicious }.orEmpty()
                 if (missed.isNotEmpty()) unflagged += "$id ${missed.map(Units::cellName)}"
+                val hint = expected?.let { e ->
+                    // El usuario revisa las sospechosas: escribe el dígito correcto (o confirma el leído).
+                    val corrected = suspicious.sorted().fold(review) { b, cell -> b.edit(cell, e[cell]) }
+                    val validation = corrected.validate()
+                    val step = if (validation.allowsHints) HintState.start(corrected.values).step else null
+                    val expectedStep = HintEngine().nextStep(Grid.fromValues(e))
+                    if (!validation.allowsHints || step != expectedStep) failed += "$id pista"
+                    when {
+                        !validation.allowsHints || step != expectedStep -> "pista MAL"
+                        expectedStep == null -> "tablero completo"
+                        else -> "pista ok (${expectedStep.technique.name})"
+                    }
+                }
                 Log.i(
                     TAG,
                     "$id: ${frames.size} fotogramas, captura en ${board.millis} ms con ${result.reads} lecturas, " +
-                        "${suspicious.size} sospechosas, ${wrong?.size ?: "?"} errores, sin marcar ${missed.map(Units::cellName)}" +
-                        if (expected == null) " (sin etiqueta)" else "",
+                        "${suspicious.size} sospechosas, ${wrong?.size ?: "?"} errores, sin marcar ${missed.map(Units::cellName)}, " +
+                        (hint ?: "sin etiqueta"),
                 )
             }
         }
         assertTrue("Lecturas erróneas sin marcar: $unflagged", unflagged.isEmpty())
+        assertTrue("Secuencias sin captura o sin la primera pista correcta: $failed", failed.isEmpty())
     }
 
     private companion object {

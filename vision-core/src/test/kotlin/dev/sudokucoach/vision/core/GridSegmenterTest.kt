@@ -12,7 +12,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-/** Segmentación sobre tableros rectificados sintéticos (tarea 2.4). */
+/** Segmentación sobre tableros rectificados sintéticos (tareas 2.4 y 4.8). */
 class GridSegmenterTest {
 
     init {
@@ -69,6 +69,19 @@ class GridSegmenterTest {
             Imgproc.circle(b, Point(4 * cell + 25, 4 * cell + 25), 2, Scalar(60.0), -1)
         })
         assertTrue(cells.all { it.empty }, "Celdas no vacías: ${cells.filter { !it.empty }.map { it.index }}")
+    }
+
+    @Test
+    fun `un trazo corto queda como celda vacia con trazo tenue y una mota no`() {
+        // Un trozo de lápiz de ≈ 0,22 celdas de alto: no llega a dígito (0,26), sí a trazo tenue (0,20).
+        val cells = segmenter.segment(board { b ->
+            val x = 3 * cell + 25
+            Imgproc.line(b, Point(x, 3 * cell + 20), Point(x, 3 * cell + 26), Scalar(120.0), 3)
+            Imgproc.circle(b, Point(4 * cell + 25, 4 * cell + 25), 2, Scalar(60.0), -1)
+        })
+        assertTrue(cells[30].empty && cells[30].faint, "vacía ${cells[30].empty}, tenue ${cells[30].faint}")
+        assertTrue(cells[40].empty && !cells[40].faint)
+        assertFalse(cells[0].faint)
     }
 
     @Test

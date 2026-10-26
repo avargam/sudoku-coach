@@ -11,8 +11,10 @@ import dev.sudokucoach.vision.MlKitGridReader
 import dev.sudokucoach.vision.core.BoardDetector
 import dev.sudokucoach.vision.core.BoardReader
 import dev.sudokucoach.vision.core.BoardReading
+import dev.sudokucoach.vision.core.GridSegmenter
 import dev.sudokucoach.vision.core.live.Corner
 import dev.sudokucoach.vision.core.live.toCellReadings
+import dev.sudokucoach.vision.core.live.toInkMarks
 import java.io.Closeable
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -20,8 +22,10 @@ import kotlin.math.roundToInt
 /**
  * Análisis de cada fotograma de la cámara (D-21): detección del tablero en todos (tarea 4.1), cuyas
  * esquinas pasan a [scanner] (tarea 4.2), y lectura completa de los que [scanner] pide, con el
- * tablero quieto (tarea 4.3). La lectura reutiliza la detección del fotograma. Se ejecuta en un solo
- * hilo de fondo, así que mientras se lee (≈ 0,2 s) se descartan los fotogramas que llegan.
+ * tablero quieto (tarea 4.3). La lectura reutiliza la detección del fotograma. Mientras se espera a que
+ * el tablero quede quieto, los fotogramas solo se segmentan, para contar la tinta (tarea 4.8). Se
+ * ejecuta en un solo hilo de fondo, así que mientras se lee (≈ 0,12 s) se descartan los fotogramas
+ * que llegan.
  *
  * Con [logStats] (solo en debug) escribe en logcat cada [STATS_FRAMES] fotogramas los tiempos de
  * conversión, detección y lectura, el retraso desde el sensor y los fotogramas por segundo, y cada
@@ -39,11 +43,13 @@ class FrameAnalyzer(
 ) : ImageAnalysis.Analyzer, Closeable {
     private val detector = BoardDetector()
     private val recognizerInit = lazy { MlKitGridReader() }
-    private val reader by lazy { BoardReader(recognizerInit.value, detector) }
+    private val segmenter = GridSegmenter()
+    private val reader by lazy { BoardReader(recognizerInit.value, detector, segmenter) }
 
     private val convertMillis = mutableListOf<Double>()
     private val detectMillis = mutableListOf<Double>()
     private val readMillis = mutableListOf<Double>()
+    private val inkMillis = mutableListOf<Double>()
     private val latencyMillis = mutableListOf<Double>()
     private var detected = 0
     private var windowStart = 0L
@@ -67,7 +73,7 @@ class FrameAnalyzer(
             }
             val recording = recorder?.recording?.value == true
             if (recording) recorder.save(gray, (start / 1e6).toLong(), rotation)
-            val read = scanner.onFrame(detection, (done / 1e6).toLong()) && !recording
+            val action = if (recording) FrameAction.NONE else scanner.onFrame(detection, (done / 1e6).toLong())
             if (scan != null) detected++
             convertMillis += (converted - start) / 1e6
             detectMillis += (done - converted) / 1e6
@@ -79,7 +85,14 @@ class FrameAnalyzer(
                     Log.i(TAG, "read ms=${((System.nanoTime() - done) / 1e6).roundToInt()} ${reading.describe()}")
                     reading.release()
                 }
-                read -> {
+                action == FrameAction.INK -> {
+                    val cells = segmenter.segment(scan.rectified)
+                    scanner.onInk(cells.toInkMarks())
+                    cells.forEach { it.digit?.release() }
+                    scan.rectified.release()
+                    inkMillis += (System.nanoTime() - done) / 1e6
+                }
+                action == FrameAction.READ -> {
                     val reading = reader.read(scan)
                     readMillis += (System.nanoTime() - done) / 1e6
                     val board = scanner.onReading(reading.toCellReadings(), (System.nanoTime() / 1e6).toLong())
@@ -98,11 +111,13 @@ class FrameAnalyzer(
                         "fps=${"%.1f".format(Locale.ROOT, STATS_FRAMES / seconds)} detected=$detected/$STATS_FRAMES " +
                         "convert=${convertMillis.summary()} detect=${detectMillis.summary()} " +
                         "latency=${latencyMillis.summary()} reads=${readMillis.size}" +
-                        (if (readMillis.isEmpty()) "" else " read=${readMillis.summary()}"),
+                        (if (readMillis.isEmpty()) "" else " read=${readMillis.summary()}") +
+                        (if (inkMillis.isEmpty()) "" else " ink=${inkMillis.summary()}"),
                 )
                 convertMillis.clear()
                 detectMillis.clear()
                 readMillis.clear()
+                inkMillis.clear()
                 latencyMillis.clear()
                 detected = 0
                 windowStart = System.nanoTime()

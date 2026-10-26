@@ -19,8 +19,11 @@ import kotlin.math.min
  *   reconocedor (`null` si está vacía). Cada consumidor lo reescala a lo que necesite.
  * @property inkContrast oscuridad de la tinta respecto al papel de la celda, entre 0 y 1. El impreso es
  *   casi negro y el lápiz gris claro, así que sirve para estimar el origen (D-12, D-17).
+ * @property faint en una celda vacía, si hay un trazo que no llega a dígito pero sí a la altura y la
+ *   tinta de [GridSegmenter.faintHeight] y [GridSegmenter.faintInk]: un lápiz muy tenue que en vivo
+ *   se ve a trozos (tarea 4.8). No se lee; solo sirve para marcar la celda como dudosa.
  */
-class Cell(val index: Int, val empty: Boolean, val bounds: Rect?, val digit: Mat?, val inkContrast: Double) {
+class Cell(val index: Int, val empty: Boolean, val bounds: Rect?, val digit: Mat?, val inkContrast: Double, val faint: Boolean = false) {
     /** Si el dígito parece impreso y no escrito a lápiz; `false` en las celdas vacías. */
     val printed: Boolean get() = !empty && inkContrast >= PRINTED_CONTRAST
 
@@ -53,6 +56,14 @@ class GridSegmenter(
     private val minDigitHeight: Double = 0.26,
     /** Tinta mínima del dígito, en píxeles del recorte de la celda. */
     private val minDigitInk: Int = 35,
+    /**
+     * Altura y tinta mínimas de un trazo tenue ([Cell.faint]). Con 0,20 y 25 px, los 3 dígitos a lápiz
+     * de las secuencias que el umbral normal ve en el 11–40 % de los fotogramas se ven en el 58–81 %,
+     * y en las celdas vacías solo una pasa del 2 % (tarea 4.8); con 0,15 y 15 px aparecían trazos en
+     * varias celdas vacías.
+     */
+    val faintHeight: Double = 0.20,
+    val faintInk: Int = 25,
     /** Las manchas deben tener su centro dentro de esta franja (fracción del recorte por cada lado). */
     private val edgeBand: Double = 0.08,
 ) {
@@ -72,15 +83,24 @@ class GridSegmenter(
         val margin = (cellSize * CELL_MARGIN).toInt()
         val inner = Rect((index % 9) * cellSize + margin, (index / 9) * cellSize + margin, cellSize - 2 * margin, cellSize - 2 * margin)
         val cellBinary = binary.submat(inner)
-        val digitBox = digitBox(cellBinary, cellSize)
-        if (digitBox == null) return Cell(index, empty = true, bounds = null, digit = null, inkContrast = 0.0)
+        val strokes = strokes(cellBinary)
+        val digitBox = strokes?.takeIf { it.height >= minDigitHeight * cellSize && it.ink >= minDigitInk }?.box
+        if (digitBox == null) {
+            val faint = strokes != null && strokes.height >= faintHeight * cellSize && strokes.ink >= faintInk
+            return Cell(index, empty = true, bounds = null, digit = null, inkContrast = 0.0, faint = faint)
+        }
 
         val bounds = Rect(inner.x + digitBox.x, inner.y + digitBox.y, digitBox.width, digitBox.height)
         return Cell(index, empty = false, bounds = bounds, digit = squareCrop(gray, bounds, cellSize), inkContrast = inkContrast(gray, binary, inner))
     }
 
-    /** Caja que engloba las manchas del dígito, o `null` si la celda está vacía. */
-    private fun digitBox(cellBinary: Mat, cellSize: Int): Rect? {
+    /** Unión de las manchas de una celda: su caja y su tinta en píxeles. */
+    private class Strokes(val box: Rect, val ink: Int) {
+        val height: Int get() = box.height
+    }
+
+    /** Las manchas que pueden ser de un dígito, o `null` si no hay ninguna. */
+    private fun strokes(cellBinary: Mat): Strokes? {
         val labels = Mat()
         val stats = Mat()
         val centroids = Mat()
@@ -117,8 +137,8 @@ class GridSegmenter(
             bottom = max(bottom, y + ch)
         }
         listOf(labels, stats, centroids).forEach { it.release() }
-        if (right < 0 || bottom - top < minDigitHeight * cellSize || ink < minDigitInk) return null
-        return Rect(left, top, right - left, bottom - top)
+        if (right < 0) return null
+        return Strokes(Rect(left, top, right - left, bottom - top), ink)
     }
 
     /** Recorte cuadrado en gris alrededor del dígito, con un margen del 25 % del lado mayor. */
