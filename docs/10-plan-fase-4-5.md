@@ -119,6 +119,12 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** el README se lee en GitHub (vista previa de la rama) con las imágenes, la demo y todos los enlaces funcionando, y alguien que no conoce el proyecto entiende qué hace y cómo instalarlo.
 
+**Resultado (en curso):** `README.md` en inglés, que sustituye al de trabajo y ya no enlaza `docs/` (D-25), y `README.es.md` con el mismo contenido. Secciones: qué hace, instalar, cómo funciona (con un diagrama Mermaid), lo destacable con cifras, compilar desde el código (con los requisitos de P.4), estructura, hoja de ruta, datos de prueba, y créditos y licencia.
+
+- **Imágenes** en `media/`, sacadas de dos grabaciones de pantalla del A57 en modo oscuro (`adb shell screenrecord`), mientras el usuario escaneaba la página 217 del libro: `demo.gif` (13,8 s, 320 px, 2,2 MB); las capturas sueltas se quitaron, a petición del usuario, porque el GIF ya enseña las tres pantallas. Se recortó la barra de estado, porque la hora saltaba entre las dos grabaciones.
+- **Fallo visto en la grabación:** en la pista, tras **Aplicar paso**, la línea "Paso aplicado: N candidatos descartados" tapa el final de la explicación de la tercera etapa. Las imágenes están tomadas antes de aplicar.
+- Falta comprobar el README en la vista previa de GitHub.
+
 ## P.6 Revisión antes de hacerlo público
 - **Secretos e información privada:** buscar en todo el historial claves, rutas personales, `local.properties` y tokens (`git log -p` con patrones, y `gitleaks` si se puede instalar). Confirmar que no se versionan los originales, las secuencias ni el reglib de HoDoKu.
 - **Correos en el historial:** algunos commits llevan el correo de la universidad, que quedaría público; decide el usuario si se acepta o se reescribe el autor (`git filter-repo --mailmap`), en la misma reescritura que saca `docs/` (P.7).
