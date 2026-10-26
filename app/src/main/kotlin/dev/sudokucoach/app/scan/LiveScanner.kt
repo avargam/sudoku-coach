@@ -38,6 +38,17 @@ data class LiveFrame(val outline: List<BufferPoint>?, val status: LiveStatus, va
     }
 }
 
+/** Qué hacer con un fotograma con tablero, según [LiveScanner.onFrame]. */
+enum class FrameAction {
+    NONE,
+
+    /** Solo segmentar y pasar la tinta a [LiveScanner.onInk]: es barato (tarea 4.8). */
+    INK,
+
+    /** Leer el tablero completo y pasar la lectura a [LiveScanner.onReading]. */
+    READ,
+}
+
 /**
  * Tablero detectado en un fotograma: [corners] en píxeles de la imagen, para la estabilidad, y
  * [outline] en coordenadas del búfer, para dibujarlo.
@@ -50,8 +61,9 @@ class Detection(val corners: List<Corner>, val outline: List<BufferPoint>)
  *
  * 1. Cada fotograma da el contorno y alimenta la estabilidad ([StabilityTracker]).
  * 2. Con el tablero quieto y a buena distancia, [onFrame] pide leer el fotograma; cada lectura
- *    pasa a [onReading] y se vota ([CellVoter]). Si el tablero se mueve o se pierde, la votación
- *    empieza de cero.
+ *    pasa a [onReading] y se vota ([CellVoter]). Mientras se espera a que quede quieto, pide solo
+ *    segmentarlo ([onInk]), para que los dígitos a lápiz muy tenues tengan más fotogramas en los que
+ *    verse (tarea 4.8). Si el tablero se mueve o se pierde, la votación empieza de cero.
  * 3. Cuando la votación está completa, el tablero votado sale una sola vez por [captures], con el
  *    tiempo desde que el tablero se quedó quieto.
  * 4. El disparador manual ([captureNow], tarea 4.6) captura en el siguiente fotograma con tablero:
@@ -81,6 +93,9 @@ class LiveScanner(
     private var missed = 0
     private var captured = false
 
+    /** Inicio del periodo quieto con el que se está votando; si cambia, se vota de cero. */
+    private var votingSince: Long? = null
+
     /** Pedido desde la interfaz; lo atiende el hilo del análisis en el siguiente fotograma. */
     @Volatile
     private var manual = false
@@ -94,15 +109,16 @@ class LiveScanner(
     }
 
     /**
-     * Detección de un fotograma ([detection] `null` si no hay tablero). Devuelve si hay que leer
-     * este fotograma y pasar la lectura a [onReading].
+     * Detección de un fotograma ([detection] `null` si no hay tablero). Devuelve qué hacer con él:
+     * leerlo y pasar la lectura a [onReading], solo segmentarlo y pasar la tinta a [onInk], o nada.
      */
-    fun onFrame(detection: Detection?, timeMillis: Long): Boolean {
-        if (captured) return false
+    fun onFrame(detection: Detection?, timeMillis: Long): FrameAction {
+        if (captured) return FrameAction.NONE
         if (detection == null) {
-            if (!stability.update(null, timeMillis)) voter.reset()
+            stability.update(null, timeMillis)
+            restartVoteIfMoved()
             if (++missed > graceFrames) _state.value = LiveFrame.Searching
-            return false
+            return FrameAction.NONE
         }
         require(detection.outline.size == 4) { "Un tablero tiene 4 esquinas" }
         missed = 0
@@ -113,7 +129,7 @@ class LiveScanner(
             stability.reset()
             false
         }
-        if (!still && !manual) voter.reset()
+        if (!manual) restartVoteIfMoved()
         val status = when {
             !near -> LiveStatus.TOO_FAR
             still -> LiveStatus.READING
@@ -122,9 +138,27 @@ class LiveScanner(
         _state.value = LiveFrame(detection.outline, status, voter.count)
         if (manual && voter.count > 0) {
             capture(timeMillis)
-            return false
+            return FrameAction.NONE
         }
-        return still || manual
+        return when {
+            still || manual -> FrameAction.READ
+            near -> FrameAction.INK
+            else -> FrameAction.NONE
+        }
+    }
+
+    /** Tinta de un fotograma que [onFrame] pidió solo segmentar (`toInkMarks`). */
+    fun onInk(marked: List<Boolean>) {
+        if (!captured) voter.addInk(marked)
+    }
+
+    /** Si el tablero se movió o se perdió, el periodo quieto es otro y lo votado ya no vale. */
+    private fun restartVoteIfMoved() {
+        val since = stability.stillSince
+        if (since != votingSince) {
+            voter.reset()
+            votingSince = since
+        }
     }
 
     /**
@@ -156,6 +190,7 @@ class LiveScanner(
         manual = false
         stability.reset()
         voter.reset()
+        votingSince = null
         _state.value = LiveFrame.Searching
     }
 }

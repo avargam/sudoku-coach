@@ -27,9 +27,10 @@ data class ReplayResult(val board: ScannedBoard?, val reads: Int, val analyzed: 
 /**
  * Reproduce una secuencia por [scanner] como en vivo (tarea 4.4): un solo hilo de análisis, así que
  * los fotogramas que llegan mientras se detecta o se lee el anterior se descartan, con los tiempos
- * medidos en el móvil. Se para en la captura.
+ * medidos en el móvil. Los fotogramas que solo se segmentan (tarea 4.8) toman la tinta de la lectura
+ * grabada y tardan [inkMillis]. Se para en la captura.
  */
-fun replay(frames: List<RecordedFrame>, format: FrameFormat, scanner: LiveScanner = LiveScanner()): ReplayResult {
+fun replay(frames: List<RecordedFrame>, format: FrameFormat, scanner: LiveScanner = LiveScanner(), inkMillis: Long = INK_MILLIS): ReplayResult {
     var busyUntil = Long.MIN_VALUE
     var analyzed = 0
     for (frame in frames) {
@@ -40,9 +41,13 @@ fun replay(frames: List<RecordedFrame>, format: FrameFormat, scanner: LiveScanne
         val detection = frame.corners?.let { corners ->
             Detection(corners, corners.map { unrotate(it.x, it.y, format.width, format.height, format.rotationDegrees) })
         }
-        val read = scanner.onFrame(detection, detected)
-        val reading = frame.reading
-        if (!read || reading == null) continue
+        val action = scanner.onFrame(detection, detected)
+        val reading = frame.reading ?: continue
+        if (action == FrameAction.INK) {
+            scanner.onInk(reading.map { it.inked || it.faint })
+            busyUntil = detected + inkMillis
+        }
+        if (action != FrameAction.READ) continue
         busyUntil = detected + frame.readMillis
         scanner.onReading(reading, busyUntil)?.let { return ReplayResult(it, scanner.reads, analyzed) }
     }
@@ -52,7 +57,8 @@ fun replay(frames: List<RecordedFrame>, format: FrameFormat, scanner: LiveScanne
 /**
  * `frames.txt` de una secuencia: una cabecera `# size=1080x1920 rotation=90` y una línea por
  * fotograma: tiempo, ms de detección, esquinas (`x,y` × 4, o `-`), ms de lectura y, si hay lectura,
- * dígitos, confianzas (milésimas, separadas por comas), tinta (`#`/`.`) y origen (`P`/`.`).
+ * dígitos, confianzas (milésimas, separadas por comas), tinta (`#`, `~` si es un trazo tenue,
+ * `.`) y origen (`P`/`.`).
  */
 object FrameLog {
     fun format(format: FrameFormat, frames: List<RecordedFrame>): String = buildString {
@@ -64,7 +70,7 @@ object FrameLog {
             f.reading?.let { cells ->
                 append(' ').append(cells.joinToString("") { it.digit.toString() })
                 append(' ').append(cells.joinToString(",") { (it.confidence * 1000).toInt().toString() })
-                append(' ').append(cells.joinToString("") { if (it.inked) "#" else "." })
+                append(' ').append(cells.joinToString("") { if (it.inked) "#" else if (it.faint) "~" else "." })
                 append(' ').append(cells.joinToString("") { if (it.printed) "P" else "." })
             }
             appendLine()
@@ -81,7 +87,7 @@ object FrameLog {
             val corners = p[2].takeIf { it != "-" }?.split(",")?.map { it.toDouble() }?.chunked(2)?.map { Corner(it[0], it[1]) }
             val reading = if (p.size > 4) {
                 val confidences = p[5].split(",").map { it.toInt() / 1000f }
-                List(81) { CellReading(p[4][it].digitToInt(), confidences[it], inked = p[6][it] == '#', printed = p[7][it] == 'P') }
+                List(81) { CellReading(p[4][it].digitToInt(), confidences[it], inked = p[6][it] == '#', printed = p[7][it] == 'P', faint = p[6][it] == '~') }
             } else {
                 null
             }
@@ -90,3 +96,6 @@ object FrameLog {
         return format to frames
     }
 }
+
+/** Lo que tarda en el A57 segmentar un fotograma sin leerlo: 6–8 ms de mediana, 12 como máximo (tarea 4.8, `ink=` en el registro de debug). */
+const val INK_MILLIS = 10L

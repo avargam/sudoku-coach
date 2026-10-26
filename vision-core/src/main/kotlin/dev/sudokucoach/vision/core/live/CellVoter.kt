@@ -4,10 +4,13 @@ package dev.sudokucoach.vision.core.live
  * Vota por celda entre las lecturas de varios fotogramas del tablero quieto (D-21, tarea 4.3).
  *
  * Para cada celda:
- * - **tinta**: si la vio al menos la mitad de las lecturas. Si la vio una parte menor, pero al menos
- *   [faintInkShare], la celda queda **dudosa**: con tinta, sin confianza y con el dígito más leído,
- *   si lo hay, para que se revise. Es lo que pasa con los dígitos a lápiz muy tenues, que el
- *   segmentador ve solo en algunos fotogramas (tarea 4.5);
+ * - **tinta**: si la vio al menos la mitad de las lecturas. Si no, pero al menos [faintInkShare] de
+ *   las **observaciones** vieron tinta o un trazo tenue (`CellReading.faint`), la celda queda
+ *   **dudosa**: con tinta, sin confianza y con el dígito más leído, si lo hay, para que se revise.
+ *   Es lo que pasa con los dígitos a lápiz muy tenues, que el segmentador ve solo en algunos
+ *   fotogramas (tareas 4.5 y 4.8). Las observaciones son las lecturas más los fotogramas solo
+ *   segmentados ([addInk]), que salen baratos: con 4 lecturas, un dígito visto en el 11 % de los
+ *   fotogramas se perdía a menudo;
  * - **dígito**: el más leído entre las lecturas con tinta que leyeron alguno (en empate, el de más
  *   confianza sumada); sin ninguno, la celda queda sin leer (0, confianza 0);
  * - **confianza combinada**: la de las lecturas que dan ese dígito ([combine]: la mejor o la media),
@@ -27,7 +30,7 @@ class CellVoter(
     val maxReads: Int = 4,
     private val clearShare: Double = 0.8,
     private val combine: Combine = Combine.MEAN,
-    /** Fracción mínima de lecturas con tinta para una celda dudosa; por encima de 0,5, ninguna lo es. */
+    /** Fracción mínima de observaciones con tinta o trazo para una celda dudosa; por encima de 1, ninguna lo es. */
     private val faintInkShare: Double = 0.2,
 ) {
     /** Cómo se combinan las confianzas de las lecturas que coinciden. */
@@ -39,15 +42,30 @@ class CellVoter(
     }
 
     private val reads = mutableListOf<List<CellReading>>()
+    private val marks = IntArray(81)
+    private var observations = 0
 
     val count: Int get() = reads.size
 
+    /** Una lectura completa; cuenta también como observación de tinta. */
     fun add(cells: List<CellReading>) {
         require(cells.size == 81) { "Un tablero tiene 81 celdas" }
         reads += cells
+        addInk(cells.map { it.inked || it.faint })
     }
 
-    fun reset() = reads.clear()
+    /** Un fotograma solo segmentado: si cada celda tiene tinta o un trazo tenue (`toInkMarks`). */
+    fun addInk(marked: List<Boolean>) {
+        require(marked.size == 81) { "Un tablero tiene 81 celdas" }
+        observations++
+        marked.forEachIndexed { cell, seen -> if (seen) marks[cell]++ }
+    }
+
+    fun reset() {
+        reads.clear()
+        marks.fill(0)
+        observations = 0
+    }
 
     val complete: Boolean
         get() = reads.size >= maxReads || reads.size >= minReads && (0 until 81).all { isClear(it) }
@@ -68,7 +86,7 @@ class CellVoter(
         val inked = inkedReads(cell)
         if (reads.isEmpty()) return CellReading.EMPTY
         if (inked.size * 2 < reads.size) {
-            if (inked.isEmpty() || inked.size < faintInkShare * reads.size) return CellReading.EMPTY
+            if (marks[cell] == 0 || marks[cell] < faintInkShare * observations) return CellReading.EMPTY
             val digit = inked.filter { it.digit != 0 }.groupingBy { it.digit }.eachCount().maxByOrNull { it.value }?.key ?: 0
             return CellReading(digit, 0f, inked = true, printed = false)
         }
