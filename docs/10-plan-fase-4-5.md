@@ -81,6 +81,12 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** un tag de prueba crea una Release con la APK firmada, que se descarga desde el móvil y se instala.
 
+**Resultado (en curso):**
+- **Versión:** `versionName` sale de `SUDOKUCOACH_VERSION` (el tag sin la `v`; en local, `0.0.0-dev`), y `versionCode` es X × 1 000 000 + Y × 1 000 + Z (0.5.0 → 5000).
+- **`release.yml`:** en tags `v*`, valida el tag (los de sufijo, como `v0.0.0-test`, salen como prerelease), decodifica la clave de los secretos en un temporal que se borra al terminar, compila, verifica la firma de las dos APK, las publica como `sudoku-coach-<versión>-<abi>.apk` con `SHA256SUMS.txt`, y toma las notas del apartado `## [X.Y.Z]` de `CHANGELOG.md`.
+- **Secretos del repo:** `SUDOKUCOACH_KEYSTORE_BASE64`, `SUDOKUCOACH_KEYSTORE_PASSWORD` y `SUDOKUCOACH_KEY_ALIAS`.
+- Los pasos de shell (validación del tag y notas) se probaron en local; falta la prueba en GitHub con un tag de prueba.
+
 ## P.4 Compilar desde un clon limpio
 - Clonar en un directorio nuevo y seguir solo el README. Requisitos: JDK 21, Android SDK con `platforms;android-37.0` y `build-tools;37.0.0` (lo que instala la CI) y GTK2 para los tests de `vision-core`.
 - Comprobar que nada depende de archivos sin versionar: `local.properties` (se genera o se explica `ANDROID_HOME`), las fotos originales y las secuencias (sus tests se saltan sin ellas), y el oráculo de HoDoKu (solo hace falta para regenerar el banco).
