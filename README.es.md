@@ -101,4 +101,4 @@ La app funciona de principio a fin: escáner en vivo, revisión, pistas y fotos 
 
 ## Créditos y licencia
 
-Sudoku Coach tiene licencia [Apache-2.0](LICENSE). Usa [OpenCV](https://opencv.org/) (Apache-2.0), el reconocimiento de texto de [Google ML Kit](https://developers.google.com/ml-kit) y la tipografía [IBM Plex Sans](https://github.com/IBM/plex) (SIL Open Font License, incluida en la app). [HoDoKu](https://hodoku.sourceforge.net/) (GPL) solo se usa como oráculo de tests en el equipo de desarrollo y no forma parte de este repositorio ni de la app.
+Sudoku Coach tiene licencia [Apache-2.0](LICENSE). Usa [OpenCV](https://opencv.org/) (Apache-2.0), el reconocimiento de texto de [Google ML Kit](https://developers.google.com/ml-kit) y la tipografía [IBM Plex Sans](https://github.com/IBM/plex) (SIL Open Font License). La pantalla «Acerca de» de la app enumera todos los componentes de terceros con su licencia. [HoDoKu](https://hodoku.sourceforge.net/) (GPL) solo se usa como oráculo de tests en el equipo de desarrollo y no forma parte de este repositorio ni de la app.

@@ -134,6 +134,13 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** la revisión no deja nada pendiente o lo pendiente está anotado y aceptado por el usuario.
 
+**Resultado (en curso):**
+- **Secretos:** en todo el historial (`git log --all -p`) no hay contraseñas, tokens, claves privadas ni claves de API; solo aparece texto que habla de los secretos de la CI. No se ha versionado nunca ninguna keystore (`.jks`, `.keystore`, `.p12`), `local.properties`, `.env`, APK, originales (`raw/`), secuencias ni el reglib de HoDoKu.
+- **Rutas personales:** solo `sdk.dir=/home/avargam/Android/Sdk` en `docs/07-puesta-en-marcha.md`, que sale del historial en P.7.
+- **Archivos grandes:** ninguno. Lo más pesado es `media/demo.gif` (2,2 MB), la fuente (0,5 MB), los bancos del oráculo (≈ 0,4 MB cada uno) y las fotos de prueba (≈ 0,25 MB cada una); el clon ronda los 10 MB.
+- **Licencias:** la APK lleva la OFL de IBM Plex Sans y los `LICENSE.txt` de algunas librerías de AndroidX, pero no la licencia de OpenCV ni la lista de componentes de ML Kit.
+- **Solución (usuario: pantalla "Acerca de"):** botón ⓘ en el escáner → "Acerca de", con el icono, la versión, el enlace al código, la licencia Apache-2.0 y las licencias de terceros. La lista se genera en la compilación con el plugin de AboutLibraries 15.2.0 (`com.mikepenz.aboutlibraries.plugin.android`; el `oss-licenses-plugin` de Google usa la API de variantes que AGP 9 quitó) y se lee con `aboutlibraries-core`. La pantalla es propia, con el estilo de la app, en vez de la de la librería. 151 dependencias (Apache-2.0, BSD-3-Clause, la licencia del SDK de Android y las condiciones de ML Kit, estas dos como enlace) más IBM Plex Sans con su OFL. Ruta `About` en la pila guardada, con su test. La release (R8) incluye la lista; la APK crece 0,1 MB. El usuario la recorrió en el A57.
+
 ## P.7 Sacar `docs/` del repo público (D-25)
 - **Antes de tocar nada:** crear el repo privado de documentos con el contenido actual de `docs/` y su historial (`git filter-repo --subdirectory-filter docs` sobre una copia del repo), y comprobar que está completo.
 - **En el repo principal:** `docs/` en `.gitignore` y `git rm -r --cached docs`. Sacar del README, de `app/README.md`, `vision/README.md`, `tools/vision/README.md` y `testdata/vision/README.md` los enlaces a `docs/`. Lo que haga falta para compilar y probar (de `07-puesta-en-marcha.md`) pasa al README; las imágenes del README van en `media/`, no en `docs/media/`.

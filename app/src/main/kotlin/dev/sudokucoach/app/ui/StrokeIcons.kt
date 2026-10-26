@@ -23,6 +23,14 @@ object StrokeIcons {
         moveTo(17f, 9f); lineTo(12f, 15f); moveTo(12f, 9f); lineTo(17f, 15f)
     }
     val Torch = icon { moveTo(13f, 2f); lineTo(4f, 14f); lineTo(11f, 14f); lineTo(10f, 22f); lineTo(19f, 10f); lineTo(12f, 10f); close() }
+    val Info = icon {
+        moveTo(3f, 12f); arcToRelative(9f, 9f, 0f, true, true, 18f, 0f); arcToRelative(9f, 9f, 0f, true, true, -18f, 0f)
+        moveTo(12f, 11f); lineTo(12f, 16.5f); moveTo(12f, 7.5f); lineTo(12f, 7.6f)
+    }
+    val External = icon {
+        moveTo(14f, 4f); lineTo(20f, 4f); lineTo(20f, 10f); moveTo(20f, 4f); lineTo(11f, 13f)
+        moveTo(18f, 14f); lineTo(18f, 20f); lineTo(4f, 20f); lineTo(4f, 6f); lineTo(10f, 6f)
+    }
     val Gallery = icon {
         moveTo(4f, 4f); lineTo(20f, 4f); lineTo(20f, 20f); lineTo(4f, 20f); close()
         moveTo(4f, 16f); lineTo(9f, 11f); lineTo(15f, 17f); moveTo(13f, 15f); lineTo(16f, 12f); lineTo(20f, 16f)

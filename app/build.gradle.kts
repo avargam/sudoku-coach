@@ -3,6 +3,7 @@ import javax.inject.Inject
 plugins {
     id("com.android.application")
     kotlin("plugin.compose")
+    id("com.mikepenz.aboutlibraries.plugin.android")
 }
 
 /**
@@ -154,6 +155,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.6.2")
     implementation("androidx.camera:camera-lifecycle:1.6.2")
     implementation("androidx.camera:camera-compose:1.6.2")
+    // Lista de licencias de terceros, generada en la compilación (tarea P.6).
+    implementation("com.mikepenz:aboutlibraries-core:15.2.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Tests locales en la JVM: JUnit 4, el que ejecuta AGP para testDebugUnitTest.
