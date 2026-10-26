@@ -3,6 +3,7 @@ import javax.inject.Inject
 plugins {
     id("com.android.application")
     kotlin("plugin.compose")
+    id("com.mikepenz.aboutlibraries.plugin.android")
 }
 
 /**
@@ -33,6 +34,26 @@ val copyTestPhoto = tasks.register<CopyTestPhoto>("copyTestPhoto") {
     files.from(rootProject.files("testdata/vision/photos/001.jpg", "testdata/vision/photos/016.jpg"), rootProject.fileTree("testdata/vision/labels") { include("*.txt") })
 }
 
+// La release se publica en dos APK, una por ABI (tarea P.1): `arm64-v8a` para los móviles y `x86_64` para el
+// emulador. La división por ABI vale para todas las variantes y no admite `abiFilters`, así que se activa solo
+// al compilar la release; la de debug sigue con `arm64-v8a`.
+val buildsRelease = gradle.startParameter.taskNames.any { "Release" in it }
+
+// Firma de la release con la clave propia (D-23, tarea P.2), que nunca entra en el repo: en la CI, de variables
+// de entorno; en local, de `~/.gradle/gradle.properties`. Sin ella, la release queda sin firmar, así que nadie
+// la necesita para compilar.
+fun signing(name: String): String? = providers.environmentVariable(name).orElse(providers.gradleProperty(name)).orNull
+val releaseKeystore = signing("SUDOKUCOACH_KEYSTORE")
+
+// Versión (D-23, tarea P.3): la del tag `vX.Y.Z`, que el workflow de publicación pasa en `SUDOKUCOACH_VERSION`;
+// en local, `0.0.0-dev`. El `versionCode` sale de X.Y.Z (X × 1 000 000 + Y × 1 000 + Z), para que cada
+// versión publicada se instale encima de la anterior sin tocar el código.
+val appVersion = providers.environmentVariable("SUDOKUCOACH_VERSION").orElse("0.0.0-dev").get()
+val appVersionCode = Regex("^(\\d+)\\.(\\d+)\\.(\\d+)").find(appVersion)?.destructured
+    ?.let { (major, minor, patch) -> major.toInt() * 1_000_000 + minor.toInt() * 1_000 + patch.toInt() }
+    ?.coerceAtLeast(1)
+    ?: error("La versión $appVersion no es X.Y.Z")
+
 // App de extremo a extremo (Fase 3, D-18). AGP 9 incluye el soporte de Kotlin, sin plugin aparte.
 android {
     namespace = "dev.sudokucoach.app"
@@ -42,18 +63,33 @@ android {
         applicationId = "dev.sudokucoach"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = appVersionCode
+        versionName = appVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Solo la arquitectura del A57, como vision: x86_64 (emulador) sumaba 73 MB de OpenCV y ML Kit y
-        // las copias de APK por usbipd se vuelven lentas a ratos. Si se usa el emulador, añadir "x86_64".
-        ndk {
-            abiFilters += listOf("arm64-v8a")
+        // En debug, solo la arquitectura del A57, como vision: x86_64 (emulador) sumaba 73 MB de OpenCV y
+        // ML Kit y las copias de APK por usbipd se vuelven lentas a ratos. Si se usa el emulador, añadir "x86_64".
+        if (!buildsRelease) {
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
+        }
+    }
+
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = signing("SUDOKUCOACH_KEYSTORE_PASSWORD")
+                keyAlias = signing("SUDOKUCOACH_KEY_ALIAS")
+                // En un almacén PKCS12 (el de keytool por defecto), la clave tiene la misma contraseña.
+                keyPassword = signing("SUDOKUCOACH_KEY_PASSWORD") ?: storePassword
+            }
         }
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -67,6 +103,15 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    splits {
+        abi {
+            isEnable = buildsRelease
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
     }
 }
 
@@ -110,6 +155,8 @@ dependencies {
     implementation("androidx.camera:camera-camera2:1.6.2")
     implementation("androidx.camera:camera-lifecycle:1.6.2")
     implementation("androidx.camera:camera-compose:1.6.2")
+    // Lista de licencias de terceros, generada en la compilación (tarea P.6).
+    implementation("com.mikepenz:aboutlibraries-core:15.2.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Tests locales en la JVM: JUnit 4, el que ejecuta AGP para testDebugUnitTest.

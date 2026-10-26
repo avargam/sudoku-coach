@@ -136,16 +136,16 @@ fun ScanningScreen(viewModel: CoachViewModel) {
     }
 
     if (granted) {
-        CameraScanning(state, pickPhoto, onScanned = viewModel::onBoardScanned)
+        CameraScanning(state, pickPhoto, onScanned = viewModel::onBoardScanned, onAbout = viewModel::showAbout)
     } else {
         GalleryOnly(state, pickPhoto, onAllowCamera = { permission.launch(Manifest.permission.CAMERA) })
     }
 }
 
 /**
- * Visor a pantalla completa, bajo las barras del sistema, como en la maqueta (tarea 4.6): linterna
- * arriba, el contorno del tablero en el acento (D-12, tarea 4.2), una tarjeta con el estado, que se
- * anuncia en TalkBack al cambiar, y abajo la galería y el disparador manual.
+ * Visor a pantalla completa, bajo las barras del sistema, como en la maqueta (tarea 4.6): "Acerca de"
+ * (tarea P.6) y linterna arriba, el contorno del tablero en el acento (D-12, tarea 4.2), una tarjeta
+ * con el estado, que se anuncia en TalkBack al cambiar, y abajo la galería y el disparador manual.
  *
  * Con el tablero quieto se lee y se vota, y el tablero votado pasa a [onScanned] (tarea 4.3). Cada
  * captura se nota con una vibración y un barrido de las celdas del tablero en el acento (la opción
@@ -153,7 +153,7 @@ fun ScanningScreen(viewModel: CoachViewModel) {
  * pulsarlo: vibra, se encoge y la tarjeta dice "Capturando…".
  */
 @Composable
-private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned: (ScannedBoard) -> Unit) {
+private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned: (ScannedBoard) -> Unit, onAbout: () -> Unit) {
     val scanner = remember { LiveScanner() }
     val live by scanner.state.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
@@ -194,7 +194,8 @@ private fun CameraScanning(state: ScanState, onPickPhoto: () -> Unit, onScanned:
         }
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
             Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                recorder?.let { RecordButton(it, Modifier) }
+                RoundButton(StrokeIcons.Info, stringResource(R.string.about_open), onClick = onAbout)
+                recorder?.let { RecordButton(it, Modifier.padding(start = 8.dp)) }
                 Spacer(Modifier.weight(1f))
                 if (hasTorch) TorchButton(torch, onToggle = { torch = it })
             }
@@ -331,6 +332,19 @@ private fun TorchButton(on: Boolean, onToggle: (Boolean) -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(StrokeIcons.Torch, contentDescription = null, Modifier.size(22.dp), tint = if (on) Color.Black else Color.White)
+    }
+}
+
+/** Botón redondo de icono sobre la cámara, como la linterna ("Acerca de", tarea P.6). */
+@Composable
+private fun RoundButton(icon: ImageVector, description: String, onClick: () -> Unit) {
+    Box(
+        Modifier.size(44.dp).clip(CircleShape).background(Color.Black.copy(alpha = 0.45f))
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, Modifier.size(22.dp), tint = Color.White)
     }
 }
 

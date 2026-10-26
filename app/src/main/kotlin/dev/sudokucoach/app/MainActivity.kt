@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import dev.sudokucoach.app.scan.VisionPhotoScanner
+import dev.sudokucoach.app.ui.AboutScreen
 import dev.sudokucoach.app.ui.HintScreen
 import dev.sudokucoach.app.ui.ReviewingScreen
 import dev.sudokucoach.app.ui.ScanningScreen
@@ -45,6 +46,7 @@ fun CoachApp(onExit: () -> Unit) {
             entry<Route.Scanning> { ScanningScreen(viewModel) }
             entry<Route.Reviewing> { ReviewingScreen(viewModel, onClose = { viewModel.back() }) }
             entry<Route.Hint> { HintScreen(viewModel, onBack = { viewModel.back() }) }
+            entry<Route.About> { AboutScreen(onBack = { viewModel.back() }) }
         },
     )
 }
