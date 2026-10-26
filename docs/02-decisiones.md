@@ -28,6 +28,9 @@ Registro de decisiones del proyecto. Estados: **Aceptada**, **Provisional** (se 
 | D-20 | Cámara con CameraX: `Preview` + `ImageAnalysis`, plano Y como gris; galería si no hay permiso | Aceptada |
 | D-21 | Lectura en vivo: detección por fotograma, lectura con el tablero quieto y votación por celda | Aceptada |
 | D-22 | Secuencias de fotogramas grabadas en debug como datos de prueba, sin versionar | Aceptada |
+| D-23 | Distribución: APK firmada con clave propia en GitHub Releases, generada por la CI al crear un tag | Aceptada |
+| D-24 | README en inglés, con versión en español | Aceptada |
+| D-25 | Documentos de diseño y planificación privados: fuera del repo público y de su historial, en un repo privado aparte | Aceptada |
 
 ---
 
@@ -156,6 +159,15 @@ Aceptada al planificar la Fase 4: la cámara no se automatiza en los tests, así
 
 **Resultado (Fase 4):** 12 secuencias de 12 páginas (8 s cada una, JPEG en gris en `files/sequences` del móvil). `SequenceScanTest` las lee en el móvil con ML Kit una vez y guarda la lectura de cada fotograma en `frames.txt`, que la JVM reproduce en segundos (`SequenceReplayTest`, `LiveTuningTest`). Los fotogramas no se copian al móvil ni desde él por usbipd, que se atasca con decenas de MB: solo las etiquetas y los `frames.txt` (`tools/vision/push_labels.sh`, `pull_sequences.sh`).
 
+
+## D-23 · Distribución: APK firmada en GitHub Releases
+Aceptada al planificar la Fase 4.5 (publicación); detalle en `10-plan-fase-4-5.md`: la APK se publica en GitHub Releases, no en Google Play, firmada con una clave de release propia que el usuario guarda fuera del repo y que la CI recibe como secretos. Un workflow en los tags `v*` compila, firma y crea la Release. Sin la clave, `assembleRelease` da la APK sin firmar, así que nadie la necesita para compilar.
+
+## D-24 · README en inglés, con versión en español
+Aceptada al planificar la Fase 4.5, por preferencia del usuario: el README va en inglés, para el público del portafolio, con una versión en español (`README.es.md`). Lo que le sirve al visitante de los documentos de diseño pasa al README.
+
+## D-25 · Documentos de diseño y planificación privados
+Aceptada al planificar la Fase 4.5, por decisión del usuario: `docs/` no se publica. Se ignora en el repo principal y se saca de su historial antes de hacerlo público (está en 42 de los 58 commits), y pasa a un repo privado aparte, clonado dentro de la carpeta del proyecto, para no perder su historial. Los comentarios del código que citan decisiones y tareas se quedan.
 ---
 
 ## Preguntas abiertas

@@ -95,6 +95,22 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 
 **Aplazado** (decisión del usuario): fotos difíciles (otro papel, sombra fuerte, ángulo > 15°, curvatura) añadidas a `testdata/vision` y medidas; reabrir D-07 (Hough) si la detección baja del 90 %.
 
+## Fase 4.5 · Publicación
+
+Objetivo: hacer público el repo como pieza de portafolio, con un README en inglés y una APK firmada descargable desde GitHub Releases. Se intercala antes de la CNN sin renumerar las fases. Detalle en [10-plan-fase-4-5.md](10-plan-fase-4-5.md).
+
+- [x] Decidir la distribución (D-23), el idioma del README (D-24) y que los documentos de diseño sean privados (D-25)
+- [ ] P.1 Release con R8 que funciona en el A57; elegir las ABI
+- [ ] P.2 Firma con clave propia, fuera del repo
+- [ ] P.3 Workflow que publica la APK firmada al crear un tag
+- [ ] P.4 Compilar y probar desde un clon limpio siguiendo el README
+- [ ] P.5 README en inglés y en español, con capturas y demo
+- [ ] P.6 Revisión antes de hacerlo público: secretos, archivos grandes y licencias
+- [ ] P.7 Sacar `docs/` del repo público y de su historial, a un repo privado aparte
+- [ ] P.8 Primera versión pública y cierre
+
+**Hecho cuando:** el repo es público, con el README y sin `docs/`, y la APK de la Release se instala y funciona en el A57; desde un clon limpio compila y pasan los tests de la JVM.
+
 ## Fase 5 · CNN propia
 
 - [ ] Generador de dataset sintético (fuentes, ruido, desenfoque)
@@ -117,12 +133,11 @@ Una familia por iteración, cada una con tests y verificación contra el orácul
 - [ ] Coloración simple
 - [ ] Cadenas (AIC) y, si procede, ALS
 
-## Fase 7 · Pulido y publicación
+## Fase 7 · Pulido
 
 - [ ] Overlay sobre la cámara con homografía inversa
 - [ ] Revisión de accesibilidad (contraste, TalkBack, tamaño de fuente)
-- [ ] README con capturas y demo
-- [ ] Licencia final y publicación en GitHub
+- *(README, licencia y publicación en GitHub: adelantados a la Fase 4.5)*
 
 ## Primeros pasos concretos (próxima sesión)
 
