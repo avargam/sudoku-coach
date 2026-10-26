@@ -33,6 +33,11 @@ val copyTestPhoto = tasks.register<CopyTestPhoto>("copyTestPhoto") {
     files.from(rootProject.files("testdata/vision/photos/001.jpg", "testdata/vision/photos/016.jpg"), rootProject.fileTree("testdata/vision/labels") { include("*.txt") })
 }
 
+// La release se publica en dos APK, una por ABI (tarea P.1): `arm64-v8a` para los móviles y `x86_64` para el
+// emulador. La división por ABI vale para todas las variantes y no admite `abiFilters`, así que se activa solo
+// al compilar la release; la de debug sigue con `arm64-v8a`.
+val buildsRelease = gradle.startParameter.taskNames.any { "Release" in it }
+
 // App de extremo a extremo (Fase 3, D-18). AGP 9 incluye el soporte de Kotlin, sin plugin aparte.
 android {
     namespace = "dev.sudokucoach.app"
@@ -45,10 +50,12 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        // Solo la arquitectura del A57, como vision: x86_64 (emulador) sumaba 73 MB de OpenCV y ML Kit y
-        // las copias de APK por usbipd se vuelven lentas a ratos. Si se usa el emulador, añadir "x86_64".
-        ndk {
-            abiFilters += listOf("arm64-v8a")
+        // En debug, solo la arquitectura del A57, como vision: x86_64 (emulador) sumaba 73 MB de OpenCV y
+        // ML Kit y las copias de APK por usbipd se vuelven lentas a ratos. Si se usa el emulador, añadir "x86_64".
+        if (!buildsRelease) {
+            ndk {
+                abiFilters += listOf("arm64-v8a")
+            }
         }
     }
 
@@ -67,6 +74,15 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    splits {
+        abi {
+            isEnable = buildsRelease
+            reset()
+            include("arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
     }
 }
 
