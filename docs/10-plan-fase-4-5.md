@@ -152,7 +152,7 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 ## P.8 Primera versión pública y cierre
 - Fusionar en `main`, crear el tag de la primera versión pública (`v0.5.0`, que sigue a la Fase 4) y comprobar la Release.
 - Instalar la APK de la Release en el A57. Antes hay que desinstalar la de debug, porque tienen firmas distintas. Recorrer la app.
-- Hacer público el repo (el usuario).
+- Hacer público el repo (el usuario). Después, subir `media/social-preview.png` en Settings → General → Social preview: con el repo privado, GitHub no ofrece la opción.
 - Actualizar, en el repo privado de documentos, `04-plan-implementacion.md` y `07-puesta-en-marcha.md` (cómo publicar una versión), y el estado del README.
 
 **Hecho cuando:** el repo es público y la APK de la Release se instala y funciona en el A57.
