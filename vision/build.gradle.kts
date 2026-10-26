@@ -38,6 +38,8 @@ android {
 
     defaultConfig {
         minSdk = 26
+        // Reglas de R8 para ML Kit, que se aplican en la app que incluya este módulo (tarea P.1).
+        consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // El AAR de OpenCV trae nativos para 4 arquitecturas (123 MB). Basta con la del A57 (arm64-v8a);
         // si se usa el emulador, añadir "x86_64" (ver app/build.gradle.kts).

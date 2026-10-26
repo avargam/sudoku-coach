@@ -47,6 +47,20 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** la release recorre la app sin fallos en el A57 y la elección de ABI está anotada con sus tamaños.
 
+**Resultado:** la release (R8 en modo completo, el de AGP 9, con recursos reducidos) arranca en 0,18 s y no muestra el botón de grabar ni los registros de medida.
+
+- **Fallo encontrado:** el escáner cerraba la app al empezar a leer, y la galería decía "No se pudo abrir la foto". En los dos casos, `TextRecognition.getClient` daba un `NullPointerException`, porque R8 alteraba las clases internas con las que ML Kit registra sus componentes. Se corrige con una regla de consumidor en `vision/consumer-rules.pro` que conserva `com.google.mlkit.**`; la APK crece 65 KB. En 3.0 no se vio porque la release solo se compiló.
+- **Con la regla:** el usuario recorrió en el A57 el escáner en vivo, la revisión, la pista y la galería sin fallos. Tras matar el proceso en segundo plano, la app vuelve a la misma pista y etapa (estado guardado, 3.8).
+- **ABI**, release sin firmar:
+
+| APK | Tamaño | Para quién |
+|---|---|---|
+| `arm64-v8a` | 41 MB | Casi todos los móviles actuales |
+| `x86_64` | 77 MB | El emulador en un PC Intel o AMD |
+| Universal | 114 MB | Cualquiera, con el triple de descarga |
+
+**Elegido (usuario):** dos APK, `arm64-v8a` como descarga principal y `x86_64` para el emulador. La división por ABI (`splits`) vale para todas las variantes y no admite `abiFilters`, así que se activa solo al compilar la release; debug sigue con `arm64-v8a`, y `deployDebug` y los tests no cambian.
+
 ## P.2 Firma
 - El usuario crea la clave (`keytool -genkeypair …`; el comando va en `07-puesta-en-marcha.md`) y la guarda fuera del repo, con una copia de seguridad: si se pierde, las versiones nuevas no se podrán instalar encima.
 - `signingConfigs.release` lee la clave de variables de entorno (`SUDOKUCOACH_KEYSTORE`, contraseñas y alias), o de `~/.gradle/gradle.properties` en local. Sin ellas, la release queda sin firmar, como hoy.

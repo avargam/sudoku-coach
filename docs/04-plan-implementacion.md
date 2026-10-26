@@ -100,7 +100,7 @@ Objetivo: apuntar con la cámara al sudoku y llegar a la revisión sin hacer una
 Objetivo: hacer público el repo como pieza de portafolio, con un README en inglés y una APK firmada descargable desde GitHub Releases. Se intercala antes de la CNN sin renumerar las fases. Detalle en [10-plan-fase-4-5.md](10-plan-fase-4-5.md).
 
 - [x] Decidir la distribución (D-23), el idioma del README (D-24) y que los documentos de diseño sean privados (D-25)
-- [ ] P.1 Release con R8 que funciona en el A57; elegir las ABI
+- [x] P.1 Release con R8 que funciona en el A57; elegir las ABI
 - [ ] P.2 Firma con clave propia, fuera del repo
 - [ ] P.3 Workflow que publica la APK firmada al crear un tag
 - [ ] P.4 Compilar y probar desde un clon limpio siguiendo el README
