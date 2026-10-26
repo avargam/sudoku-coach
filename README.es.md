@@ -4,7 +4,7 @@
 
 Sudoku Coach es una app Android que lee con la cámara un sudoku impreso, incluidos los dígitos que ya escribiste a lápiz, y te dice qué técnica humana te desatasca (una posición única, un par señalado, un trío desnudo…) y dónde aplicarla. La pista se revela por etapas, así que puedes parar en cuanto la veas. Todo ocurre en el móvil: sin internet y sin cuenta.
 
-[English](README.md) · [**Descargar la APK**](https://github.com/avargam/proyecto-sudoku/releases/latest) · [Cambios](CHANGELOG.md) (en inglés)
+[English](README.md) · [**Descargar la APK**](https://github.com/avargam/sudoku-coach/releases/latest) · [Cambios](CHANGELOG.md) (en inglés)
 
 <p align="center">
   <img src="media/demo.gif" alt="Escaneo de un sudoku en papel, revisión del tablero y revelado de una pista" width="280">
@@ -12,7 +12,7 @@ Sudoku Coach es una app Android que lee con la cámara un sudoku impreso, inclui
 
 ## Instalar
 
-1. En un móvil con Android 8.0 o superior, abre la [última versión](https://github.com/avargam/proyecto-sudoku/releases/latest) y descarga `sudoku-coach-<versión>-arm64-v8a.apk`.
+1. En un móvil con Android 8.0 o superior, abre la [última versión](https://github.com/avargam/sudoku-coach/releases/latest) y descarga `sudoku-coach-<versión>-arm64-v8a.apk`.
 2. Abre el archivo. Android te pedirá permitir que el navegador o el gestor de archivos instale apps; permítelo para esta instalación.
 3. Concede el permiso de la cámara cuando la app lo pida. Sin él, puedes seguir abriendo fotos de la galería.
 

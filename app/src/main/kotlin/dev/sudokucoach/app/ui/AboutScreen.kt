@@ -160,4 +160,4 @@ private fun notices(context: Context): List<Notice> {
     return (libraries + font).sortedBy { it.name.lowercase() }
 }
 
-private const val SOURCE_URL = "https://github.com/avargam/proyecto-sudoku"
+private const val SOURCE_URL = "https://github.com/avargam/sudoku-coach"
