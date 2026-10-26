@@ -104,7 +104,7 @@ Objetivo: hacer público el repo como pieza de portafolio, con un README en ingl
 - [x] P.2 Firma con clave propia, fuera del repo
 - [x] P.3 Workflow que publica la APK firmada al crear un tag
 - [x] P.4 Compilar y probar desde un clon limpio siguiendo el README
-- [ ] P.5 README en inglés y en español, con capturas y demo
+- [x] P.5 README en inglés y en español, con capturas y demo
 - [ ] P.6 Revisión antes de hacerlo público: secretos, archivos grandes y licencias
 - [ ] P.7 Sacar `docs/` del repo público y de su historial, a un repo privado aparte
 - [ ] P.8 Primera versión pública y cierre
