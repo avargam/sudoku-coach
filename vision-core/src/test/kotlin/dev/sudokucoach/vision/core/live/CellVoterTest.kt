@@ -5,12 +5,18 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-/** Votación por celda (tarea 4.3). Solo cambia la celda 0; el resto del tablero está vacío. */
+/**
+ * Votación por celda (tareas 4.3 y 4.5). Solo cambia la celda 0; el resto del tablero está vacío.
+ * Salvo que se diga, con la mejor confianza y sin celdas dudosas, para probar cada regla por separado.
+ */
 class CellVoterTest {
     private fun read(digit: Int, confidence: Float, inked: Boolean = true, printed: Boolean = false): List<CellReading> =
         listOf(CellReading(digit, confidence, inked, printed)) + List(80) { CellReading.EMPTY }
 
-    private fun vote(vararg reads: List<CellReading>, voter: CellVoter = CellVoter()): CellReading {
+    private fun vote(
+        vararg reads: List<CellReading>,
+        voter: CellVoter = CellVoter(combine = CellVoter.Combine.BEST, faintInkShare = 1.0),
+    ): CellReading {
         reads.forEach(voter::add)
         return voter.result()[0]
     }
@@ -59,6 +65,24 @@ class CellVoterTest {
         assertEquals(CellReading.EMPTY, vote(read(3, 0.9f), read(0, 1f, inked = false), read(0, 1f, inked = false)))
         // Impresa en 1 de 3 lecturas con tinta: manuscrita.
         assertFalse(vote(read(3, 0.9f, printed = true), read(3, 0.9f), read(3, 0.9f)).printed)
+    }
+
+    @Test
+    fun `con la media una lectura suelta muy segura no tapa a las demas`() {
+        val cell = vote(read(4, 0.57f), read(4, 0.32f), read(4, 0.42f), read(4, 0.41f), voter = CellVoter(combine = CellVoter.Combine.MEAN))
+        assertEquals(4, cell.digit)
+        assertEquals((0.57f + 0.32f + 0.42f + 0.41f) / 4, cell.confidence, 1e-6f)
+    }
+
+    @Test
+    fun `tinta en una parte de las lecturas deja la celda dudosa`() {
+        val voter = CellVoter(faintInkShare = 0.2)
+        // Un 7 tenue que el segmentador ve en 1 de 4 lecturas: con tinta, sin confianza, con su dígito.
+        val cell = vote(read(7, 0.6f), read(0, 1f, inked = false), read(0, 1f, inked = false), read(0, 1f, inked = false), voter = voter)
+        assertEquals(CellReading(7, 0f, inked = true, printed = false), cell)
+        // Por debajo de la fracción mínima, vacía.
+        val few = CellVoter(faintInkShare = 0.3)
+        assertEquals(CellReading.EMPTY, vote(read(7, 0.6f), read(0, 1f, inked = false), read(0, 1f, inked = false), read(0, 1f, inked = false), voter = few))
     }
 
     @Test

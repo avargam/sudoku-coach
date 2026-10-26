@@ -117,6 +117,21 @@ class ReviewBoardTest {
     }
 
     @Test
+    fun `un 4 manuscrito pide mas confianza`() {
+        val values = IntArray(81).also { it[0] = 4; it[1] = 4; it[2] = 7 }
+        val b = board(
+            values,
+            origins = List(81) { if (it == 0 || it == 2) DigitOrigin.USER else DigitOrigin.GIVEN },
+            confidences = FloatArray(81) { if (it < 3) 0.5f else 1f },
+            inked = BooleanArray(81) { it < 3 },
+        )
+        // El 4 manuscrito con 0,5 se pide; el impreso y el 7 manuscrito, no. (0 y 1 se repiten en la fila.)
+        assertTrue(b.unsure(0))
+        assertFalse(b.unsure(1))
+        assertFalse(b.unsure(2))
+    }
+
+    @Test
     fun `editar confirma la celda`() {
         val values = IntArray(81).also { it[10] = 3 }
         val b = board(

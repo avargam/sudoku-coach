@@ -195,7 +195,7 @@ private fun cellCaption(review: ReviewState): String {
         cell in errors -> stringResource(R.string.review_cell_user_error, name, value)
         cell in board.repeated -> stringResource(R.string.review_cell_repeated, name, value)
         value == 0 && board.inked[cell] -> stringResource(R.string.review_cell_unread, name)
-        value != 0 && board.confidences[cell] < ReviewBoard.MIN_CONFIDENCE -> stringResource(R.string.review_cell_low_confidence, name)
+        board.unsure(cell) -> stringResource(R.string.review_cell_low_confidence, name)
         value == 0 -> stringResource(R.string.review_cell_empty, name)
         else -> when (board.origins[cell]) {
             DigitOrigin.GIVEN -> stringResource(R.string.review_cell_given, name)
