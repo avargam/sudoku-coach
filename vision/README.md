@@ -13,7 +13,7 @@ Las llamadas a ML Kit son síncronas: no se deben hacer desde el hilo principal.
 
 ## Tests instrumentados
 
-Necesitan el móvil conectado por USB (ver D-15 en `docs/02-decisiones.md`):
+Necesitan el móvil conectado por USB (D-15):
 
 ```bash
 adb devices                                  # debe aparecer el dispositivo como "device"

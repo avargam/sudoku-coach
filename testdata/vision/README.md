@@ -1,7 +1,7 @@
 # Conjunto de fotos de prueba (D-17)
 
 Fotos propias de sudokus en papel para medir la visión (Fase 2). Los tests de `vision-core` las leen
-desde aquí; ver `docs/06-plan-fase-2.md`.
+desde aquí.
 
 ```
 testdata/vision/

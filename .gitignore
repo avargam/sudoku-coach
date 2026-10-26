@@ -34,3 +34,6 @@ testdata/vision/sequences/
 
 # SO
 .DS_Store
+
+# Notas de diseño y planificación: repo privado aparte, clonado aquí (D-25)
+docs/
