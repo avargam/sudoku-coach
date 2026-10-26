@@ -6,6 +6,9 @@ build/
 
 # Android
 local.properties
+# Claves de firma (D-23): fuera del repo
+*.jks
+*.keystore
 *.apk
 *.aab
 .cxx/
