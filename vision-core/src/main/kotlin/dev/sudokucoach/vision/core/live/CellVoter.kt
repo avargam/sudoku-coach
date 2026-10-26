@@ -23,7 +23,8 @@ package dev.sudokucoach.vision.core.live
 class CellVoter(
     // Valores de la tarea 4.5, ajustados con las secuencias grabadas (`LiveTuningTest`).
     private val minReads: Int = 3,
-    private val maxReads: Int = 4,
+    /** Lecturas con las que la votación está completa siempre (la barra de progreso del escáner). */
+    val maxReads: Int = 4,
     private val clearShare: Double = 0.8,
     private val combine: Combine = Combine.MEAN,
     /** Fracción mínima de lecturas con tinta para una celda dudosa; por encima de 0,5, ninguna lo es. */

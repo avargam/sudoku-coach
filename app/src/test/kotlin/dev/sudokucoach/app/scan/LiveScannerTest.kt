@@ -78,6 +78,30 @@ class LiveScannerTest {
     }
 
     @Test
+    fun `el disparador manual captura con lo votado hasta entonces`() {
+        val scanner = scanner()
+        scanner.onFrame(square(0.8f), 0)
+        scanner.onFrame(square(0.8f), 300)
+        scanner.onReading(reading, 500)
+        assertEquals(1, scanner.state.value.reads)
+        scanner.captureNow()
+        // En el siguiente fotograma, aunque se haya movido: sin leer otra vez.
+        assertFalse(scanner.onFrame(square(0.8f, shift = 0.1f), 550))
+        assertEquals(1, scanner.reads)
+        assertFalse(scanner.onFrame(square(0.8f), 600)) // ya capturado
+    }
+
+    @Test
+    fun `el disparador manual sin lecturas lee el siguiente fotograma con tablero`() {
+        val scanner = scanner()
+        scanner.captureNow()
+        assertFalse(scanner.onFrame(null, 0)) // sin tablero, espera
+        assertTrue(scanner.onFrame(square(0.3f), 40)) // aunque esté lejos y no quieto
+        val board = assertNotNull(scanner.onReading(reading, 240))
+        assertEquals(5, board.values[0])
+    }
+
+    @Test
     fun `moverse empieza la votacion de cero`() {
         val scanner = scanner()
         scanner.onFrame(square(0.8f), 0)

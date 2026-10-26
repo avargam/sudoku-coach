@@ -30,9 +30,9 @@ enum class LiveStatus {
 
 /**
  * Estado del escáner para la interfaz: el contorno del tablero, con las esquinas en el orden de
- * `BoardScan.corners`, o `null`, y el estado.
+ * `BoardScan.corners`, o `null`, el estado y, leyendo, cuántas lecturas se han votado.
  */
-data class LiveFrame(val outline: List<BufferPoint>?, val status: LiveStatus) {
+data class LiveFrame(val outline: List<BufferPoint>?, val status: LiveStatus, val reads: Int = 0) {
     companion object {
         val Searching = LiveFrame(null, LiveStatus.SEARCHING)
     }
@@ -54,6 +54,9 @@ class Detection(val corners: List<Corner>, val outline: List<BufferPoint>)
  *    empieza de cero.
  * 3. Cuando la votación está completa, el tablero votado sale una sola vez por [captures], con el
  *    tiempo desde que el tablero se quedó quieto.
+ * 4. El disparador manual ([captureNow], tarea 4.6) captura en el siguiente fotograma con tablero:
+ *    con lo votado hasta entonces o, si aún no hay ninguna lectura, leyendo ese fotograma, esté
+ *    quieto o no.
  *
  * La detección falla en fotogramas sueltos (un reflejo, un desenfoque), así que el último contorno
  * se mantiene durante [graceFrames] fotogramas sin tablero antes de darlo por perdido; si no, el
@@ -78,6 +81,18 @@ class LiveScanner(
     private var missed = 0
     private var captured = false
 
+    /** Pedido desde la interfaz; lo atiende el hilo del análisis en el siguiente fotograma. */
+    @Volatile
+    private var manual = false
+
+    /** Lecturas con las que la votación termina siempre. */
+    val maxReads: Int get() = voter.maxReads
+
+    /** Disparador manual: captura en cuanto haya un tablero, sin esperar a la votación. */
+    fun captureNow() {
+        manual = true
+    }
+
     /**
      * Detección de un fotograma ([detection] `null` si no hay tablero). Devuelve si hay que leer
      * este fotograma y pasar la lectura a [onReading].
@@ -98,14 +113,18 @@ class LiveScanner(
             stability.reset()
             false
         }
-        if (!still) voter.reset()
+        if (!still && !manual) voter.reset()
         val status = when {
             !near -> LiveStatus.TOO_FAR
             still -> LiveStatus.READING
             else -> LiveStatus.HOLD_STILL
         }
-        _state.value = LiveFrame(detection.outline, status)
-        return still
+        _state.value = LiveFrame(detection.outline, status, voter.count)
+        if (manual && voter.count > 0) {
+            capture(timeMillis)
+            return false
+        }
+        return still || manual
     }
 
     /**
@@ -115,8 +134,14 @@ class LiveScanner(
     fun onReading(cells: List<CellReading>, timeMillis: Long): ScannedBoard? {
         if (captured) return null
         voter.add(cells)
-        if (!voter.complete) return null
+        _state.value = _state.value.copy(reads = voter.count)
+        if (!voter.complete && !manual) return null
+        return capture(timeMillis)
+    }
+
+    private fun capture(timeMillis: Long): ScannedBoard {
         captured = true
+        manual = false
         val millis = timeMillis - (stability.stillSince ?: timeMillis)
         return voter.result().toScannedBoard(millis).also { _captures.tryEmit(it) }
     }
@@ -128,6 +153,7 @@ class LiveScanner(
     fun reset() {
         missed = 0
         captured = false
+        manual = false
         stability.reset()
         voter.reset()
         _state.value = LiveFrame.Searching

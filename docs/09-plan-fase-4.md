@@ -179,6 +179,14 @@ En las 12 secuencias, con los valores por defecto ya cambiados (`SequenceReplayT
 
 **Hecho cuando:** se escanea, se revisa y se ve la pista sin tocar la galería, en claro y oscuro.
 
+**Resultado:** pantalla según la maqueta (lienzo de diseño, revisada antes de implementar), sin botón de cerrar: el escáner es la primera pantalla y se sale con atrás.
+
+- **Arriba**, la linterna (solo si la cámara tiene, con `Camera.cameraControl.enableTorch`); en debug, además, el botón de grabar secuencias. **Abajo**, la galería y el disparador manual. En medio, una tarjeta con el estado (buscando, acércate, quieto, leyendo con "N de 4" y barra de progreso), que TalkBack anuncia al cambiar.
+- **Disparador manual:** se activa con un tablero detectado. Al pulsarlo vibra, el círculo se encoge y la tarjeta dice "Capturando…": si ya hay lecturas votadas captura con ellas; si no, con la siguiente lectura (`LiveScanner.captureNow`).
+- **Al capturar:** vibración (la automática; la manual ya vibró al pulsar) y un **barrido de las celdas** en el acento, en diagonal y con la perspectiva del papel (`squareToQuad`), ≈ 0,44 s; luego se abre la revisión con el tablero como el de la galería. Se prototiparon en la maqueta un destello (descartado por molesto) y 5 alternativas; se eligió el barrido.
+- **Barra de estado:** con el tema claro del sistema, `enableEdgeToEdge` ponía los iconos oscuros, invisibles sobre la cámara (lo que se vio en 4.0); el escáner los fuerza claros y los devuelve al salir.
+- La cámara se suelta al salir y en segundo plano (va con el ciclo de vida); al volver de la revisión se escanea de nuevo, y "Cerrar" en la revisión pasa a "Escanear otro sudoku".
+
 ## 4.7 Rendimiento
 - Presupuesto por fotograma y tiempo desde "estable" hasta la revisión (< 2 s), medidos en el A57 con las secuencias y en vivo.
 - Comprobar que el análisis no se acumula (se descartan fotogramas, no se encolan), el calor y la batería en una sesión de 5 minutos, y que la interfaz no se entrecorta.
