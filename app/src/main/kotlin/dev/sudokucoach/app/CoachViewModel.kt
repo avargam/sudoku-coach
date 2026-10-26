@@ -37,6 +37,11 @@ sealed interface Route {
     data object Hint : Route {
         override val name = "hint"
     }
+
+    /** Versión, enlace al código y licencias de terceros (tarea P.6). */
+    data object About : Route {
+        override val name = "about"
+    }
 }
 
 /** Estado de la lectura de una foto, que se muestra en el escáner. */
@@ -171,6 +176,11 @@ class CoachViewModel(
         setHint(_hint.value?.let(change))
     }
 
+    /** Abre "Acerca de" desde el escáner. */
+    fun showAbout() {
+        if (backStack.last() == Route.Scanning) push(Route.About)
+    }
+
     /** Vuelve a la pantalla anterior; devuelve `false` si ya no hay ninguna y la app debe cerrarse. */
     fun back(): Boolean {
         if (backStack.size <= 1) return false
@@ -214,6 +224,7 @@ class CoachViewModel(
                 Route.Scanning -> false
                 Route.Reviewing -> _review.value != null
                 Route.Hint -> _hint.value != null
+                Route.About -> true
             }
             if (!restorable) break
             backStack.add(route)
@@ -225,7 +236,7 @@ class CoachViewModel(
         const val KEY_REVIEW = "review"
         const val KEY_SELECTED = "review_selected"
         const val KEY_HINT = "hint"
-        val ROUTES = listOf(Route.Scanning, Route.Reviewing, Route.Hint)
+        val ROUTES = listOf(Route.Scanning, Route.Reviewing, Route.Hint, Route.About)
     }
 
     override fun onCleared() {

@@ -197,4 +197,15 @@
     <string name="explain_hidden_quad">En %1$s, los dígitos %2$s solo pueden ir en %3$s. Esas cuatro celdas quedan para ellos, así que %4$s.</string>
     <string name="intro_hidden_quad">En una fila, columna o caja hay cuatro dígitos que solo pueden ir en las mismas cuatro celdas. ¿Los encuentras?</string>
     <string name="where_hidden_quad">Fíjate en dónde pueden ir los dígitos %2$s en %1$s.</string>
+    <!-- Acerca de (tarea P.6) -->
+    <string name="about_open">Acerca de</string>
+    <string name="about_title">Acerca de</string>
+    <string name="about_back">Volver</string>
+    <string name="about_version">Versión %1$s</string>
+    <string name="about_description">Lee con la cámara un sudoku en papel y te da el siguiente paso lógico, con la técnica y una explicación, sin revelar la solución. Todo ocurre en el móvil.</string>
+    <string name="about_source">Código fuente en GitHub</string>
+    <string name="about_license">Licencia Apache-2.0</string>
+    <string name="about_third_party">Licencias de terceros</string>
+    <string name="about_third_party_count">%1$d componentes. Toca uno para ver su licencia.</string>
+    <string name="about_close">Cerrar</string>
 </resources>

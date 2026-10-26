@@ -101,4 +101,4 @@ The app works end to end: live scanning, review, hints and photos from the galle
 
 ## Credits and license
 
-Sudoku Coach is licensed under [Apache-2.0](LICENSE). It uses [OpenCV](https://opencv.org/) (Apache-2.0), [Google ML Kit](https://developers.google.com/ml-kit) text recognition, and the [IBM Plex Sans](https://github.com/IBM/plex) typeface (SIL Open Font License, included in the app). [HoDoKu](https://hodoku.sourceforge.net/) (GPL) is used only as a test oracle on the developer's machine and is not part of this repository or the app.
+Sudoku Coach is licensed under [Apache-2.0](LICENSE). It uses [OpenCV](https://opencv.org/) (Apache-2.0), [Google ML Kit](https://developers.google.com/ml-kit) text recognition, and the [IBM Plex Sans](https://github.com/IBM/plex) typeface (SIL Open Font License). The app's About screen lists every third-party component with its license. [HoDoKu](https://hodoku.sourceforge.net/) (GPL) is used only as a test oracle on the developer's machine and is not part of this repository or the app.

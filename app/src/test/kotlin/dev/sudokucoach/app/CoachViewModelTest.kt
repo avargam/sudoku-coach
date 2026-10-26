@@ -63,6 +63,21 @@ class CoachViewModelTest {
     }
 
     @Test
+    fun `acerca de se abre desde el escaner y sobrevive al cierre del proceso`() {
+        val saved = SavedStateHandle()
+        val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, saved)
+        viewModel.showAbout()
+        assertEquals(listOf(Route.Scanning, Route.About), viewModel.backStack.toList())
+        // Solo desde el escáner: no se apila sobre sí misma.
+        viewModel.showAbout()
+        assertEquals(listOf(Route.Scanning, Route.About), viewModel.backStack.toList())
+        val restored = CoachViewModel(PhotoScanner { error("no se lee nada") }, saved)
+        assertEquals(listOf(Route.Scanning, Route.About), restored.backStack.toList())
+        assertTrue(restored.back())
+        assertEquals(listOf<Route>(Route.Scanning), restored.backStack.toList())
+    }
+
+    @Test
     fun `un tablero escaneado en vivo lleva a la revision una sola vez`() {
         val viewModel = CoachViewModel(PhotoScanner { error("no se lee nada") }, SavedStateHandle())
         viewModel.onBoardScanned(board)
