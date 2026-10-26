@@ -38,6 +38,12 @@ val copyTestPhoto = tasks.register<CopyTestPhoto>("copyTestPhoto") {
 // al compilar la release; la de debug sigue con `arm64-v8a`.
 val buildsRelease = gradle.startParameter.taskNames.any { "Release" in it }
 
+// Firma de la release con la clave propia (D-23, tarea P.2), que nunca entra en el repo: en la CI, de variables
+// de entorno; en local, de `~/.gradle/gradle.properties`. Sin ella, la release queda sin firmar, así que nadie
+// la necesita para compilar.
+fun signing(name: String): String? = providers.environmentVariable(name).orElse(providers.gradleProperty(name)).orNull
+val releaseKeystore = signing("SUDOKUCOACH_KEYSTORE")
+
 // App de extremo a extremo (Fase 3, D-18). AGP 9 incluye el soporte de Kotlin, sin plugin aparte.
 android {
     namespace = "dev.sudokucoach.app"
@@ -59,8 +65,21 @@ android {
         }
     }
 
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = signing("SUDOKUCOACH_KEYSTORE_PASSWORD")
+                keyAlias = signing("SUDOKUCOACH_KEY_ALIAS")
+                // En un almacén PKCS12 (el de keytool por defecto), la clave tiene la misma contraseña.
+                keyPassword = signing("SUDOKUCOACH_KEY_PASSWORD") ?: storePassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

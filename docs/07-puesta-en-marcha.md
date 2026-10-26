@@ -134,3 +134,27 @@ nada en local. Tiene dos trabajos:
 - **Tests JVM:** `:solver:test :vision-core:test`.
 - **Compilación Android:** instala el SDK y compila `:vision` y sus tests instrumentados. No los
   ejecuta, porque no hay móvil.
+
+## 6. Firma de la release (D-23)
+
+La release se firma con una clave propia que **nunca entra en el repo** (`.gitignore` excluye `*.jks` y `*.keystore`). Con la misma clave, cada versión nueva se instala encima de la anterior; **si se pierde, ya no se puede**: habría que desinstalar la app para instalar una versión firmada con otra.
+
+Crear la clave (una sola vez; pide una contraseña y unos datos del certificado, que pueden ser solo el nombre):
+
+```bash
+mkdir -p ~/keys && chmod 700 ~/keys
+keytool -genkeypair -v -keystore ~/keys/sudoku-coach-release.jks -alias sudoku-coach \
+    -keyalg RSA -keysize 4096 -validity 36500
+```
+
+Copia de seguridad: el archivo `.jks` y su contraseña, fuera del PC (por ejemplo, en un gestor de contraseñas que admita adjuntos). Las dos cosas hacen falta.
+
+Firmar en local: en `~/.gradle/gradle.properties` (fuera del repo):
+
+```properties
+SUDOKUCOACH_KEYSTORE=/home/<usuario>/keys/sudoku-coach-release.jks
+SUDOKUCOACH_KEYSTORE_PASSWORD=<contraseña>
+SUDOKUCOACH_KEY_ALIAS=sudoku-coach
+```
+
+`./gradlew :app:assembleRelease` deja entonces `app-arm64-v8a-release.apk` y `app-x86_64-release.apk`, ya firmadas, en `app/build/outputs/apk/release/`. Sin esas propiedades salen sin firmar (`-unsigned`). En la CI, las mismas variables llegan como variables de entorno desde los secretos del repo (tarea P.3).

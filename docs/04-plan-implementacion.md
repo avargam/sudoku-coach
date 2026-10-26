@@ -101,7 +101,7 @@ Objetivo: hacer público el repo como pieza de portafolio, con un README en ingl
 
 - [x] Decidir la distribución (D-23), el idioma del README (D-24) y que los documentos de diseño sean privados (D-25)
 - [x] P.1 Release con R8 que funciona en el A57; elegir las ABI
-- [ ] P.2 Firma con clave propia, fuera del repo
+- [x] P.2 Firma con clave propia, fuera del repo
 - [ ] P.3 Workflow que publica la APK firmada al crear un tag
 - [ ] P.4 Compilar y probar desde un clon limpio siguiendo el README
 - [ ] P.5 README en inglés y en español, con capturas y demo

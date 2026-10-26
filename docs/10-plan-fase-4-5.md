@@ -68,6 +68,12 @@ Objetivo de la fase: **hacer público el repositorio como pieza de portafolio, c
 
 **Hecho cuando:** en local, con la clave, sale una APK firmada que `apksigner verify` acepta e instala en el A57.
 
+**Resultado:** `signingConfigs.release` lee `SUDOKUCOACH_KEYSTORE`, `SUDOKUCOACH_KEYSTORE_PASSWORD` y `SUDOKUCOACH_KEY_ALIAS` de las variables de entorno o de `~/.gradle/gradle.properties`; sin ellas, la release sale sin firmar. Se probó primero con una clave desechable. El usuario creó la clave real (RSA 4096, alias `sudoku-coach`, en `~/keys/`, con copia de seguridad) y las dos APK salen firmadas con ella (esquema v2, certificado `CN=Alonso Vargas`, SHA-256 `47c4bd84…ca89e2`). Pasos en `07-puesta-en-marcha.md` §6.
+
+- Para instalarla hubo que **desinstalar la app del A57**, firmada con la clave de debug: se perdieron el estado guardado y las 12 secuencias del móvil, que están completas en `testdata/vision/sequences` (mismos fotogramas que contó `SequenceScanTest`). `SequenceScanTest` se saltará hasta volver a grabar o copiar secuencias; `SequenceReplayTest` y `LiveTuningTest` no cambian, porque usan los `frames.txt` locales.
+- El usuario recorrió la release firmada en el A57 (permiso de la cámara, escaneo, revisión y pista) sin fallos.
+- Mientras esté instalada la release, `deployDebug` falla por firma distinta: para volver a debug, `adb uninstall dev.sudokucoach` (borra los datos de la app).
+
 ## P.3 Workflow de publicación
 - `.github/workflows/release.yml`, en tags `v*`: comprueba que el tag es una versión válida, compila con la clave de los secretos, verifica la firma, calcula el SHA-256 y crea la Release con la APK (`sudoku-coach-<versión>.apk`) y las notas.
 - Las notas salen de un apartado del `CHANGELOG.md` (nuevo, en inglés, una sección por versión con lo que cambia para quien usa la app).
